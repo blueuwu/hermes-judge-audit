@@ -115,7 +115,7 @@ class TurnRecord(_Record):
     last_response: str
     last_response_kind: str = ""  # display_kind; "failed_turn" is Hermes's failure notice
     response_chars: int
-    # Hermes's estimate of the turn's last request, system prompt and history (no tool schemas)
+    # Hermes's estimate of the turn's last request: system prompt, tool schemas, history
     context_tokens_est: int = 0
     session_id: str | None
     recent_tool_events: list[ToolEvent] = Field(default_factory=list)  # this turn's calls

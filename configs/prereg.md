@@ -239,9 +239,9 @@ every analysis; soak runs are never pooled with Phase-1 data. Measurements (`hjr
 - Protocol events are detected in the exported history after each turn; anything found there
   counts as unrecovered. A failed turn on a resumed turn with an HTTP 400 is `resume_rejected`;
   other failed turns are infrastructure failures, listed with their provider message.
-- Context is Hermes's own estimate (`estimate_request_tokens_rough`) of the system prompt and
-  history of the turn's last request, computed in the sandbox. It omits tool schemas, so it is
-  a lower bound on the real request.
+- Context is Hermes's own estimate (`estimate_request_tokens_rough`) of the turn's last request:
+  system prompt, `hermes-cli` tool schemas and history, computed in the sandbox. On Qwen, which
+  reports uncached prompt tokens, it is within about 10% of the provider's count.
 - Peak in-flight requests are counted across all trials of a soak job, each request spanning
   from the message before an assistant message to that message. 429s are counted from Hermes's
   output and logs.

@@ -159,3 +159,10 @@ def test_rejected_resume_and_coverage_from_a_trial(tmp_path):
     assert segs["early"].tool_calls == 2 and segs["early"].resumes_attempted == 1
     assert segs["concurrent"].concurrency == 1
     assert built.report.arm_id == "strong:deepseek/deepseek-v4.1-flash"
+
+
+def test_rate_limit_pattern_ignores_log_timestamps():
+    from hjr.soakreport import RATE_LIMITED
+
+    assert not RATE_LIMITED.search("2026-10-01 16:25:48,429 INFO tools.registry: ok")
+    assert RATE_LIMITED.search("Provider said: HTTP 429: too many requests")

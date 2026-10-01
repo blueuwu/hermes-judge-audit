@@ -50,19 +50,22 @@ PROMPT_DIR = "/tmp/hjr"
 SOAK_STOPS = ("pause_transport", "budget")
 PROCESS_FILTER = ("ps -eo args", "sleep infinity", "/bin/sh -c", "bash -c")
 HERMES_PYTHON = "/opt/hermes/.venv/bin/python"
-# Size of the turn's last request by Hermes's own estimate: system prompt plus the history before
-# the final reply, without display-only rows. Tool schemas are not in the export, so this is a
-# lower bound. Runs in the sandbox, where Hermes's dependencies are installed.
+# Size of the turn's last request by Hermes's own estimate: system prompt, the hermes-cli tool
+# schemas, and the history before the final reply without display-only rows. Within ~10% of
+# provider-reported prompt tokens on Qwen (no prompt caching). Runs in the sandbox, where
+# Hermes's dependencies are installed.
 CONTEXT_SCRIPT = """
 import json, sys
 from agent.model_metadata import estimate_request_tokens_rough
+from model_tools import get_tool_definitions
 s = json.loads(open(sys.argv[1], encoding="utf-8").readline())
 sent = [m for m in s["messages"] if m.get("display_kind") != "failed_turn"]
 if sent and sent[-1].get("role") == "assistant":
     sent = sent[:-1]
 keys = ("role", "content", "tool_calls", "tool_call_id")
 wire = [{k: m[k] for k in keys if m.get(k)} for m in sent]
-print(estimate_request_tokens_rough(wire, system_prompt=s.get("system_prompt") or ""))
+tools = get_tool_definitions(enabled_toolsets=["hermes-cli"], quiet_mode=True)
+print(estimate_request_tokens_rough(wire, system_prompt=s.get("system_prompt") or "", tools=tools))
 """
 
 # One limiter set per Harbor process, shared by every concurrent trial.

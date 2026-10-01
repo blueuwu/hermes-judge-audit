@@ -8,8 +8,7 @@ export after every turn (``session_NN.jsonl``) and Hermes's own output (``turn_N
 - A failed turn (Hermes's ``failed_turn`` notice) on a resumed turn whose output shows an HTTP
   400 is a rejected resume. Other failed turns are infrastructure failures: listed, not events.
 - Context is ``TurnRecord.context_tokens_est``: Hermes's own estimate, taken in the sandbox, of
-  the system prompt and history the turn's last request carried. Tool schemas are not in the
-  export, so it is a lower bound on the real request.
+  the turn's last request (system prompt, tool schemas, history).
 - Concurrency is the peak number of overlapping agent requests across all trials of a job, with
   each request spanning from the message before an assistant message to that message.
 """
@@ -33,7 +32,8 @@ TOOL_CALL_TEXT = re.compile(
     r"(terminal|execute_code|write_file|read_file|search_files|patch|process)\""
 )
 REASONING_TEXT = re.compile(r"</?think>|</?reasoning>")
-RATE_LIMITED = re.compile(r"\b429\b")
+# Provider throttling as Hermes reports it; a bare "429" also matches log timestamps (",429").
+RATE_LIMITED = re.compile(r"HTTP 429|\b429 Too Many|rate.?limited\b", re.IGNORECASE)
 HTTP_400 = re.compile(r"HTTP 400\b")
 SEGMENTS = {"early": (1, 2), "middle": (3, 4), "resumed": (5, 6)}
 
