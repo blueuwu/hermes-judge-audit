@@ -1,0 +1,44 @@
+# Soak compatibility gate for agent arms (pre-registered; see configs/prereg.md).
+#
+# This is a compatibility gate, not a reliability estimate: ~50 tool calls can show that a
+# model/provider pair speaks Hermes's tool protocol well enough to run Phase 1, but cannot
+# estimate a failure rate with useful precision. A failing arm is replaced, not reported on.
+#
+# The soak runs through Hermes + Harbor on the two M1 tasks, never through raw API calls.
+# Thresholds are fixed before any soak run; changing them is an amendment in prereg.md.
+
+[gate]
+min_tool_calls = 50
+# Protocol events of any type below that Hermes recovered from within the turn (it retried and
+# the trajectory continued cleanly). At most this many across the whole soak.
+max_recovered_events = 1
+# Protocol events that survived into the recorded trajectory. Any one fails the gate.
+max_unrecovered_events = 0
+resumes_required = 5
+resumes_passed_required = 5
+# Filled with the two M1 task ids before the gate is tagged; the evaluator refuses an empty list.
+tasks = []
+
+# Every event is logged as exactly one of these types.
+[corruption_types]
+tool_call_as_text = "Tool call emitted as text in message content instead of a structured call"
+invalid_arguments = "Tool-call arguments are truncated or not valid JSON"
+length_mid_call = "finish_reason=length while a tool call was being emitted"
+empty_completion = "Completion with no content and no tool calls"
+reasoning_leak = "Reasoning text leaked into the visible response"
+resume_rejected = "Provider rejected resumed history (e.g. reasoning_content round-trip)"
+
+# Mandatory coverage. Each segment must be present and meet its conditions.
+[segments.early]
+description = "First turns of a fresh session"
+max_turn = 2
+
+[segments.resumed]
+description = "A resumed turn 5 or 6 at realistic accumulated context"
+turns = [5, 6]
+min_context_tokens = 30000
+max_context_tokens = 60000
+
+[segments.concurrent]
+description = "Trials at the planned Phase-1 concurrency"
+min_concurrency = 8
