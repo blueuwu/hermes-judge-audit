@@ -37,11 +37,13 @@ packages = ["hjr"]
 [tool.ruff]
 line-length = 100
 target-version = "py312"
+extend-exclude = ["third_party"]
 
 [tool.ruff.lint]
 select = ["E", "F", "I", "B", "UP", "SIM"]
 
 [tool.pytest.ini_options]
 testpaths = ["tests"]
+pythonpath = ["."]
 markers = ["live: calls a real model API (deselected by default)"]
 addopts = "-m 'not live'"
