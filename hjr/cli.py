@@ -74,6 +74,14 @@ def cmd_pilot_build(args: argparse.Namespace) -> int:
     return 0
 
 
+def cmd_pilot_summary(args: argparse.Namespace) -> int:
+    from hjr.pilot import build, summarize
+
+    out = summarize.summarize(build.OUTPUT, RUNS / args.run_id)
+    print(out.read_text(encoding="utf-8"))
+    return 0
+
+
 def main(argv: list[str] | None = None) -> int:
     parser = argparse.ArgumentParser(prog="hjr", description=__doc__)
     parser.add_argument("-v", "--verbose", action="store_true")
@@ -93,6 +101,10 @@ def main(argv: list[str] | None = None) -> int:
     p = sub.add_parser("pilot-build", help="write the constructed M0.5 pilot boundaries")
     p.add_argument("--out", type=Path, default=ROOT / "data" / "frozen" / "pilot_boundaries.jsonl")
     p.set_defaults(func=cmd_pilot_build)
+
+    p = sub.add_parser("pilot-summary", help="tabulate pilot verdicts into summary.md")
+    p.add_argument("--run-id", default="pilot-v1")
+    p.set_defaults(func=cmd_pilot_summary)
 
     args = parser.parse_args(argv)
     logging.basicConfig(
