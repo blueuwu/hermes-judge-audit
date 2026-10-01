@@ -34,6 +34,83 @@ on the agent's own model.
 - **False-DONE rate:** P(decision = done | truth ≠ done).
 - **False-CONTINUE rate:** P(decision ≠ done | truth = done).
 
+## Judge call outcomes and metrics
+
+Every judge call ends in exactly one outcome, and its raw response is always stored:
+
+- `transport_failed`: no response after retries (429, timeout, 5xx, auth). Retried with
+  backoff and logged per attempt in `attempts.jsonl`. **A transport failure is never converted
+  into a verdict**; the call stays missing and is retried on the next run.
+- `parse_failed`: Hermes's `_parse_judge_response` found no JSON object (empty reply, prose,
+  truncated JSON). Production treats this as CONTINUE.
+- `format_violation`: parsed JSON that breaks the verdict contract and that Hermes silently
+  coerces to CONTINUE without flagging it: an unrecognised label, a missing verdict, or WAIT
+  without a target. Recorded separately from `parse_failed`.
+- `parsed`: a recognised verdict.
+
+Metrics, reported per judge arm in this order (reliability first, quality second):
+
+1. Transport error rate per attempt and unresolved calls; parse-failure rate; format-violation
+   rate. Each is reported on its own, never folded together.
+2. **Semantic accuracy (primary):** over `parsed` calls only, with the denominator shown.
+3. **Effective accuracy:** parse failures and format violations scored as the CONTINUE that
+   production falls back to.
+4. **Strict accuracy (sensitivity):** parse failures and format violations scored as wrong.
+
+Fail-open pushes every failure toward CONTINUE, which lowers false-DONE, the headline metric.
+Effective false-DONE therefore flatters an unreliable judge, and the gap between semantic and
+effective rates is reported as a finding, not as noise. In a live loop Hermes also auto-pauses
+after 3 consecutive parse failures or 5 consecutive transport failures
+(`hermes_cli/goals.py:1541–1553`); a pause is still not DONE, so false-DONE is unaffected.
+
+## Arms and serving
+
+- An arm is (model id, endpoint, provider, reasoning config, temperature, max_tokens), hashed
+  into an `arm_id` stored on every record. Analysis code refuses to pool records with different
+  arm ids.
+- Judge decoding parameters are the ones production sends for `goal_judge` (temperature 0,
+  max_tokens 4096, no reasoning config). A `self` judge is the agent's model on the agent's
+  provider with those parameters.
+- Every Flash evaluation cell (pilot, main calibration, drift) runs through OpenRouter, pinned
+  to the Google AI Studio provider with fallbacks disabled. Free-tier AI Studio is for
+  development only (`dev-` run ids) and is never pooled with evaluation results.
+- The provider-reported model and provider are logged on every request. If either changes
+  within an arm, new calls for that arm stop at once, completed records are kept and split into
+  sub-arms, and the event is logged as an observed drift incident. Sub-arms are not pooled by
+  default. This detects only reported identity changes; a snapshot swapped behind an unchanged
+  identifier is not observable from metadata.
+- Before the main run is frozen, `hjr check-route` must confirm that Gemini 3 Flash Preview is
+  still served on the pinned route.
+- Token use and provider-billed spend are recorded per call; full-run cost is extrapolated
+  from the pilot's measurements (`hjr cost`), not from list prices.
+
+## Drift cell
+
+Gemini 3 Flash Preview (`flash`, the model `goals.md:244` recommends at `ffc74885`) against
+Gemini 3.8 Flash (`drift`) on the same frozen items, prompt and view. Preview outputs are
+collected first, with raw responses stored so they can be re-parsed after the Preview is
+retired. Reported: call- and item-level disagreement, DONE↔CONTINUE flips, both stratified by
+category and scenario, then correctness against truth with an exact McNemar test (also run
+through NeMo Evaluator's paired comparison).
+
+## Format probes
+
+About 20 items per judge model (`data/frozen/format_probe.jsonl`, split `probe`) test only
+whether the model answers in a shape Hermes parses: all four verdicts, WAIT with running
+processes and live delegations, long multi-part goals, responses that contain JSON, and resumed
+sessions. Probe items never enter a semantic metric; the analysis code refuses them.
+
+## Soak compatibility gate
+
+Agent arms must pass `configs/soak_gate.toml` before Phase 1. It is a **compatibility gate,
+not a reliability estimate**: about 50 tool calls through Hermes + Harbor on the two M1 tasks,
+with at most 1 recovered protocol event, 0 unrecovered events, and 5 of 5 resumes passing.
+Coverage must include an early segment, a resumed turn 5–6 at 30–60k tokens of context, and the
+planned Phase-1 concurrency. Six event types are logged separately: tool call as text, invalid
+or truncated arguments, `finish_reason=length` mid-call, empty completion, reasoning leaking
+into visible output, and resumed history rejected by the provider. An arm that fails is
+replaced; its soak numbers are not reported as reliability estimates.
+
 ## Analysis rules
 
 - Lead with per-class error rates and their CIs. Cohen's κ is secondary and is always reported
@@ -80,7 +157,8 @@ explicitly confirms the goal was completed").
 at production sampling settings (temperature 0, max_tokens 4096). Models and pinned providers
 are in `configs/judge_variants.toml`.
 
-**Go / reframe rule (fixed before the pilot runs).**
+**Go / reframe rule (fixed before the pilot runs).** Counts use production (effective)
+decisions, majority of 5 samples; semantic counts are reported alongside.
 
 - *Truncation effect present* if, for `head4k` under either model, the ~4.5k and ~8k rows
   together have at least 4 more items judged done than the ~1k row and the no-caveat
