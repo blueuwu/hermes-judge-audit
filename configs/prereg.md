@@ -208,3 +208,22 @@ has its own `self` judge (`self-weak`, `self-strong`) and passes its own soak.
 19-22 successful requests a minute under sustained 429s in `pilot-v1`. Its replay is capped at
 18 requests a minute (`rpm` in `judge_variants.toml`). Throttling does not change outputs and is
 not part of arm identity.
+
+**2026-10-01. Agent harness (M1), before any agent run.** How the harness departs from an
+interactive `/goal` session, each recorded per boundary where it applies:
+- The harness drives the loop: one `hermes chat --resume` per turn in the Harbor sandbox, the
+  goal text on turn 1 and `CONTINUATION_PROMPT_TEMPLATE` after, and the decision rules of
+  `GoalManager.evaluate_after_turn` for the plain prompt (`hjr/goalloop.py`). The in-loop judge
+  is the production prompt on the `self` arm with the `head4k` view, called from the host with
+  production sampling.
+- The turn budget is 6 (production default 20), for cost. Budget stops are recorded as such.
+- The judge is shown no background processes (production lists Hermes-managed ones); the
+  processes actually running at each boundary are recorded instead.
+- When a turn fails, Hermes writes a fixed notice as the assistant message
+  (`display_kind = failed_turn`) and the CLI hands it to the judge. The harness does the same
+  and tags those boundaries.
+- Local Docker cannot enforce network policy (Harbor's Docker backend needs nftables fib rules,
+  which the Docker Desktop WSL2 kernel lacks), so local agent egress is public. Tasks need no
+  internet; boundaries whose tool calls reach the network are tagged.
+- OpenRouter provider pinning (`provider_routing.only`) covers the agent's own requests.
+  Hermes's auxiliary calls (titles; compression only above 85% of context) are not pinned.

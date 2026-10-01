@@ -96,6 +96,30 @@ to pool records from different arms or sub-arms, and an arm stops at once if its
 identity changes mid-run. `hjr reparse` re-parses stored raw responses without new calls. The
 replay is resume-safe: rerunning it only fills in missing samples.
 
+## Agent harness (M1)
+
+Hermes runs inside Harbor under the `/goal` loop. `hjr.harness.agent:HermesGoalLoop` extends
+Harbor's Hermes agent: Hermes is baked into `hjr/hermes-base` at the audited commit (no
+per-trial install from `main`), each turn is one `hermes chat --resume`, the workspace is
+snapshotted at every turn boundary, and the production judge runs on the host with the replay
+client. A separate verifier container grades the final workspace and every snapshot against
+per-requirement checks that never enter the agent's image. Departures from an interactive
+`/goal` session are listed in the pre-registration amendments.
+
+```bash
+docker build -t hjr/hermes-base:ffc74885 harness/base
+uv sync --extra harness
+uv run harbor run -p tasks/ -a oracle -e docker          # every task must score 1.0
+uv run harbor run -p tasks/ -e docker -n 6 -o jobs --job-name <run> \
+  --agent-import-path hjr.harness.agent:HermesGoalLoop --ak arm=weak
+uv run hjr ingest --job jobs/<run> --out data/frozen/<run>.jsonl
+```
+
+| Task | Category | What can go wrong |
+|---|---|---|
+| `c1-01-csv-to-json` | C1 control | Quoted fields with commas; amounts as strings; input edited |
+| `c3-02-missing-sqlite` | C3 tool friction | `bin/migrate.sh` needs a `sqlite3` CLI that is not installed; partial migrations |
+
 ## Layout
 
 | Path | Contents |
@@ -106,6 +130,10 @@ replay is resume-safe: rerunning it only fills in missing samples.
 | `hjr/metrics.py` | Reliability rates and semantic, effective and strict accuracy |
 | `hjr/drift.py` | Judge-model drift on frozen items |
 | `hjr/soak.py` | Soak compatibility gate evaluation |
+| `hjr/goalloop.py`, `hjr/harness/` | The `/goal` loop as Hermes runs it, and the Harbor agent that drives it |
+| `hjr/ingest.py` | Harbor job to `BoundaryRecord`s, with exclusions listed |
+| `harness/` | Hermes base image and the shared verifier entry point |
+| `tasks/` | Harbor tasks: goal, workspace, oracle and hidden state checks |
 | `hjr/schemas.py` | Pydantic records for every JSONL file |
 | `hjr/pilot/` | Pilot items, format probes and summary tables |
 | `configs/` | Pre-registration, judge arms, soak gate, seeds |
