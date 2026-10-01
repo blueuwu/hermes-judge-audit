@@ -11,6 +11,11 @@ Extends Harbor's built-in ``Hermes`` agent with three changes:
 Per trial, the agent log dir gets ``turns.jsonl`` (one TurnRecord per boundary),
 ``judge_attempts.jsonl``, ``goal_loop.json`` and the raw Hermes output of every turn. Snapshots
 go to ``/logs/artifacts/boundaries/bNN.tgz`` for the verifier.
+
+A task with a ``stages/`` directory gets ``stages/stage_N`` copied to ``/app/evidence/stage_N``
+just before turn N, so its evidence cannot be read early. In soak mode Hermes also dumps every
+request body before sending it (``HERMES_DUMP_REQUESTS``); the dumps land in
+``request_dumps/`` for the soak report's ``reasoning_content`` check.
 """
 
 from __future__ import annotations
@@ -46,23 +51,28 @@ WORKSPACE = "/app"
 SNAPSHOT_DIR = "/logs/artifacts/boundaries"
 AGENT_LOG_DIR = "/logs/agent"
 PROMPT_DIR = "/tmp/hjr"
+EVIDENCE_DIR = f"{WORKSPACE}/evidence"
 # Even a soak stops here: the judge is unreachable or the turn budget is spent.
 SOAK_STOPS = ("pause_transport", "budget")
 PROCESS_FILTER = ("ps -eo args", "sleep infinity", "/bin/sh -c", "bash -c")
 HERMES_PYTHON = "/opt/hermes/.venv/bin/python"
 # Size of the turn's last request by Hermes's own estimate: system prompt, the hermes-cli tool
-# schemas, and the history before the final reply without display-only rows. Within ~10% of
+# schemas, and the history before the final reply (failed-turn notices included: Hermes sends
+# them back), with reasoning_content where Hermes replays it (needs_reasoning_echo). Within ~10% of
 # provider-reported prompt tokens on Qwen (no prompt caching). Runs in the sandbox, where
 # Hermes's dependencies are installed.
 CONTEXT_SCRIPT = """
 import json, sys
+from agent.message_sanitization import needs_reasoning_echo
 from agent.model_metadata import estimate_request_tokens_rough
 from model_tools import get_tool_definitions
 s = json.loads(open(sys.argv[1], encoding="utf-8").readline())
-sent = [m for m in s["messages"] if m.get("display_kind") != "failed_turn"]
+sent = list(s["messages"])
 if sent and sent[-1].get("role") == "assistant":
     sent = sent[:-1]
 keys = ("role", "content", "tool_calls", "tool_call_id")
+if needs_reasoning_echo("openrouter", sys.argv[2], "https://openrouter.ai/api/v1"):
+    keys += ("reasoning_content",)
 wire = [{k: m[k] for k in keys if m.get(k)} for m in sent]
 tools = get_tool_definitions(enabled_toolsets=["hermes-cli"], quiet_mode=True)
 print(estimate_request_tokens_rough(wire, system_prompt=s.get("system_prompt") or "", tools=tools))
@@ -141,7 +151,10 @@ class HermesGoalLoop(Hermes):
         key = os.environ.get("OPENROUTER_API_KEY")
         if not key:
             raise RuntimeError("OPENROUTER_API_KEY is not set")
-        return {"HERMES_HOME": HERMES_HOME, "TERMINAL_ENV": "local", "OPENROUTER_API_KEY": key}
+        env = {"HERMES_HOME": HERMES_HOME, "TERMINAL_ENV": "local", "OPENROUTER_API_KEY": key}
+        if self.options.soak:
+            env["HERMES_DUMP_REQUESTS"] = "1"
+        return env
 
     async def _upload_text(self, environment: BaseEnvironment, text: str, remote: str) -> None:
         with tempfile.TemporaryDirectory(prefix="hjr-") as tmp:
@@ -193,7 +206,8 @@ class HermesGoalLoop(Hermes):
     async def _context_tokens(self, environment: BaseEnvironment, turn: int) -> int:
         export = f"{AGENT_LOG_DIR}/session_{turn:02d}.jsonl"
         result = await environment.exec(
-            command=f"cd /opt/hermes && {HERMES_PYTHON} -c {shlex.quote(CONTEXT_SCRIPT)} {export}",
+            command=f"cd /opt/hermes && {HERMES_PYTHON} -c {shlex.quote(CONTEXT_SCRIPT)} "
+            f"{export} {shlex.quote(self._agent_model)}",
             env={"HERMES_HOME": HERMES_HOME},
             timeout_sec=60,
         )
@@ -214,6 +228,23 @@ class HermesGoalLoop(Hermes):
         result = await environment.exec(command="ps -eo args --no-headers", timeout_sec=10)
         lines = [ln.strip() for ln in (result.stdout or "").splitlines() if ln.strip()]
         return [ln for ln in lines if not any(f in ln for f in PROCESS_FILTER)]
+
+    def _task_dir(self) -> Path | None:
+        """The task directory, from the trial config Harbor writes before the agent runs."""
+        config = self.logs_dir.parent / "config.json"
+        try:
+            return Path(json.loads(config.read_text(encoding="utf-8"))["task"]["path"])
+        except (OSError, ValueError, KeyError, TypeError):
+            return None
+
+    async def _release_stage(
+        self, environment: BaseEnvironment, task_dir: Path | None, turn: int
+    ) -> str | None:
+        stage = task_dir / "stages" / f"stage_{turn}" if task_dir else None
+        if stage is None or not stage.is_dir():
+            return None
+        await environment.upload_dir(stage, f"{EVIDENCE_DIR}/stage_{turn}")
+        return stage.name
 
     def _judge(self, pending: TurnRecord, client: JudgeClient):
         return judge_once(
@@ -240,6 +271,7 @@ class HermesGoalLoop(Hermes):
         )
         await self._upload_text(environment, self._config_yaml(), f"{HERMES_HOME}/config.yaml")
 
+        task_dir = self._task_dir()
         state = goalloop.LoopState(max_turns=self.options.max_turns)
         session_id: str | None = None
         seen = 0
@@ -255,9 +287,13 @@ class HermesGoalLoop(Hermes):
             "turns": 0,
             "end": None,
             "production_end": None,
+            "released": [],
         }
         try:
             for turn in range(1, self.options.max_turns + 1):
+                released = await self._release_stage(environment, task_dir, turn)
+                if released:
+                    summary["released"].append({"turn": turn, "stage": released})
                 prompt = goalloop.turn_prompt(goal, turn)
                 code, seconds = await self._hermes_turn(environment, turn, prompt, session_id)
                 session_id, messages = await self._export_session(environment, turn, session_id)
@@ -316,7 +352,10 @@ class HermesGoalLoop(Hermes):
             await environment.exec(
                 command=f"cp $(ls {AGENT_LOG_DIR}/session_*.jsonl | tail -1) "
                 f"{AGENT_LOG_DIR}/hermes-session.jsonl 2>/dev/null || true; "
-                f"cp -r {HERMES_HOME}/logs {AGENT_LOG_DIR}/hermes-logs 2>/dev/null || true"
+                f"cp -r {HERMES_HOME}/logs {AGENT_LOG_DIR}/hermes-logs 2>/dev/null || true; "
+                f"mkdir -p {AGENT_LOG_DIR}/request_dumps && "
+                f"cp {HERMES_HOME}/sessions/request_dump_*.json {AGENT_LOG_DIR}/request_dumps/ "
+                "2>/dev/null || true"
             )
 
     def _append(self, name: str, line: str) -> None:
