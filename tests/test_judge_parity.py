@@ -100,3 +100,41 @@ def test_non_utc_timestamp_renders_its_own_zone():
 def test_naive_timestamp_rejected():
     with pytest.raises(ValueError):
         judge.format_time(datetime(2026, 10, 5))
+
+
+BACKGROUND = [
+    {
+        "pid": 4242,
+        "session_id": "proc_ci",
+        "command": "gh run watch 123 --exit-status",
+        "uptime_seconds": 95,
+        "watch_patterns": ["completed"],
+        "output_preview": "Run in progress\nbuild: queued",
+        "status": "running",
+    },
+    {"pid": 77, "command": "npm run build", "notify_on_complete": True, "status": "running"},
+    {"pid": 12, "command": "sleep 1", "status": "exited"},
+]
+
+
+@pytest.mark.parametrize(
+    ("processes", "delegations"),
+    [(BACKGROUND, 0), ([], 2), (BACKGROUND, 1)],
+    ids=["processes", "delegations", "both"],
+)
+def test_background_block_matches_judge_goal(captured, processes, delegations):
+    goal, response = GOALS["plain"], "Waiting on CI before calling this done."
+    hg.judge_goal(goal, response, background_processes=processes, active_delegations=delegations)
+    boundary = make_boundary(
+        goal=goal,
+        last_response=response,
+        background_processes=processes,
+        active_delegations=delegations,
+        ts=FROZEN,
+    )
+    sent = captured[0]["messages"]
+    assert judge.build_messages(boundary, prompt="prod-plain", view="head4k") == sent
+    content = sent[1]["content"]
+    assert ("pid 4242" in content) is bool(processes)
+    assert "pid 12" not in content  # exited processes are dropped
+    assert ("Active delegations" in content) is (delegations > 0)

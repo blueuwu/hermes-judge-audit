@@ -5,12 +5,13 @@ from __future__ import annotations
 from collections.abc import Iterable, Iterator
 from datetime import datetime
 from pathlib import Path
-from typing import Literal
+from typing import Any, Literal
 
 from pydantic import AwareDatetime, BaseModel, ConfigDict, Field
 
 TruthState = Literal["done", "not_done", "blocked"]
-Split = Literal["dev", "heldout"]
+# "probe" items test output-format compliance only and never enter a semantic metric.
+Split = Literal["dev", "heldout", "probe"]
 
 
 class _Record(BaseModel):
@@ -54,6 +55,9 @@ class BoundaryRecord(_Record):
     last_response: str
     response_chars: int
     recent_tool_events: list[ToolEvent] = Field(default_factory=list)
+    # As gathered by Hermes for the judge prompt; empty for nearly every boundary.
+    background_processes: list[dict[str, Any]] = Field(default_factory=list)
+    active_delegations: int = 0
     controller_verdict: ControllerVerdict | None = None
     verifier: VerifierResult
     tags: dict[str, str | int | float] = Field(default_factory=dict)

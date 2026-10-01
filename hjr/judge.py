@@ -18,6 +18,7 @@ import json
 from collections.abc import Callable, Sequence
 from dataclasses import dataclass
 from datetime import datetime
+from typing import Any
 
 from hermes_cli import goals as hg
 from hermes_time import safe_strftime
@@ -97,6 +98,16 @@ def format_time(now: datetime) -> str:
     return safe_strftime(now, TIME_FORMAT)
 
 
+def render_background_block(
+    background_processes: Sequence[dict[str, Any]] = (), active_delegations: int = 0
+) -> str:
+    """Same composition as ``judge_goal``: running processes, then live delegations."""
+    block = hg._render_background_block(list(background_processes))
+    if active_delegations > 0:
+        block += hg.JUDGE_DELEGATIONS_BLOCK_TEMPLATE.format(count=active_delegations)
+    return block
+
+
 def build_user_prompt(
     goal: str,
     response_view: str,
@@ -104,11 +115,13 @@ def build_user_prompt(
     prompt: str,
     now: datetime,
     contract: dict[str, str] | None = None,
+    background_processes: Sequence[dict[str, Any]] = (),
+    active_delegations: int = 0,
 ) -> str:
     common = dict(
         goal=hg._truncate(goal, GOAL_CHARS),
         response=response_view,
-        background_block="",
+        background_block=render_background_block(background_processes, active_delegations),
         current_time=format_time(now),
     )
     if prompt == "prod-plain":
@@ -130,6 +143,8 @@ def build_messages(boundary: BoundaryRecord, *, prompt: str, view: str) -> list[
         prompt=prompt,
         now=boundary.ts,
         contract=boundary.contract,
+        background_processes=boundary.background_processes,
+        active_delegations=boundary.active_delegations,
     )
     return [
         {"role": "system", "content": hg.JUDGE_SYSTEM_PROMPT},
@@ -145,11 +160,29 @@ def prompt_sha256(messages: list[dict[str, str]]) -> str:
 # ── Verdicts ──────────────────────────────────────────────────────────
 
 
+VERDICTS = ("done", "blocked", "continue", "wait")
+
+# Replies Hermes accepts without flagging ``parse_failed`` but that break the verdict contract in
+# JUDGE_SYSTEM_PROMPT. Production treats each as CONTINUE; we keep that and record the kind.
+UNKNOWN_LABEL = "unknown_label"  # {"verdict": "finished"}
+MISSING_VERDICT = "missing_verdict"  # JSON object with neither "verdict" nor legacy "done"
+WAIT_WITHOUT_TARGET = "wait_without_target"  # wait with no session, pid or seconds
+
+
 @dataclass(frozen=True)
 class ParsedVerdict:
-    verdict: str  # done | continue | blocked | wait (as the judge returned it)
+    verdict: str  # done | continue | blocked | wait, after Hermes's own fallbacks
     reason: str
     parse_failed: bool
+    format_violation: str | None = None
+
+    @property
+    def outcome(self) -> str:
+        if self.parse_failed:
+            return "parse_failed"
+        if self.format_violation:
+            return "format_violation"
+        return "parsed"
 
     @property
     def decision(self) -> str:
@@ -157,9 +190,28 @@ class ParsedVerdict:
         return "continue" if self.verdict == "wait" else self.verdict
 
 
+def _format_violation(raw: str, verdict: str) -> str | None:
+    data = hg._extract_json_object(raw)
+    if data is None:
+        return None
+    label = data.get("verdict")
+    if isinstance(label, str):
+        norm = label.strip().lower()
+        if norm not in VERDICTS:
+            return UNKNOWN_LABEL
+        if norm == "wait" and verdict != "wait":
+            return WAIT_WITHOUT_TARGET
+        return None
+    if "done" not in data:
+        return MISSING_VERDICT
+    return None
+
+
 def parse_verdict(raw: str) -> ParsedVerdict:
+    """Hermes's parser, unchanged, plus a flag for replies it silently coerces to CONTINUE."""
     verdict, reason, parse_failed, _wait = hg._parse_judge_response(raw)
-    return ParsedVerdict(verdict=verdict, reason=reason, parse_failed=parse_failed)
+    violation = None if parse_failed else _format_violation(raw, verdict)
+    return ParsedVerdict(verdict, reason, parse_failed, violation)
 
 
 @dataclass(frozen=True)
