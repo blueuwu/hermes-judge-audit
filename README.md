@@ -32,19 +32,27 @@ core.longpaths true`); the Hermes docs tree has deep paths.
 directions, and a truncation dose-response set where one caveat sits at ~1k, ~3.5k, ~4.5k or ~8k
 characters into a long report.
 
-Run order: check the pinned routes, probe each judge's output format, then the pilot with the
-Flash Preview cells first so its outputs are frozen early, then the drift comparison.
+Run order: check the pinned routes, probe each judge's output format, then the pilot (Flash
+Preview cells first, so its outputs are frozen early), then the drift comparison.
 
 ```bash
 cp .env.example .env            # add OPENROUTER_API_KEY
 uv run hjr check-route          # pinned models and providers still listed (metadata only)
 
-uv run hjr replay --boundaries data/frozen/format_probe.jsonl --run-id probe-v1 --samples 1   --variant prod-plain:flash:head4k --variant prod-plain:drift:head4k   --variant prod-plain:self-weak:head4k
+uv run hjr replay --boundaries data/frozen/format_probe.jsonl --run-id probe-v1 --samples 1 \
+  --variant prod-plain:flash:head4k --variant prod-plain:drift:head4k \
+  --variant prod-plain:self-weak:head4k
 uv run hjr probe-summary --run-id probe-v1
 
-uv run hjr replay --boundaries data/frozen/pilot_boundaries.jsonl --run-id pilot-v1 --samples 5   --variant prod-plain:flash:head4k     --variant prod-plain:flash:headtail4k   --variant prod-plain:self-weak:head4k --variant prod-plain:self-weak:headtail4k   --variant prod-plain:drift:head4k     --variant prod-plain:drift:headtail4k
+# Flash Preview first, so its outputs are frozen before anything else
+uv run hjr replay --boundaries data/frozen/pilot_boundaries.jsonl --run-id pilot-v1 --samples 5 \
+  --variant prod-plain:flash:head4k --variant prod-plain:flash:headtail4k
+uv run hjr replay --boundaries data/frozen/pilot_boundaries.jsonl --run-id pilot-v1 --samples 5 \
+  --variant prod-plain:self-weak:head4k --variant prod-plain:self-weak:headtail4k \
+  --variant prod-plain:drift:head4k --variant prod-plain:drift:headtail4k
 uv run hjr pilot-summary --run-id pilot-v1
-uv run hjr drift --run-id pilot-v1 --boundaries data/frozen/pilot_boundaries.jsonl   --baseline prod-plain:flash:head4k --candidate prod-plain:drift:head4k
+uv run hjr drift --run-id pilot-v1 --boundaries data/frozen/pilot_boundaries.jsonl \
+  --baseline prod-plain:flash:head4k --candidate prod-plain:drift:head4k
 uv run hjr cost --run-id pilot-v1 --calls 11000
 ```
 
