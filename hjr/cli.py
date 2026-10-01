@@ -206,6 +206,7 @@ def cmd_soak(args: argparse.Namespace) -> int:
     import json
     import tomllib
 
+    from hjr.manifest import soak_manifest
     from hjr.soak import evaluate, load_gate
     from hjr.soakreport import build_report
 
@@ -239,6 +240,10 @@ def cmd_soak(args: argparse.Namespace) -> int:
     }
     args.out.parent.mkdir(parents=True, exist_ok=True)
     args.out.write_bytes((json.dumps(record, indent=2) + "\n").encode("utf-8"))
+    manifest = soak_manifest(args.job, args.tasks, gate["gate"]["tasks"])
+    args.out.with_suffix(".manifest.json").write_bytes(
+        (json.dumps(manifest, indent=2) + "\n").encode("utf-8")
+    )
     print(f"{built.report.arm_id}: {'PASS' if result.passed else 'FAIL'} ({built.trials} trials)")
     for key, value in result.counts.items():
         print(f"  {key}: {value}")

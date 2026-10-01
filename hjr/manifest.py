@@ -3,6 +3,7 @@
 from __future__ import annotations
 
 import hashlib
+import json
 import subprocess
 from collections import Counter, defaultdict
 from collections.abc import Mapping
@@ -127,6 +128,44 @@ def judge_run_manifest(
         counts={"boundaries": n_boundaries, **run_counts(run_dir, verdicts)},
         usage=usage_by_variant(verdicts),
     )
+
+
+def tree_sha256(root: Path) -> str:
+    """Hash of every file under ``root``, keyed by relative path."""
+    h = hashlib.sha256()
+    for path in sorted(p for p in root.rglob("*") if p.is_file() and "__pycache__" not in p.parts):
+        h.update(path.relative_to(root).as_posix().encode() + b"\0" + sha256_file(path).encode())
+    return h.hexdigest()
+
+
+def soak_manifest(job_dirs: list[Path], tasks_dir: Path, task_ids: list[str]) -> dict:
+    """Provenance of a soak report: code, Hermes, gate and task versions, Harbor outcomes."""
+    sha, dirty = git_state()
+    jobs = {}
+    for job in job_dirs:
+        stats = json.loads((job / "result.json").read_text(encoding="utf-8")).get("stats", {})
+        rewards = {}
+        for trial in sorted(d for d in job.iterdir() if (d / "verifier" / "reward.json").is_file()):
+            reward = json.loads((trial / "verifier" / "reward.json").read_text(encoding="utf-8"))
+            rewards[trial.name] = reward.get("reward")
+        jobs[rel(job)] = {
+            "config_sha256": sha256_file(job / "config.json"),
+            "completed_trials": stats.get("n_completed_trials"),
+            "errored_trials": stats.get("n_errored_trials"),
+            "retries": stats.get("n_retries"),
+            "rewards": rewards,
+        }
+    return {
+        "kind": "soak",
+        "git_sha": sha,
+        "git_dirty": dirty,
+        "hermes_sha": hermes_sha(),
+        "uv_lock_sha256": sha256_file(ROOT / "uv.lock"),
+        "gate_sha256": sha256_file(ROOT / "configs" / "soak_gate.toml"),
+        "tasks": {t: tree_sha256(tasks_dir / t.removeprefix("hjr/")) for t in task_ids},
+        "jobs": jobs,
+        "written_at": datetime.now(UTC).isoformat(),
+    }
 
 
 def write_manifest(run_dir: Path, record: RunManifest) -> None:

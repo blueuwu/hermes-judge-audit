@@ -132,3 +132,17 @@ def test_concurrency_floor_is_six_peak_in_flight():
     result = soak.evaluate(_report(segments=segs), _gate())
     assert any("concurrency 5 < 6" in f for f in result.failures)
     assert result.counts["rate_limited"] == 3
+
+
+def test_task_hash_covers_paths_and_contents(tmp_path):
+    from hjr.manifest import tree_sha256
+
+    (tmp_path / "a").mkdir()
+    (tmp_path / "a" / "x.txt").write_text("one")
+    before = tree_sha256(tmp_path)
+    (tmp_path / "a" / "x.txt").write_text("two")
+    assert tree_sha256(tmp_path) != before
+    (tmp_path / "a" / "x.txt").write_text("one")
+    assert tree_sha256(tmp_path) == before
+    (tmp_path / "a" / "x.txt").rename(tmp_path / "x.txt")
+    assert tree_sha256(tmp_path) != before
