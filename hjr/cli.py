@@ -84,6 +84,37 @@ def cmd_pilot_build(args: argparse.Namespace) -> int:
     return 0
 
 
+def cmd_probe_build(args: argparse.Namespace) -> int:
+    from hjr.pilot import probes
+
+    n = probes.write()
+    print(f"wrote {n} format probes to {manifest.rel(probes.OUTPUT)}")
+    return 0
+
+
+def cmd_probe_summary(args: argparse.Namespace) -> int:
+    from hjr.pilot import probes
+    from hjr.replay import load_verdicts
+
+    expected = {b.boundary_id: b.tags["expected"] for b in probes.build()}
+    rows = [r for r in load_verdicts(RUNS / args.run_id) if r.boundary_id in expected]
+    print(
+        "| Variant | Calls | Parsed | Parse failed | Format violations | finish_reason=length "
+        "| Verdict = expected |"
+    )
+    print("|---|---|---|---|---|---|---|")
+    for variant in sorted({r.variant for r in rows}):
+        vs = [r for r in rows if r.variant == variant]
+        print(
+            f"| `{variant}` | {len(vs)} | {sum(r.outcome == 'parsed' for r in vs)} | "
+            f"{sum(r.outcome == 'parse_failed' for r in vs)} | "
+            f"{sum(r.outcome == 'format_violation' for r in vs)} | "
+            f"{sum(r.finish_reason == 'length' for r in vs)} | "
+            f"{sum(r.verdict == expected[r.boundary_id] for r in vs)} |"
+        )
+    return 0
+
+
 def cmd_pilot_summary(args: argparse.Namespace) -> int:
     from hjr.pilot import build, summarize
 
@@ -181,6 +212,13 @@ def main(argv: list[str] | None = None) -> int:
     p = sub.add_parser("pilot-build", help="write the constructed M0.5 pilot boundaries")
     p.add_argument("--out", type=Path, default=ROOT / "data" / "frozen" / "pilot_boundaries.jsonl")
     p.set_defaults(func=cmd_pilot_build)
+
+    p = sub.add_parser("probe-build", help="write the format-compliance probe items")
+    p.set_defaults(func=cmd_probe_build)
+
+    p = sub.add_parser("probe-summary", help="format-compliance table for a probe run")
+    p.add_argument("--run-id", default="probe-v1")
+    p.set_defaults(func=cmd_probe_summary)
 
     p = sub.add_parser("pilot-summary", help="tabulate pilot verdicts into summary.md")
     p.add_argument("--run-id", default="pilot-v1")
