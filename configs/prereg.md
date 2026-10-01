@@ -1,6 +1,6 @@
 # Pre-registration
 
-Status: draft, to be tagged `prereg-v1` before the first judge call.
+Status: tagged `prereg-v1` at `70ad956`; later changes are listed under Amendments.
 Audited code: `NousResearch/hermes-agent` at `ffc74885c5f6eb75f6c134fb4eef86d734066623`.
 
 ## Question
@@ -173,3 +173,38 @@ All pilot items are dev material and never enter the held-out set.
 ## Amendments
 
 Amendments are allowed only before M2 and are logged here with a date and reason.
+
+**2026-10-01. Tag placement.** The tag was due before the first judge call and was created
+after the M0.5 pilot instead. It points at `70ad956`, the commit every probe and pilot call ran
+on (`git_sha` in `results/runs/{probe-v1,pilot-v1}/manifest.json`, clean tree). The go/reframe
+rule, metrics and arm rules were committed in `d1eef3e`; the only change between the two
+commits is the README. Since the pilot, only the status line and these amendments have
+changed.
+
+**2026-10-01. Drift cell confound.** Gemini 3.8 Flash reasons by default on the pinned route
+(about 230 reasoning tokens per pilot call) and Gemini 3 Flash Preview does not (0). Both arms
+send what production sends, no reasoning config, so both are production-faithful. Drift results
+therefore describe the model change together with its default reasoning, not the model alone.
+
+**2026-10-01. Agent arms.** Two agent arms, from different vendors on different providers: weak
+`qwen/qwen3-coder-30b-a3b-instruct` via Alibaba and strong `deepseek/deepseek-v4.1-flash` via
+DeepSeek's own endpoint (third-party hosts list undisclosed or fp4/fp8 quantization). Reason:
+the weak arm alone yields too few genuine DONE boundaries to estimate false-CONTINUE. Each arm
+has its own `self` judge (`self-weak`, `self-strong`) and passes its own soak.
+
+**2026-10-01. Soak gate, before any soak run.**
+- A recovery that leaves an error or retry message in the history counts as unrecovered,
+  because the trajectory still carries it.
+- Any `resume_rejected` event fails the gate, recovered or not; it falls under the 5/5 resume
+  criterion.
+- Phase 1 runs agents in local Docker. Concurrency is measured as peak in-flight agent
+  requests, with a floor of 6 (was 8). It is raised to 8, by amendment, only if the soak
+  sustains 8 with no 429s.
+- Agent and judge concurrency are separate. Judge cells are offline replays of frozen
+  trajectories with their own rate limits and backoff; judge throttling never drives the agent
+  gate.
+
+**2026-10-01. Judge replay rate for `drift`.** The pinned Gemini 3.8 Flash route served a flat
+19-22 successful requests a minute under sustained 429s in `pilot-v1`. Its replay is capped at
+18 requests a minute (`rpm` in `judge_variants.toml`). Throttling does not change outputs and is
+not part of arm identity.
