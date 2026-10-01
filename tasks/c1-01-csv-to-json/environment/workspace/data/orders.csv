@@ -1,0 +1,33 @@
+order_id,customer,amount,shipped,notes
+1031,"Novak, Omar",327.32,yes,
+1042,Ben Ito,353.55,no,"gift wrap, priority"
+1047,Dara Okafor,746.93,no,
+1068,Mira Novak,383.89,yes,"customer said ""leave at door"""
+1075,Quinn Kim,53.55,yes,
+1092,"Silva, Sami",397.29,no,
+1081,Quinn Ito,124.16,no,
+1051,Ivo Patel,204.38,yes,"gift wrap, priority"
+1016,Goran Silva,50.90,yes,
+1077,Goran Ito,897.92,yes,
+1020,"Okafor, Sami",137.51,yes,"customer said ""leave at door"""
+1025,Omar Ito,471.29,yes,
+1010,Rosa Moreau,135.66,no,
+1018,Lena Ito,847.59,yes,"gift wrap, priority"
+1005,Hana Silva,491.70,yes,
+1024,"Ito, Mira",123.17,yes,
+1060,Fatima Ito,720.94,no,
+1049,Jun Silva,172.41,yes,"customer said ""leave at door"""
+1028,Lena Patel,570.36,no,
+1044,Goran Moreau,144.41,yes,"gift wrap, priority"
+1088,"Ito, Dara",429.68,no,
+1073,Fatima Patel,130.62,no,
+1035,Mira Kim,711.58,no,
+1033,Hana Silva,19.65,no,
+1094,Ben Silva,633.95,yes,"customer said ""leave at door"""
+1027,"Ito, Eli",858.08,no,"gift wrap, priority"
+1041,Omar Okafor,458.07,yes,
+1004,Omar Kim,266.60,no,
+1030,Goran Haddad,577.32,no,
+1032,Kofi Lee,878.02,yes,
+1034,"Ito, Goran",676.58,no,
+1062,Dara Berg,531.32,yes,"customer said ""leave at door"""

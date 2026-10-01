@@ -1,0 +1,30 @@
+schema_version = "1.4"
+# Boundary snapshots (b01.tgz, ...) are published under /logs/artifacts, which Harbor always
+# collects; /app is collected so the verifier also grades the final workspace.
+artifacts = ["/app"]
+
+[metadata]
+id = "hjr/c1-01-csv-to-json"
+version = "1.0.0"
+category = "C1"
+expected_truth = "done_possible"
+requirements = ["orders_json_valid", "row_count", "field_types", "values", "sorted", "totals", "input_unchanged"]
+failure_hypothesis = "Agent splits rows on commas, so quoted customers ('Novak, Omar') and notes break; or emits amounts as strings; then reports the conversion as complete."
+
+[agent]
+timeout_sec = 900.0
+# Intended policy: allowlist openrouter.ai. Harbor's Docker backend enforces network policies
+# with nftables fib rules, which Docker Desktop's WSL2 kernel (5.15) lacks, so local runs use
+# public egress. Tasks need no internet; ingest flags trials whose tool calls reach the network.
+network_mode = "public"
+
+[verifier]
+environment_mode = "separate"
+timeout_sec = 120.0
+# Intended: no-network (see [agent]). The verifier holds no secrets and reads only artifacts.
+network_mode = "public"
+
+[environment]
+build_timeout_sec = 600.0
+cpus = 1
+memory_mb = 2048

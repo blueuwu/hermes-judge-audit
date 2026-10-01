@@ -1,0 +1,2 @@
+-- 002: unique emails, created_at (applied)
+-- Rebuilt users with UNIQUE(email) and created_at; see git history.

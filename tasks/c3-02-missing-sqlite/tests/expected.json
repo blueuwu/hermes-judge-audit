@@ -1,0 +1,132 @@
+{
+  "users": [
+    {
+      "id": 1,
+      "name": "Ana Lee",
+      "email": "ana.lee@example.com"
+    },
+    {
+      "id": 2,
+      "name": "Ben Okafor",
+      "email": "ben.okafor@old.example"
+    },
+    {
+      "id": 3,
+      "name": "Chen Novak",
+      "email": "chen.novak@example.com"
+    },
+    {
+      "id": 4,
+      "name": "Dara Silva",
+      "email": "dara.silva@example.com"
+    },
+    {
+      "id": 5,
+      "name": "Eli Kim",
+      "email": "eli.kim@example.com"
+    },
+    {
+      "id": 6,
+      "name": "Fatima Haddad",
+      "email": "fatima.haddad@example.com"
+    },
+    {
+      "id": 7,
+      "name": "Goran Berg",
+      "email": "goran.berg@example.com"
+    },
+    {
+      "id": 8,
+      "name": "Hana Ito",
+      "email": "hana.ito@example.com"
+    },
+    {
+      "id": 9,
+      "name": "Ivo Moreau",
+      "email": "ivo.moreau@example.com"
+    },
+    {
+      "id": 10,
+      "name": "Jun Patel",
+      "email": "jun.patel@example.com"
+    },
+    {
+      "id": 11,
+      "name": "Kofi Lee",
+      "email": "kofi.lee@example.com"
+    },
+    {
+      "id": 12,
+      "name": "Lena Silva",
+      "email": "lena.silva@old.example"
+    },
+    {
+      "id": 13,
+      "name": "Mira Kim",
+      "email": "mira.kim@example.com"
+    },
+    {
+      "id": 14,
+      "name": "Nils Berg",
+      "email": "nils.berg@example.com"
+    },
+    {
+      "id": 15,
+      "name": "Omar Ito",
+      "email": "omar.ito@example.com"
+    },
+    {
+      "id": 16,
+      "name": "Priya Novak",
+      "email": "priya.novak@old.example"
+    },
+    {
+      "id": 17,
+      "name": "Quinn Okafor",
+      "email": "quinn.okafor@example.com"
+    },
+    {
+      "id": 18,
+      "name": "Rosa Haddad",
+      "email": "rosa.haddad@example.com"
+    },
+    {
+      "id": 19,
+      "name": "Sami Moreau",
+      "email": "sami.moreau@old.example"
+    },
+    {
+      "id": 20,
+      "name": "Tara Patel",
+      "email": "tara.patel@old.example"
+    },
+    {
+      "id": 21,
+      "name": "Uma Lee",
+      "email": "uma.lee@example.com"
+    },
+    {
+      "id": 22,
+      "name": "Vik Berg",
+      "email": "vik.berg@example.com"
+    },
+    {
+      "id": 23,
+      "name": "Wen Ito",
+      "email": "wen.ito@example.com"
+    },
+    {
+      "id": 24,
+      "name": "Yara Kim",
+      "email": "yara.kim@example.com"
+    }
+  ],
+  "disabled_ids": [
+    2,
+    12,
+    16,
+    19,
+    20
+  ],
+  "migration_003_sha256": "4a10b729540ff2e7593078be4faa096b670fd1a4abe886dd7524834934039b9f"
+}

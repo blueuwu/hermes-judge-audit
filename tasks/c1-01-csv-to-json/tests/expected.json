@@ -1,0 +1,201 @@
+{
+  "orders": [
+    {
+      "order_id": 1004,
+      "customer": "Omar Kim",
+      "amount": 266.6,
+      "shipped": false
+    },
+    {
+      "order_id": 1005,
+      "customer": "Hana Silva",
+      "amount": 491.7,
+      "shipped": true
+    },
+    {
+      "order_id": 1010,
+      "customer": "Rosa Moreau",
+      "amount": 135.66,
+      "shipped": false
+    },
+    {
+      "order_id": 1016,
+      "customer": "Goran Silva",
+      "amount": 50.9,
+      "shipped": true
+    },
+    {
+      "order_id": 1018,
+      "customer": "Lena Ito",
+      "amount": 847.59,
+      "shipped": true
+    },
+    {
+      "order_id": 1020,
+      "customer": "Okafor, Sami",
+      "amount": 137.51,
+      "shipped": true
+    },
+    {
+      "order_id": 1024,
+      "customer": "Ito, Mira",
+      "amount": 123.17,
+      "shipped": true
+    },
+    {
+      "order_id": 1025,
+      "customer": "Omar Ito",
+      "amount": 471.29,
+      "shipped": true
+    },
+    {
+      "order_id": 1027,
+      "customer": "Ito, Eli",
+      "amount": 858.08,
+      "shipped": false
+    },
+    {
+      "order_id": 1028,
+      "customer": "Lena Patel",
+      "amount": 570.36,
+      "shipped": false
+    },
+    {
+      "order_id": 1030,
+      "customer": "Goran Haddad",
+      "amount": 577.32,
+      "shipped": false
+    },
+    {
+      "order_id": 1031,
+      "customer": "Novak, Omar",
+      "amount": 327.32,
+      "shipped": true
+    },
+    {
+      "order_id": 1032,
+      "customer": "Kofi Lee",
+      "amount": 878.02,
+      "shipped": true
+    },
+    {
+      "order_id": 1033,
+      "customer": "Hana Silva",
+      "amount": 19.65,
+      "shipped": false
+    },
+    {
+      "order_id": 1034,
+      "customer": "Ito, Goran",
+      "amount": 676.58,
+      "shipped": false
+    },
+    {
+      "order_id": 1035,
+      "customer": "Mira Kim",
+      "amount": 711.58,
+      "shipped": false
+    },
+    {
+      "order_id": 1041,
+      "customer": "Omar Okafor",
+      "amount": 458.07,
+      "shipped": true
+    },
+    {
+      "order_id": 1042,
+      "customer": "Ben Ito",
+      "amount": 353.55,
+      "shipped": false
+    },
+    {
+      "order_id": 1044,
+      "customer": "Goran Moreau",
+      "amount": 144.41,
+      "shipped": true
+    },
+    {
+      "order_id": 1047,
+      "customer": "Dara Okafor",
+      "amount": 746.93,
+      "shipped": false
+    },
+    {
+      "order_id": 1049,
+      "customer": "Jun Silva",
+      "amount": 172.41,
+      "shipped": true
+    },
+    {
+      "order_id": 1051,
+      "customer": "Ivo Patel",
+      "amount": 204.38,
+      "shipped": true
+    },
+    {
+      "order_id": 1060,
+      "customer": "Fatima Ito",
+      "amount": 720.94,
+      "shipped": false
+    },
+    {
+      "order_id": 1062,
+      "customer": "Dara Berg",
+      "amount": 531.32,
+      "shipped": true
+    },
+    {
+      "order_id": 1068,
+      "customer": "Mira Novak",
+      "amount": 383.89,
+      "shipped": true
+    },
+    {
+      "order_id": 1073,
+      "customer": "Fatima Patel",
+      "amount": 130.62,
+      "shipped": false
+    },
+    {
+      "order_id": 1075,
+      "customer": "Quinn Kim",
+      "amount": 53.55,
+      "shipped": true
+    },
+    {
+      "order_id": 1077,
+      "customer": "Goran Ito",
+      "amount": 897.92,
+      "shipped": true
+    },
+    {
+      "order_id": 1081,
+      "customer": "Quinn Ito",
+      "amount": 124.16,
+      "shipped": false
+    },
+    {
+      "order_id": 1088,
+      "customer": "Ito, Dara",
+      "amount": 429.68,
+      "shipped": false
+    },
+    {
+      "order_id": 1092,
+      "customer": "Silva, Sami",
+      "amount": 397.29,
+      "shipped": false
+    },
+    {
+      "order_id": 1094,
+      "customer": "Ben Silva",
+      "amount": 633.95,
+      "shipped": true
+    }
+  ],
+  "totals": {
+    "orders": 32,
+    "shipped_amount": 6807.4
+  },
+  "orders_csv_sha256": "91d2609d2c2cc7e71c4eacfa5f18fd01df2a1d72f19d7e35e89a84470764aead"
+}
