@@ -183,6 +183,24 @@ def cmd_cost(args: argparse.Namespace) -> int:
     return 0
 
 
+def cmd_ingest(args: argparse.Namespace) -> int:
+    import json
+    from importlib.metadata import version
+
+    from hjr.ingest import ingest_job
+    from hjr.manifest import hermes_sha
+    from hjr.schemas import write_jsonl
+
+    result = ingest_job(
+        args.job, args.tasks, split=args.split, hermes_sha=hermes_sha(), harbor=version("harbor")
+    )
+    n = write_jsonl(args.out, result.boundaries)
+    excluded = args.out.with_name(args.out.stem + ".excluded.json")
+    excluded.write_bytes((json.dumps(result.excluded, indent=2) + "\n").encode("utf-8"))
+    print(f"{n} boundaries -> {args.out}; {len(result.excluded)} exclusions -> {excluded}")
+    return 0
+
+
 def cmd_check_route(args: argparse.Namespace) -> int:
     from hjr.routes import check_routes
 
@@ -240,6 +258,13 @@ def main(argv: list[str] | None = None) -> int:
     p.add_argument("--calls", type=int, default=0, help="planned calls to extrapolate to")
     p.add_argument("--input-tokens", type=int, default=0, help="planned mean input tokens/call")
     p.set_defaults(func=cmd_cost)
+
+    p = sub.add_parser("ingest", help="Harbor job -> BoundaryRecords (verifier truth joined)")
+    p.add_argument("--job", type=Path, required=True, help="jobs/<job name>")
+    p.add_argument("--tasks", type=Path, default=Path("tasks"))
+    p.add_argument("--split", default="dev", choices=["dev", "heldout"])
+    p.add_argument("--out", type=Path, required=True)
+    p.set_defaults(func=cmd_ingest)
 
     p = sub.add_parser(
         "check-route", help="verify pinned models and providers are listed (metadata only)"
