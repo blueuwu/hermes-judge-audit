@@ -3,7 +3,7 @@
 Each trial dir holds the harness's ``agent/turns.jsonl`` (what the judge saw, what it said) and
 the verifier's ``verifier/boundaries.json`` (the truth for the same workspace snapshots). A
 boundary is kept only when both sides exist; every trial or boundary that is dropped is listed
-with its reason, as the analysis rules require.
+with its reason, as the analysis rules require. Trials of soak-only tasks are refused whole.
 """
 
 from __future__ import annotations
@@ -108,10 +108,14 @@ def ingest_trial(
     if not graded_path.is_file():
         out.excluded.append({"trial": name, "reason": "no verifier boundaries.json"})
         return out
+    turns = list(read_jsonl(turns_path, TurnRecord))
+    if turns and _task_meta(tasks_dir, turns[0].task_id).get("soak_only"):
+        out.excluded.append({"trial": name, "reason": "soak-only task (never analysed)"})
+        return out
     graded = {
         b["snapshot"]: b for b in json.loads(graded_path.read_text(encoding="utf-8"))["boundaries"]
     }
-    for turn in read_jsonl(turns_path, TurnRecord):
+    for turn in turns:
         truth = graded.get(turn.snapshot)
         if truth is None:
             out.excluded.append({"trial": name, "reason": f"snapshot {turn.snapshot} not graded"})

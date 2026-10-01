@@ -113,3 +113,14 @@ def test_ungraded_snapshot_is_excluded_with_reason(tmp_path):
     result = ingest_job(job, TASKS, split="dev", hermes_sha="ffc", harbor="0.23.0")
     assert len(result.boundaries) == 1
     assert result.excluded == [{"trial": trial, "reason": "snapshot b02.tgz not graded"}]
+
+
+def test_soak_only_task_is_refused_whole(tmp_path):
+    job = tmp_path / "job"
+    trial = "s0-01-incident-review__a1"
+    soak = {"task_id": "hjr/s0-01-incident-review", "trial": trial}
+    turns = [_turn(trial, n, "continue", "continue").model_copy(update=soak) for n in (1, 2)]
+    _trial(job, trial, turns, _graded("not_done", "not_done"))
+    result = ingest_job(job, TASKS, split="dev", hermes_sha="ffc", harbor="0.23.0")
+    assert result.boundaries == []
+    assert result.excluded == [{"trial": trial, "reason": "soak-only task (never analysed)"}]
