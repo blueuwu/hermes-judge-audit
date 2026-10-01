@@ -36,6 +36,7 @@ def _workspace(task: str, tmp_path: Path) -> Path:
     shutil.copytree(TASKS / task / "environment" / "workspace", ws)
     seed = TASKS / task / "environment" / "seed.sql"
     if seed.is_file():
+        (ws / "db").mkdir(exist_ok=True)  # created by the Dockerfile; git keeps no empty dirs
         con = sqlite3.connect(ws / "db" / "app.db")
         con.executescript(seed.read_text())
         con.commit()
