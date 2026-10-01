@@ -1,0 +1,141 @@
+{
+  "jobs": [
+    "jobs/soak-weak-1"
+  ],
+  "trials": 6,
+  "gate": {
+    "passed": false,
+    "failures": [
+      "40 tool calls < 50",
+      "resumed: context 10091 outside [30000, 60000]"
+    ],
+    "counts": {
+      "tool_calls": 40,
+      "recovered_events": 0,
+      "unrecovered_events": 0,
+      "resumes_attempted": 30,
+      "resumes_passed": 30,
+      "rate_limited": 4,
+      "peak_concurrency": 6,
+      "events.tool_call_as_text": 0,
+      "events.invalid_arguments": 0,
+      "events.length_mid_call": 0,
+      "events.empty_completion": 0,
+      "events.reasoning_leak": 0,
+      "events.resume_rejected": 0
+    }
+  },
+  "report": {
+    "arm_id": "weak:qwen/qwen3-coder-30b-a3b-instruct",
+    "tasks": [
+      "hjr/c1-01-csv-to-json",
+      "hjr/c3-02-missing-sqlite"
+    ],
+    "segments": {
+      "early": {
+        "turns": [
+          1,
+          2
+        ],
+        "tool_calls": 37,
+        "concurrency": 1,
+        "rate_limited": 0,
+        "context_tokens": 7904,
+        "resumes_attempted": 6,
+        "resumes_passed": 6
+      },
+      "middle": {
+        "turns": [
+          3,
+          4
+        ],
+        "tool_calls": 2,
+        "concurrency": 1,
+        "rate_limited": 0,
+        "context_tokens": 9187,
+        "resumes_attempted": 12,
+        "resumes_passed": 12
+      },
+      "resumed": {
+        "turns": [
+          5,
+          6
+        ],
+        "tool_calls": 1,
+        "concurrency": 1,
+        "rate_limited": 0,
+        "context_tokens": 10091,
+        "resumes_attempted": 12,
+        "resumes_passed": 12
+      },
+      "concurrent": {
+        "turns": [
+          1,
+          2,
+          3,
+          4,
+          5,
+          6
+        ],
+        "tool_calls": 0,
+        "concurrency": 6,
+        "rate_limited": 4,
+        "context_tokens": 0,
+        "resumes_attempted": 0,
+        "resumes_passed": 0
+      }
+    },
+    "events": []
+  },
+  "failed_turns": [],
+  "context_by_trial": {
+    "c1-01-csv-to-json__ohM6jcY": {
+      "1": 5594,
+      "2": 6916,
+      "3": 8829,
+      "4": 9187,
+      "5": 9712,
+      "6": 10091
+    },
+    "c1-01-csv-to-json__QQTkThb": {
+      "1": 5550,
+      "2": 7521,
+      "3": 7884,
+      "4": 8245,
+      "5": 8577,
+      "6": 8931
+    },
+    "c1-01-csv-to-json__XFnfpgL": {
+      "1": 5559,
+      "2": 7503,
+      "3": 7881,
+      "4": 8236,
+      "5": 8568,
+      "6": 8913
+    },
+    "c3-02-missing-sqlite__2YFRSVD": {
+      "1": 6729,
+      "2": 7020,
+      "3": 7220,
+      "4": 7464,
+      "5": 7656,
+      "6": 7906
+    },
+    "c3-02-missing-sqlite__fEHGc2Q": {
+      "1": 7579,
+      "2": 7904,
+      "3": 8105,
+      "4": 8392,
+      "5": 8686,
+      "6": 8980
+    },
+    "c3-02-missing-sqlite__gi7mtEL": {
+      "1": 6807,
+      "2": 7070,
+      "3": 7339,
+      "4": 7540,
+      "5": 7790,
+      "6": 8088
+    }
+  }
+}

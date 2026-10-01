@@ -1,0 +1,395 @@
+{
+  "jobs": [
+    "jobs/soak-weak-2"
+  ],
+  "trials": 9,
+  "gate": {
+    "passed": false,
+    "failures": [
+      "13 unrecovered events > 0"
+    ],
+    "counts": {
+      "tool_calls": 105,
+      "recovered_events": 0,
+      "unrecovered_events": 13,
+      "resumes_attempted": 45,
+      "resumes_passed": 45,
+      "rate_limited": 0,
+      "peak_concurrency": 6,
+      "events.tool_call_as_text": 13,
+      "events.invalid_arguments": 0,
+      "events.length_mid_call": 0,
+      "events.empty_completion": 0,
+      "events.reasoning_leak": 0,
+      "events.resume_rejected": 0
+    }
+  },
+  "m1_tasks_only": {
+    "passed": false,
+    "failures": [
+      "resumed: context 22778 outside [30000, 60000]",
+      "concurrent: concurrency 4 < 6"
+    ],
+    "counts": {
+      "tool_calls": 55,
+      "recovered_events": 0,
+      "unrecovered_events": 0,
+      "resumes_attempted": 30,
+      "resumes_passed": 30,
+      "rate_limited": 0,
+      "peak_concurrency": 4,
+      "events.tool_call_as_text": 0,
+      "events.invalid_arguments": 0,
+      "events.length_mid_call": 0,
+      "events.empty_completion": 0,
+      "events.reasoning_leak": 0,
+      "events.resume_rejected": 0
+    }
+  },
+  "by_task": {
+    "hjr/c1-01-csv-to-json": {
+      "trials": 3,
+      "turns_per_trial": [
+        6
+      ],
+      "tool_calls": 25,
+      "context_turn_5": [
+        17374,
+        17696,
+        22365
+      ],
+      "context_turn_6": [
+        17748,
+        18033,
+        22778
+      ],
+      "max_context_turns_5_6": 22778,
+      "events": {},
+      "resumes_attempted": 15,
+      "resumes_passed": 15,
+      "rate_limited": 0,
+      "failed_turns": 0
+    },
+    "hjr/c3-02-missing-sqlite": {
+      "trials": 3,
+      "turns_per_trial": [
+        6
+      ],
+      "tool_calls": 30,
+      "context_turn_5": [
+        17782,
+        18256,
+        18295
+      ],
+      "context_turn_6": [
+        18021,
+        18434,
+        18497
+      ],
+      "max_context_turns_5_6": 18497,
+      "events": {},
+      "resumes_attempted": 15,
+      "resumes_passed": 15,
+      "rate_limited": 0,
+      "failed_turns": 0
+    },
+    "hjr/s0-01-incident-review": {
+      "trials": 3,
+      "turns_per_trial": [
+        6
+      ],
+      "tool_calls": 50,
+      "context_turn_5": [
+        15472,
+        15474,
+        50147
+      ],
+      "context_turn_6": [
+        15878,
+        15882,
+        55943
+      ],
+      "max_context_turns_5_6": 55943,
+      "events": {
+        "tool_call_as_text": 13
+      },
+      "resumes_attempted": 15,
+      "resumes_passed": 15,
+      "rate_limited": 0,
+      "failed_turns": 0
+    }
+  },
+  "reasoning_echo": {
+    "echo_expected": false,
+    "trials_with_dumps": 9,
+    "requests": 159,
+    "resumed_requests": 113,
+    "assistant_messages": 2087,
+    "identical": 0,
+    "padded": 0,
+    "missing": 0,
+    "rewritten": 0,
+    "unexpected": 0,
+    "unaligned": 0,
+    "history_changed": 0,
+    "error_dumps": 0,
+    "rejected_resumed": 0,
+    "passed": true
+  },
+  "report": {
+    "arm_id": "weak:qwen/qwen3-coder-30b-a3b-instruct",
+    "tasks": [
+      "hjr/c1-01-csv-to-json",
+      "hjr/c3-02-missing-sqlite",
+      "hjr/s0-01-incident-review"
+    ],
+    "segments": {
+      "early": {
+        "turns": [
+          1,
+          2
+        ],
+        "tool_calls": 59,
+        "concurrency": 1,
+        "rate_limited": 0,
+        "context_tokens": 27206,
+        "resumes_attempted": 9,
+        "resumes_passed": 9
+      },
+      "middle": {
+        "turns": [
+          3,
+          4
+        ],
+        "tool_calls": 30,
+        "concurrency": 1,
+        "rate_limited": 0,
+        "context_tokens": 42996,
+        "resumes_attempted": 18,
+        "resumes_passed": 18
+      },
+      "resumed": {
+        "turns": [
+          5,
+          6
+        ],
+        "tool_calls": 16,
+        "concurrency": 1,
+        "rate_limited": 0,
+        "context_tokens": 55943,
+        "resumes_attempted": 18,
+        "resumes_passed": 18
+      },
+      "concurrent": {
+        "turns": [
+          1,
+          2,
+          3,
+          4,
+          5,
+          6
+        ],
+        "tool_calls": 0,
+        "concurrency": 6,
+        "rate_limited": 0,
+        "context_tokens": 0,
+        "resumes_attempted": 0,
+        "resumes_passed": 0
+      }
+    },
+    "events": [
+      {
+        "type": "tool_call_as_text",
+        "recovered": false,
+        "left_in_history": true,
+        "task_id": "hjr/s0-01-incident-review",
+        "trial": "s0-01-incident-review__HDzfwkQ",
+        "turn": 1,
+        "detail": "I'll investigate the 2026-09-14 checkout outage at Larkspur and write the incident report. Let me first check what evidence stages are available.\n\n<function=search_files>\n<parameter=pattern>\n^/app/evidence/\n</parameter>\n<parameter=target>\nfiles\n</parameter>"
+      },
+      {
+        "type": "tool_call_as_text",
+        "recovered": false,
+        "left_in_history": true,
+        "task_id": "hjr/s0-01-incident-review",
+        "trial": "s0-01-incident-review__LEjGnkT",
+        "turn": 1,
+        "detail": "I'll investigate the 2026-09-14 checkout outage at Larkspur and write the incident report. Let me first check what evidence stages are available.\n\n<function=search_files>\n<parameter=pattern>\n^/app/evidence/\n</parameter>\n<parameter=target>\nfiles\n</parameter>"
+      },
+      {
+        "type": "tool_call_as_text",
+        "recovered": false,
+        "left_in_history": true,
+        "task_id": "hjr/s0-01-incident-review",
+        "trial": "s0-01-incident-review__LEjGnkT",
+        "turn": 2,
+        "detail": "I'll investigate the 2026-09-14 checkout outage at Larkspur and write the incident report. Let me first check what evidence stages are available.\n\n<function=terminal>\n<parameter=command>\nls -la /app/evidence/\n</parameter>"
+      },
+      {
+        "type": "tool_call_as_text",
+        "recovered": false,
+        "left_in_history": true,
+        "task_id": "hjr/s0-01-incident-review",
+        "trial": "s0-01-incident-review__LEjGnkT",
+        "turn": 3,
+        "detail": "I see the evidence directory structure. Let me check if there are any released stages and examine the README for system overview.\n\n<function=read_file>\n<parameter=path>\n/app/README.md\n</parameter>"
+      },
+      {
+        "type": "tool_call_as_text",
+        "recovered": false,
+        "left_in_history": true,
+        "task_id": "hjr/s0-01-incident-review",
+        "trial": "s0-01-incident-review__LEjGnkT",
+        "turn": 4,
+        "detail": "Let me check what evidence stages are currently available and examine the first stage:\n\n<function=terminal>\n<parameter=command>\nls -la /app/evidence/\n</parameter>"
+      },
+      {
+        "type": "tool_call_as_text",
+        "recovered": false,
+        "left_in_history": true,
+        "task_id": "hjr/s0-01-incident-review",
+        "trial": "s0-01-incident-review__LEjGnkT",
+        "turn": 5,
+        "detail": "Let me check what's in the evidence directory and see if we have any stage directories:\n\n<function=terminal>\n<parameter=command>\nfind /app/evidence/ -type d\n</parameter>"
+      },
+      {
+        "type": "tool_call_as_text",
+        "recovered": false,
+        "left_in_history": true,
+        "task_id": "hjr/s0-01-incident-review",
+        "trial": "s0-01-incident-review__LEjGnkT",
+        "turn": 6,
+        "detail": "Let me check if there are any files in the evidence directory to understand what's available:\n\n<function=terminal>\n<parameter=command>\nls -la /app/evidence/\n</parameter>"
+      },
+      {
+        "type": "tool_call_as_text",
+        "recovered": false,
+        "left_in_history": true,
+        "task_id": "hjr/s0-01-incident-review",
+        "trial": "s0-01-incident-review__wYBGx3R",
+        "turn": 1,
+        "detail": "I'll investigate the 2026-09-14 checkout outage at Larkspur and write the incident report. Let me first check what evidence stages are available.\n\n<function=search_files>\n<parameter=pattern>\n^/app/evidence/\n</parameter>\n<parameter=target>\nfiles\n</parameter>"
+      },
+      {
+        "type": "tool_call_as_text",
+        "recovered": false,
+        "left_in_history": true,
+        "task_id": "hjr/s0-01-incident-review",
+        "trial": "s0-01-incident-review__wYBGx3R",
+        "turn": 2,
+        "detail": "I'll investigate the 2026-09-14 checkout outage at Larkspur and write the incident report. Let me first check what evidence stages are available.\n\n<function=terminal>\n<parameter=command>\nls -la /app/evidence/\n</parameter>"
+      },
+      {
+        "type": "tool_call_as_text",
+        "recovered": false,
+        "left_in_history": true,
+        "task_id": "hjr/s0-01-incident-review",
+        "trial": "s0-01-incident-review__wYBGx3R",
+        "turn": 3,
+        "detail": "I see the evidence directory structure. Let me check what stages are currently available and examine the README for system overview.\n\n<function=read_file>\n<parameter=path>\n/app/README.md\n</parameter>"
+      },
+      {
+        "type": "tool_call_as_text",
+        "recovered": false,
+        "left_in_history": true,
+        "task_id": "hjr/s0-01-incident-review",
+        "trial": "s0-01-incident-review__wYBGx3R",
+        "turn": 4,
+        "detail": "Let me check what evidence stages are available and examine the first stage:\n\n<function=terminal>\n<parameter=command>\nls -la /app/evidence/\n</parameter>"
+      },
+      {
+        "type": "tool_call_as_text",
+        "recovered": false,
+        "left_in_history": true,
+        "task_id": "hjr/s0-01-incident-review",
+        "trial": "s0-01-incident-review__wYBGx3R",
+        "turn": 5,
+        "detail": "Let me check what's in the evidence directory and see if we have any stage files:\n\n<function=terminal>\n<parameter=command>\nfind /app/evidence/ -type d\n</parameter>"
+      },
+      {
+        "type": "tool_call_as_text",
+        "recovered": false,
+        "left_in_history": true,
+        "task_id": "hjr/s0-01-incident-review",
+        "trial": "s0-01-incident-review__wYBGx3R",
+        "turn": 6,
+        "detail": "Let me check if there are any stage directories and also look for the report directory:\n\n<function=terminal>\n<parameter=command>\nls -la /app/evidence/ && ls -la /app/report/\n</parameter>"
+      }
+    ]
+  },
+  "failed_turns": [],
+  "context_by_trial": {
+    "c1-01-csv-to-json__bvV5egC": {
+      "1": 16202,
+      "2": 16572,
+      "3": 16862,
+      "4": 17356,
+      "5": 17696,
+      "6": 18033
+    },
+    "c1-01-csv-to-json__DW7sFaw": {
+      "1": 14905,
+      "2": 17555,
+      "3": 21576,
+      "4": 21972,
+      "5": 22365,
+      "6": 22778
+    },
+    "c1-01-csv-to-json__f8FpNAw": {
+      "1": 15633,
+      "2": 16001,
+      "3": 16354,
+      "4": 17009,
+      "5": 17374,
+      "6": 17748
+    },
+    "c3-02-missing-sqlite__3SLRJGk": {
+      "1": 15838,
+      "2": 17161,
+      "3": 17689,
+      "4": 18031,
+      "5": 18256,
+      "6": 18434
+    },
+    "c3-02-missing-sqlite__BuNnAyZ": {
+      "1": 16892,
+      "2": 17144,
+      "3": 17374,
+      "4": 17547,
+      "5": 17782,
+      "6": 18021
+    },
+    "c3-02-missing-sqlite__nFFeazP": {
+      "1": 16849,
+      "2": 17660,
+      "3": 17916,
+      "4": 18095,
+      "5": 18295,
+      "6": 18497
+    },
+    "s0-01-incident-review__HDzfwkQ": {
+      "1": 13801,
+      "2": 27206,
+      "3": 35847,
+      "4": 42996,
+      "5": 50147,
+      "6": 55943
+    },
+    "s0-01-incident-review__LEjGnkT": {
+      "1": 13801,
+      "2": 14232,
+      "3": 14653,
+      "4": 15068,
+      "5": 15474,
+      "6": 15882
+    },
+    "s0-01-incident-review__wYBGx3R": {
+      "1": 13801,
+      "2": 14232,
+      "3": 14653,
+      "4": 15068,
+      "5": 15472,
+      "6": 15878
+    }
+  }
+}

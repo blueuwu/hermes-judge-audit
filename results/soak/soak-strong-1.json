@@ -1,0 +1,141 @@
+{
+  "jobs": [
+    "jobs/soak-strong-1"
+  ],
+  "trials": 6,
+  "gate": {
+    "passed": false,
+    "failures": [
+      "46 tool calls < 50",
+      "resumed: context 18724 outside [30000, 60000]"
+    ],
+    "counts": {
+      "tool_calls": 46,
+      "recovered_events": 0,
+      "unrecovered_events": 0,
+      "resumes_attempted": 30,
+      "resumes_passed": 30,
+      "rate_limited": 0,
+      "peak_concurrency": 6,
+      "events.tool_call_as_text": 0,
+      "events.invalid_arguments": 0,
+      "events.length_mid_call": 0,
+      "events.empty_completion": 0,
+      "events.reasoning_leak": 0,
+      "events.resume_rejected": 0
+    }
+  },
+  "report": {
+    "arm_id": "strong:deepseek/deepseek-v4.1-flash",
+    "tasks": [
+      "hjr/c1-01-csv-to-json",
+      "hjr/c3-02-missing-sqlite"
+    ],
+    "segments": {
+      "early": {
+        "turns": [
+          1,
+          2
+        ],
+        "tool_calls": 43,
+        "concurrency": 1,
+        "rate_limited": 0,
+        "context_tokens": 17306,
+        "resumes_attempted": 6,
+        "resumes_passed": 6
+      },
+      "middle": {
+        "turns": [
+          3,
+          4
+        ],
+        "tool_calls": 2,
+        "concurrency": 1,
+        "rate_limited": 0,
+        "context_tokens": 18118,
+        "resumes_attempted": 12,
+        "resumes_passed": 12
+      },
+      "resumed": {
+        "turns": [
+          5,
+          6
+        ],
+        "tool_calls": 1,
+        "concurrency": 1,
+        "rate_limited": 0,
+        "context_tokens": 18724,
+        "resumes_attempted": 12,
+        "resumes_passed": 12
+      },
+      "concurrent": {
+        "turns": [
+          1,
+          2,
+          3,
+          4,
+          5,
+          6
+        ],
+        "tool_calls": 0,
+        "concurrency": 6,
+        "rate_limited": 0,
+        "context_tokens": 0,
+        "resumes_attempted": 0,
+        "resumes_passed": 0
+      }
+    },
+    "events": []
+  },
+  "failed_turns": [],
+  "context_by_trial": {
+    "c1-01-csv-to-json__d42mqVP": {
+      "1": 15504,
+      "2": 15863,
+      "3": 16205,
+      "4": 16883,
+      "5": 17175,
+      "6": 17448
+    },
+    "c1-01-csv-to-json__KzmzqVW": {
+      "1": 16856,
+      "2": 17182,
+      "3": 17539,
+      "4": 18118,
+      "5": 18428,
+      "6": 18724
+    },
+    "c1-01-csv-to-json__TBxy86J": {
+      "1": 15117,
+      "2": 15463,
+      "3": 15802,
+      "4": 16105,
+      "5": 16464,
+      "6": 17016
+    },
+    "c3-02-missing-sqlite__6mri58F": {
+      "1": 15776,
+      "2": 16363,
+      "3": 16519,
+      "4": 16703,
+      "5": 16874,
+      "6": 17058
+    },
+    "c3-02-missing-sqlite__EeXcMzV": {
+      "1": 17004,
+      "2": 17306,
+      "3": 17517,
+      "4": 17711,
+      "5": 17913,
+      "6": 18097
+    },
+    "c3-02-missing-sqlite__z7mptdy": {
+      "1": 15877,
+      "2": 16470,
+      "3": 16670,
+      "4": 16898,
+      "5": 17103,
+      "6": 17294
+    }
+  }
+}

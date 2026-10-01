@@ -1,0 +1,274 @@
+{
+  "jobs": [
+    "jobs/soak-strong-2"
+  ],
+  "trials": 9,
+  "gate": {
+    "passed": true,
+    "failures": [],
+    "counts": {
+      "tool_calls": 167,
+      "recovered_events": 0,
+      "unrecovered_events": 0,
+      "resumes_attempted": 45,
+      "resumes_passed": 45,
+      "rate_limited": 0,
+      "peak_concurrency": 6,
+      "events.tool_call_as_text": 0,
+      "events.invalid_arguments": 0,
+      "events.length_mid_call": 0,
+      "events.empty_completion": 0,
+      "events.reasoning_leak": 0,
+      "events.resume_rejected": 0
+    }
+  },
+  "m1_tasks_only": {
+    "passed": false,
+    "failures": [
+      "49 tool calls < 50",
+      "resumed: context 19109 outside [30000, 60000]",
+      "concurrent: concurrency 4 < 6"
+    ],
+    "counts": {
+      "tool_calls": 49,
+      "recovered_events": 0,
+      "unrecovered_events": 0,
+      "resumes_attempted": 30,
+      "resumes_passed": 30,
+      "rate_limited": 0,
+      "peak_concurrency": 4,
+      "events.tool_call_as_text": 0,
+      "events.invalid_arguments": 0,
+      "events.length_mid_call": 0,
+      "events.empty_completion": 0,
+      "events.reasoning_leak": 0,
+      "events.resume_rejected": 0
+    }
+  },
+  "by_task": {
+    "hjr/c1-01-csv-to-json": {
+      "trials": 3,
+      "turns_per_trial": [
+        6
+      ],
+      "tool_calls": 17,
+      "context_turn_5": [
+        16603,
+        17412,
+        18311
+      ],
+      "context_turn_6": [
+        16914,
+        18119,
+        18595
+      ],
+      "max_context_turns_5_6": 18595,
+      "events": {},
+      "resumes_attempted": 15,
+      "resumes_passed": 15,
+      "rate_limited": 0,
+      "failed_turns": 0
+    },
+    "hjr/c3-02-missing-sqlite": {
+      "trials": 3,
+      "turns_per_trial": [
+        6
+      ],
+      "tool_calls": 32,
+      "context_turn_5": [
+        17672,
+        17992,
+        18935
+      ],
+      "context_turn_6": [
+        17897,
+        18339,
+        19109
+      ],
+      "max_context_turns_5_6": 19109,
+      "events": {},
+      "resumes_attempted": 15,
+      "resumes_passed": 15,
+      "rate_limited": 0,
+      "failed_turns": 0
+    },
+    "hjr/s0-01-incident-review": {
+      "trials": 3,
+      "turns_per_trial": [
+        6
+      ],
+      "tool_calls": 118,
+      "context_turn_5": [
+        41900,
+        43608,
+        45439
+      ],
+      "context_turn_6": [
+        47364,
+        47397,
+        51777
+      ],
+      "max_context_turns_5_6": 51777,
+      "events": {},
+      "resumes_attempted": 15,
+      "resumes_passed": 15,
+      "rate_limited": 0,
+      "failed_turns": 0
+    }
+  },
+  "reasoning_echo": {
+    "echo_expected": true,
+    "trials_with_dumps": 9,
+    "requests": 179,
+    "resumed_requests": 127,
+    "assistant_messages": 2199,
+    "identical": 1989,
+    "padded": 210,
+    "missing": 0,
+    "rewritten": 0,
+    "unexpected": 0,
+    "unaligned": 0,
+    "history_changed": 0,
+    "error_dumps": 0,
+    "rejected_resumed": 0,
+    "passed": true
+  },
+  "report": {
+    "arm_id": "strong:deepseek/deepseek-v4.1-flash",
+    "tasks": [
+      "hjr/c1-01-csv-to-json",
+      "hjr/c3-02-missing-sqlite",
+      "hjr/s0-01-incident-review"
+    ],
+    "segments": {
+      "early": {
+        "turns": [
+          1,
+          2
+        ],
+        "tool_calls": 88,
+        "concurrency": 1,
+        "rate_limited": 0,
+        "context_tokens": 24915,
+        "resumes_attempted": 9,
+        "resumes_passed": 9
+      },
+      "middle": {
+        "turns": [
+          3,
+          4
+        ],
+        "tool_calls": 41,
+        "concurrency": 1,
+        "rate_limited": 0,
+        "context_tokens": 38967,
+        "resumes_attempted": 18,
+        "resumes_passed": 18
+      },
+      "resumed": {
+        "turns": [
+          5,
+          6
+        ],
+        "tool_calls": 38,
+        "concurrency": 1,
+        "rate_limited": 0,
+        "context_tokens": 51777,
+        "resumes_attempted": 18,
+        "resumes_passed": 18
+      },
+      "concurrent": {
+        "turns": [
+          1,
+          2,
+          3,
+          4,
+          5,
+          6
+        ],
+        "tool_calls": 0,
+        "concurrency": 6,
+        "rate_limited": 0,
+        "context_tokens": 0,
+        "resumes_attempted": 0,
+        "resumes_passed": 0
+      }
+    },
+    "events": []
+  },
+  "failed_turns": [],
+  "context_by_trial": {
+    "c1-01-csv-to-json__e7DrATW": {
+      "1": 14895,
+      "2": 15650,
+      "3": 15965,
+      "4": 16298,
+      "5": 16603,
+      "6": 16914
+    },
+    "c1-01-csv-to-json__J63BecQ": {
+      "1": 16591,
+      "2": 16946,
+      "3": 17666,
+      "4": 17966,
+      "5": 18311,
+      "6": 18595
+    },
+    "c1-01-csv-to-json__NejAoAf": {
+      "1": 15653,
+      "2": 16318,
+      "3": 16648,
+      "4": 17002,
+      "5": 17412,
+      "6": 18119
+    },
+    "c3-02-missing-sqlite__gZLtufv": {
+      "1": 16696,
+      "2": 17244,
+      "3": 17479,
+      "4": 17776,
+      "5": 17992,
+      "6": 18339
+    },
+    "c3-02-missing-sqlite__sMj8PFs": {
+      "1": 16495,
+      "2": 17082,
+      "3": 17268,
+      "4": 17481,
+      "5": 17672,
+      "6": 17897
+    },
+    "c3-02-missing-sqlite__XRi6eoZ": {
+      "1": 17320,
+      "2": 17683,
+      "3": 17969,
+      "4": 18382,
+      "5": 18935,
+      "6": 19109
+    },
+    "s0-01-incident-review__44hikKL": {
+      "1": 18244,
+      "2": 24915,
+      "3": 31719,
+      "4": 37588,
+      "5": 41900,
+      "6": 47364
+    },
+    "s0-01-incident-review__i7ag5Cp": {
+      "1": 17712,
+      "2": 23845,
+      "3": 31028,
+      "4": 38967,
+      "5": 45439,
+      "6": 51777
+    },
+    "s0-01-incident-review__nH4EUeB": {
+      "1": 17030,
+      "2": 23349,
+      "3": 31622,
+      "4": 37720,
+      "5": 43608,
+      "6": 47397
+    }
+  }
+}

@@ -1,0 +1,106 @@
+# Soak results
+
+Gate: `configs/soak_gate.toml`. Protocol: the soak amendments of 2026-10-01 in
+`configs/prereg.md`. Each `soak-<arm>-<n>.json` is the output of `hjr soak`. Each
+`.manifest.json` records the code, Hermes, lockfile, gate and task hashes and Harbor's
+per-trial outcomes. Full job directories ship as release assets.
+
+## Runs
+
+| Report | Workload | Gate | Notes |
+|---|---|---|---|
+| `soak-weak-1.json` | M1 tasks only | FAIL | Measured under the original definitions, kept as recorded. Its 4 `rate_limited` were false positives from the old 429 pattern, and its context figures exclude tool schemas. Both were corrected before run 2. |
+| `soak-strong-1.json` | M1 tasks only | FAIL | Both M1 tasks end in turn 1, so resumed context stays near 17–20k. This coverage gap motivated the workload amendment. |
+| `soak-weak-2.json` | M1 tasks + `s0-01-incident-review` | **FAIL** | 13 unrecovered `tool_call_as_text` events. |
+| `soak-strong-2.json` | M1 tasks + `s0-01-incident-review` | **PASS** | |
+
+Run 2 used the frozen workload (`b50a3e1`) with harness code at `00a6bf4`. Later commits change
+only reporting. Both arms used the same settings: `-k 3 -n 6`, six turns, `soak=true`, request
+dumps on, and no per-arm tuning.
+
+## Run 2 by arm and task
+
+Context is the estimated prompt size, in tokens, at the turn-5 and turn-6 requests (one
+value per trial).
+
+| Arm | Task | Trials × turns | Tool calls | Events | Resumes | 429s | Infra failures | Context t5 | Context t6 |
+|---|---|---|---|---|---|---|---|---|---|
+| weak (Qwen3-Coder 30B, Alibaba) | c1-01 (M1) | 3 × 6 | 25 | 0 | 15/15 | 0 | 0 | 17.4k, 17.7k, 22.4k | 17.7k, 18.0k, 22.8k |
+| | c3-02 (M1) | 3 × 6 | 30 | 0 | 15/15 | 0 | 0 | 17.8k, 18.3k, 18.3k | 18.0k, 18.4k, 18.5k |
+| | s0-01 (soak only) | 3 × 6 | 50 | 13 `tool_call_as_text` | 15/15 | 0 | 0 | 15.5k, 15.5k, 50.1k | 15.9k, 15.9k, 55.9k |
+| strong (DeepSeek V4.1 Flash, DeepSeek) | c1-01 (M1) | 3 × 6 | 17 | 0 | 15/15 | 0 | 0 | 16.6k, 17.4k, 18.3k | 16.9k, 18.1k, 18.6k |
+| | c3-02 (M1) | 3 × 6 | 32 | 0 | 15/15 | 0 | 0 | 17.7k, 18.0k, 18.9k | 17.9k, 18.3k, 19.1k |
+| | s0-01 (soak only) | 3 × 6 | 118 | 0 | 15/15 | 0 | 0 | 41.9k, 43.6k, 45.4k | 47.4k, 47.4k, 51.8k |
+
+Both arms reached a peak of 6 agent requests in flight. Harbor recorded no errored trials and no
+retries, and no failed turns were recorded.
+
+Gate outcomes over the full gate task list:
+
+- **weak: FAIL.** 13 unrecovered events, against a threshold of 0. All other criteria pass.
+- **strong: PASS.** Peak resumed context was 51.8k, inside [30k, 60k].
+
+The same gate applied to the M1 tasks alone fails for both arms on coverage only: resumed
+context is at most 22.8k, and peak concurrency within the M1 trials is 4. This is informational,
+as the amendment specifies.
+
+## `reasoning_content` round trip
+
+The check compared every request body Hermes dumped against the stored history.
+
+| Arm | Hermes policy | Requests | Resumed | Assistant messages checked | Result |
+|---|---|---|---|---|---|
+| weak | strip | 159 | 113 | 2087 | PASS: field never sent |
+| strong | replay | 179 | 127 | 2199 | PASS: 1989 identical, 210 padded |
+
+For DeepSeek, every assistant message in every resumed request carried its stored
+`reasoning_content` verbatim. Messages stored without reasoning (failed-turn notices, and
+turns with no reasoning) carried Hermes's `" "` pad. Totals: 0 missing, 0 rewritten, 0
+unaligned with stored tool-call ids, 0 stored values changed between turns, and 0 error dumps.
+No resumed request was rejected.
+
+## The weak-arm failure
+
+All 13 events are in `s0-01` and share one form. Instead of making a tool call, Qwen wrote its
+native XML call syntax as message text. The text has no `<tool_call>` wrapper and no closing
+`</function>`:
+
+```
+Let me first check what evidence stages are available.
+
+<function=search_files>
+<parameter=pattern>
+^/app/evidence/
+</parameter>
+...
+```
+
+The response arrives with `finish_reason=stop` and no structured tool calls. Hermes at
+`ffc74885` has no text tool-call fallback, so it treats the message as the turn's final answer
+and runs nothing. Hermes's own evals flag this output as `raw_xml_noise`
+(`evals/core_tool_deferral/worker.py`).
+
+- It happened on the first assistant message of all three `s0-01` trials, at about 13.8k
+  context. It is therefore not a long-context effect. The validation trial opened with the same
+  sentence and made a structured call, so whether it occurs on turn 1 is stochastic.
+- One trial (`HDzfwkQ`) made structured calls from turn 2 onward and reached 50.1k/55.9k
+  context.
+- In the other two (`LEjGnkT`, `wYBGx3R`), every later turn repeated the pattern, once per turn.
+  The text calls in the history appear to be copied, so nothing ran in six turns, context stayed
+  near 15k, and the task score was 0.
+- None of the six M1 trials showed it.
+
+This is a genuine protocol failure of the weak arm on its pinned route, not a harness or
+infrastructure fault. The harness recorded no failed turns, every resume was accepted, and the
+strong arm passed the same workload. The weak arm does not proceed to Phase 1 as configured.
+Any change of model or route must be made by dated amendment and soaked again.
+
+## Separation from the evaluation
+
+- **M1 behaviour:** unchanged by the amendment. All 12 M1 trials across both arms were free of
+  events and had every resume accepted. They score 1.0 in the manifests, but soak scores are
+  not results.
+- **Infrastructure soak coverage:** comes from `s0-01`, a soak-only task. It reached 41.9k–55.9k
+  resumed context with 6 requests in flight and no 429s.
+- **Model evaluation:** unaffected. `s0-01` is `soak_only`, `ingest` refuses it, and no soak
+  trial or boundary enters any analysis.
