@@ -27,11 +27,19 @@ api_key_env = "GEMINI_API_KEY"
 rpm = 10
 dev_only = true
 
-# Agent arms. A `self` judge takes its model and provider from one of these.
+# Agent arms. A `self` judge takes its model and provider from one of these. The two arms come
+# from different vendors on different providers, and each passes its own soak gate.
 [agents.weak]
 id = "qwen/qwen3-coder-30b-a3b-instruct"
 endpoint = "openrouter"
 provider = "alibaba"
+
+# Strong arm: supplies the genuine DONE boundaries false-CONTINUE needs. Pinned to DeepSeek's
+# own endpoint rather than a third-party host with undisclosed quantization.
+[agents.strong]
+id = "deepseek/deepseek-v4.1-flash"
+endpoint = "openrouter"
+provider = "deepseek"
 
 [models.flash]
 id = "google/gemini-3-flash-preview"
@@ -44,9 +52,16 @@ id = "google/gemini-3.8-flash"
 endpoint = "openrouter"
 provider = "google-ai-studio"
 source = "Drift cell: successor of the goals.md:244 model, same route, compared on frozen items"
+# The route serves at most 20 successful requests a minute (pilot-v1 attempts.jsonl: a flat
+# 19-22/min under sustained 429s). Judge replay stays below that; agent runs are unaffected.
+rpm = 18
 
 [models.self-weak]
 self_of = "weak"
+source = "Production default: goal_judge resolves to the main model (goals.md:238 at ffc74885)"
+
+[models.self-strong]
+self_of = "strong"
 source = "Production default: goal_judge resolves to the main model (goals.md:238 at ffc74885)"
 
 [models.flash-dev]

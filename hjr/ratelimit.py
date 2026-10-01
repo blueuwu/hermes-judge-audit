@@ -46,15 +46,15 @@ class TokenBucket:
 
 
 class Limiters:
-    """Lazily created bucket per endpoint name, shared by every arm on that endpoint."""
+    """Lazily created bucket per limiter key (an endpoint, or a model with its own cap)."""
 
-    def __init__(self, rpm_by_endpoint: dict[str, int]):
-        self._rpm = rpm_by_endpoint
+    def __init__(self, rpm_by_key: dict[str, int]):
+        self._rpm = rpm_by_key
         self._buckets: dict[str, TokenBucket] = {}
         self._lock = threading.Lock()
 
-    def get(self, endpoint: str) -> TokenBucket:
+    def get(self, key: str) -> TokenBucket:
         with self._lock:
-            if endpoint not in self._buckets:
-                self._buckets[endpoint] = TokenBucket(self._rpm[endpoint])
-            return self._buckets[endpoint]
+            if key not in self._buckets:
+                self._buckets[key] = TokenBucket(self._rpm[key])
+            return self._buckets[key]

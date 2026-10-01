@@ -32,12 +32,12 @@ def cmd_replay(args: argparse.Namespace) -> int:
         raise SystemExit(f"dev-only arms {dev} need a run id starting with {DEV_PREFIX!r}")
     if not dev and args.run_id.startswith(DEV_PREFIX):
         raise SystemExit(f"run ids starting with {DEV_PREFIX!r} are reserved for dev-only arms")
-    limiters = Limiters({name: ep.rpm for name, ep in cfg.endpoints.items()})
+    limiters = Limiters(cfg.limits())
     clients = {
         key: JudgeClient(
             arm,
             api_key_env=cfg.endpoint(arm).api_key_env,
-            limiter=limiters.get(arm.endpoint),
+            limiter=limiters.get(cfg.limiter_key(key)),
         ).complete
         for key, arm in arms.items()
     }

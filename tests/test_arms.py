@@ -81,3 +81,15 @@ def test_arm_describe_has_identity_and_source():
     assert d["arm_id"] == CFG.model("flash").arm_id
     assert "goals.md:244" in d["source"]
     assert isinstance(Arm, type)
+
+
+def test_agent_arms_differ_in_vendor_and_provider():
+    weak, strong = CFG.model("self-weak"), CFG.model("self-strong")
+    assert weak.model_id.split("/")[0] != strong.model_id.split("/")[0]
+    assert weak.provider != strong.provider
+
+
+def test_capped_model_gets_its_own_limiter():
+    assert CFG.limiter_key("drift") == "model:drift"
+    assert CFG.limiter_key("flash") == "openrouter"
+    assert CFG.limits()["model:drift"] < CFG.endpoints["openrouter"].rpm

@@ -4,7 +4,7 @@ from __future__ import annotations
 
 import hashlib
 import tomllib
-from dataclasses import dataclass
+from dataclasses import dataclass, field
 from pathlib import Path
 
 from hjr.arms import Arm
@@ -31,6 +31,9 @@ class JudgeConfig:
     models: dict[str, Arm]
     sampling: dict[str, object]
     sha256: str
+    # Judge-side request limits per model key, for models whose provider caps them below their
+    # endpoint's limit. Throttling does not change outputs, so it is not part of arm identity.
+    model_rpm: dict[str, int] = field(default_factory=dict)
 
     def model(self, key: str) -> Arm:
         try:
@@ -41,6 +44,15 @@ class JudgeConfig:
 
     def endpoint(self, arm: Arm) -> Endpoint:
         return self.endpoints[arm.endpoint]
+
+    def limits(self) -> dict[str, int]:
+        """Requests per minute for every limiter: one per endpoint, one per capped model."""
+        return {name: ep.rpm for name, ep in self.endpoints.items()} | {
+            f"model:{key}": rpm for key, rpm in self.model_rpm.items()
+        }
+
+    def limiter_key(self, key: str) -> str:
+        return f"model:{key}" if key in self.model_rpm else self.model(key).endpoint
 
 
 def _arm(key: str, spec: dict, endpoints: dict[str, Endpoint], sampling: dict) -> Arm:
@@ -77,13 +89,16 @@ def load_judge_config(path: Path = JUDGE_CONFIG) -> JudgeConfig:
     # Agents record serving identity only; their sampling is whatever Hermes sends at run time.
     agents = dict(data.get("agents", {}))
     models = {}
+    model_rpm = {k: int(v["rpm"]) for k, v in data.get("models", {}).items() if "rpm" in v}
     for key, spec in data.get("models", {}).items():
         if "self_of" in spec:
             # A self judge is the agent's model on the agent's provider, with judge sampling.
             agent = agents[spec["self_of"]]
             spec = {**agent, "source": spec.get("source", "")}
         models[key] = _arm(key, spec, endpoints, sampling)
-    return JudgeConfig(endpoints, agents, models, dict(sampling), hashlib.sha256(raw).hexdigest())
+    return JudgeConfig(
+        endpoints, agents, models, dict(sampling), hashlib.sha256(raw).hexdigest(), model_rpm
+    )
 
 
 def global_seed(path: Path = SEEDS_CONFIG) -> int:
