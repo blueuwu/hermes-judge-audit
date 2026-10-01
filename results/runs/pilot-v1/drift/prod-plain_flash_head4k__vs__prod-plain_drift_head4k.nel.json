@@ -1,0 +1,81 @@
+{
+  "report_version": 1,
+  "baseline": {},
+  "candidate": {},
+  "score_deltas": {},
+  "runtime_deltas": {},
+  "verdict": "INCONCLUSIVE",
+  "verdict_reasons": [
+    "Test underpowered: 5 discordant pairs can detect ~125.2% regression at 80% power, but practical threshold is 0.5%. Need ~313600 discordant pairs to detect 0.5%. Increase sample size, add repeats, or use a higher-N proxy benchmark."
+  ],
+  "threshold": 0.005,
+  "flip_report": {
+    "contingency": {
+      "both_correct": 33,
+      "baseline_only_correct": 2,
+      "candidate_only_correct": 3,
+      "both_wrong": 10
+    },
+    "regressions": [
+      {
+        "problem_idx": 32,
+        "repeat": 0,
+        "expected_answer": "done",
+        "baseline_reward": 1.0,
+        "candidate_reward": 0.0
+      },
+      {
+        "problem_idx": 38,
+        "repeat": 0,
+        "expected_answer": "not_done",
+        "baseline_reward": 1.0,
+        "candidate_reward": 0.0
+      }
+    ],
+    "improvements": [
+      {
+        "problem_idx": 30,
+        "repeat": 0,
+        "expected_answer": "not_done",
+        "baseline_reward": 0.0,
+        "candidate_reward": 1.0
+      },
+      {
+        "problem_idx": 31,
+        "repeat": 0,
+        "expected_answer": "not_done",
+        "baseline_reward": 0.0,
+        "candidate_reward": 1.0
+      },
+      {
+        "problem_idx": 33,
+        "repeat": 0,
+        "expected_answer": "not_done",
+        "baseline_reward": 0.0,
+        "candidate_reward": 1.0
+      }
+    ],
+    "summary": {
+      "n_paired": 48,
+      "n_regressions": 2,
+      "n_improvements": 3,
+      "n_stable_correct": 33,
+      "n_stable_wrong": 10,
+      "regression_rate": 0.0417,
+      "improvement_rate": 0.0625,
+      "category_breakdown": null
+    }
+  },
+  "mcnemar": {
+    "p_value": 0.8125,
+    "significant": false,
+    "method": "exact_binomial",
+    "n_discordant": 5,
+    "effect_size": -0.020833,
+    "ci_lower": -0.111949,
+    "ci_upper": 0.070282,
+    "hypothesis": "one-sided (degradation)"
+  },
+  "test_used": "mcnemar",
+  "test_reason": "all per-problem rewards are binary (0.0 or 1.0)"
+}

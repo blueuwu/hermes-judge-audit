@@ -1,0 +1,142 @@
+{
+  "run_id": "pilot-v1",
+  "kind": "judge-replay",
+  "git_sha": "70ad95635737cc55dd5e98f06cad7850c88ccd4b",
+  "git_dirty": false,
+  "hermes_sha": "ffc74885c5f6eb75f6c134fb4eef86d734066623",
+  "uv_lock_sha256": "42e8c0f532edbdad795d459d5f933af34d4b7b6923f895a35ffc50040be73697",
+  "inputs": {
+    "data/frozen/pilot_boundaries.jsonl": "052517160d82e055916989b690ba33dd7593c19ce72d42f016407cfb72280424"
+  },
+  "variants": [
+    "prod-plain:drift:head4k",
+    "prod-plain:drift:headtail4k",
+    "prod-plain:flash:head4k",
+    "prod-plain:flash:headtail4k",
+    "prod-plain:self-weak:head4k",
+    "prod-plain:self-weak:headtail4k"
+  ],
+  "samples": 5,
+  "judge_config_sha256": "63fcdd0055448d768c2b6293804b522ace3928f2803a86a43d12f555048ed4bf",
+  "models": {
+    "flash": {
+      "model_id": "google/gemini-3-flash-preview",
+      "base_url": "https://openrouter.ai/api/v1",
+      "provider": "google-ai-studio",
+      "temperature": "0.0",
+      "max_tokens": "4096",
+      "reasoning": "provider-default",
+      "arm_id": "6b9d36f0d198",
+      "dev_only": "false",
+      "source": "Recommended goal_judge override in website/docs/user-guide/features/goals.md:244 at ffc74885"
+    },
+    "self-weak": {
+      "model_id": "qwen/qwen3-coder-30b-a3b-instruct",
+      "base_url": "https://openrouter.ai/api/v1",
+      "provider": "alibaba",
+      "temperature": "0.0",
+      "max_tokens": "4096",
+      "reasoning": "provider-default",
+      "arm_id": "7d1041bd421f",
+      "dev_only": "false",
+      "source": "Production default: goal_judge resolves to the main model (goals.md:238 at ffc74885)"
+    },
+    "drift": {
+      "model_id": "google/gemini-3.8-flash",
+      "base_url": "https://openrouter.ai/api/v1",
+      "provider": "google-ai-studio",
+      "temperature": "0.0",
+      "max_tokens": "4096",
+      "reasoning": "provider-default",
+      "arm_id": "34c80ac404ad",
+      "dev_only": "false",
+      "source": "Drift cell: successor of the goals.md:244 model, same route, compared on frozen items"
+    }
+  },
+  "observed_identities": {
+    "34c80ac404ad": [
+      {
+        "sub_arm_id": "3bcb0ab6826d",
+        "model": "google/gemini-3.8-flash",
+        "provider": "Google AI Studio",
+        "calls": 480
+      }
+    ],
+    "6b9d36f0d198": [
+      {
+        "sub_arm_id": "6bd40d6bdd15",
+        "model": "google/gemini-3-flash-preview",
+        "provider": "Google AI Studio",
+        "calls": 480
+      }
+    ],
+    "7d1041bd421f": [
+      {
+        "sub_arm_id": "11d2410bb0cb",
+        "model": "qwen/qwen3-coder-30b-a3b-instruct",
+        "provider": "Alibaba",
+        "calls": 480
+      }
+    ]
+  },
+  "seed": 20261001,
+  "started_at": "2026-10-01T13:11:54.897808Z",
+  "finished_at": "2026-10-01T13:43:22.498637Z",
+  "counts": {
+    "boundaries": 48,
+    "parsed": 1440,
+    "attempts": 2444,
+    "attempt_errors": 1004
+  },
+  "usage": {
+    "prod-plain:drift:head4k": {
+      "calls": 240.0,
+      "tokens_in": 349130.0,
+      "tokens_out": 63048.0,
+      "reasoning_tokens": 54705.0,
+      "cost_usd": 0.49827749999999976,
+      "calls_without_cost": 0.0
+    },
+    "prod-plain:drift:headtail4k": {
+      "calls": 240.0,
+      "tokens_in": 344200.0,
+      "tokens_out": 71279.0,
+      "reasoning_tokens": 62938.0,
+      "cost_usd": 0.5254462500000003,
+      "calls_without_cost": 0.0
+    },
+    "prod-plain:flash:head4k": {
+      "calls": 240.0,
+      "tokens_in": 349130.0,
+      "tokens_out": 8784.0,
+      "reasoning_tokens": 0.0,
+      "cost_usd": 0.20091699999999998,
+      "calls_without_cost": 0.0
+    },
+    "prod-plain:flash:headtail4k": {
+      "calls": 240.0,
+      "tokens_in": 344200.0,
+      "tokens_out": 8922.0,
+      "reasoning_tokens": 0.0,
+      "cost_usd": 0.1988660000000001,
+      "calls_without_cost": 0.0
+    },
+    "prod-plain:self-weak:head4k": {
+      "calls": 240.0,
+      "tokens_in": 323885.0,
+      "tokens_out": 11009.0,
+      "reasoning_tokens": 0.0,
+      "cost_usd": 0.11083702499999994,
+      "calls_without_cost": 0.0
+    },
+    "prod-plain:self-weak:headtail4k": {
+      "calls": 240.0,
+      "tokens_in": 326390.0,
+      "tokens_out": 11279.0,
+      "reasoning_tokens": 0.0,
+      "cost_usd": 0.11196461250000002,
+      "calls_without_cost": 0.0
+    }
+  },
+  "notes": ""
+}
