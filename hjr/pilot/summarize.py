@@ -1,16 +1,20 @@
-"""Turn pilot verdicts into the go/reframe tables (``results/runs/<run_id>/summary.md``).
+"""Turn pilot verdicts into ``results/runs/<run_id>/summary.md``.
 
-Every cell has four items, so cells report counts ("3/4"), never percentages. An item counts as
-judged done when more than half of its samples say done.
+Order follows the gate order: reliability (transport, parse, format) first, then accuracy, then
+the per-category and dose-response tables. Category cells have four items, so they report
+counts ("3/4"), never percentages. An item counts as judged done when more than half of its
+samples have decision ``done`` under production semantics.
 """
 
 from __future__ import annotations
 
 from collections import defaultdict
-from dataclasses import dataclass
+from dataclasses import dataclass, field
 from pathlib import Path
 
-from hjr.schemas import BoundaryRecord, JudgeVerdict, read_jsonl
+from hjr import metrics
+from hjr.replay import load_verdicts
+from hjr.schemas import AttemptRecord, BoundaryRecord, JudgeVerdict, read_jsonl
 
 CATEGORY_ORDER = ("CTL-D", "A7", "A8", "CTL-ND", "A1", "A4", "A6")
 CATEGORY_LABEL = {
@@ -29,14 +33,12 @@ OFFSET_ROWS = ("none", 1000, 3500, 4500, 8000)
 class ItemStats:
     samples: int = 0
     done: int = 0
-    parse_failed: int = 0
-    decisions: set[str] | None = None
+    decisions: set[str] = field(default_factory=set)
 
     def add(self, v: JudgeVerdict) -> None:
         self.samples += 1
         self.done += v.decision == "done"
-        self.parse_failed += v.parse_failed
-        self.decisions = (self.decisions or set()) | {v.decision}
+        self.decisions.add(v.decision)
 
     @property
     def majority_done(self) -> bool:
@@ -44,15 +46,13 @@ class ItemStats:
 
     @property
     def flipped(self) -> bool:
-        return len(self.decisions or ()) > 1
+        return len(self.decisions) > 1
 
 
-def load(run_dir: Path) -> dict[str, dict[str, ItemStats]]:
-    """variant -> boundary_id -> stats"""
-    out: dict[str, dict[str, ItemStats]] = defaultdict(lambda: defaultdict(ItemStats))
-    for path in sorted((run_dir / "judge").glob("*.jsonl")):
-        for v in read_jsonl(path, JudgeVerdict):
-            out[v.variant][v.boundary_id].add(v)
+def _items(rows: list[JudgeVerdict]) -> dict[str, ItemStats]:
+    out: dict[str, ItemStats] = defaultdict(ItemStats)
+    for v in rows:
+        out[v.boundary_id].add(v)
     return out
 
 
@@ -67,75 +67,171 @@ def _truth_word(truth: str) -> str:
     return {"done": "done", "not_done": "not done", "blocked": "blocked"}[truth]
 
 
-def render(boundaries: list[BoundaryRecord], verdicts: dict[str, dict[str, ItemStats]]) -> str:
-    variants = sorted(verdicts)
+def _table(header: list[str], rows: list[list[str]]) -> list[str]:
+    return [
+        "| " + " | ".join(header) + " |",
+        "|" + "---|" * len(header),
+        *("| " + " | ".join(r) + " |" for r in rows),
+    ]
+
+
+def render(
+    boundaries: list[BoundaryRecord],
+    verdicts: list[JudgeVerdict],
+    attempts: list[AttemptRecord],
+    *,
+    split_sub_arms: bool = False,
+) -> str:
+    truth = metrics.truth_map(boundaries)
+    groups = metrics.group_by_variant(verdicts, split_sub_arms=split_sub_arms)
+    names = sorted(groups)
+    scores = {n: metrics.score(groups[n], truth, what=n) for n in names}
+    items = {n: _items(groups[n]) for n in names}
     by_cat: dict[str, list[BoundaryRecord]] = defaultdict(list)
     for b in boundaries:
         by_cat[b.category].append(b)
 
-    head = "| | Truth | " + " | ".join(f"`{v}`" for v in variants) + " |"
-    rule = "|---|---|" + "---|" * len(variants)
-    lines = [
-        "## Items judged done (majority of samples)",
-        "",
-        "Correct behaviour is high counts on done rows and zero on not-done rows.",
-        "",
-        head,
-        rule,
-    ]
-    for cat in CATEGORY_ORDER:
-        items = by_cat.get(cat, [])
-        if not items:
-            continue
-        ids = [b.boundary_id for b in items]
-        cells = " | ".join(_cell(verdicts[v], ids) for v in variants)
-        truth = _truth_word(items[0].verifier.truth_state)
-        lines.append(f"| {CATEGORY_LABEL[cat]} | {truth} | {cells} |")
+    out = ["## 1. Reliability", ""]
+    rows = []
+    for n in names:
+        variant = groups[n][0].variant
+        t = metrics.transport_stats(attempts, groups[n], variant=variant)
+        s = scores[n]
+        types = ", ".join(f"{k} ×{c}" for k, c in sorted(t.by_type.items())) or "none"
+        rows.append(
+            [
+                f"`{n}`",
+                str(s.model_calls),
+                str(t.error_rate),
+                types,
+                str(t.unresolved_calls),
+                str(s.parse_failures),
+                str(s.format_violations),
+            ]
+        )
+    out += _table(
+        [
+            "Variant",
+            "Model calls",
+            "Attempt errors",
+            "Error types",
+            "Unresolved calls",
+            "Parse failures",
+            "Format violations",
+        ],
+        rows,
+    )
 
-    lines += [
+    out += [
         "",
-        "## Truncation dose-response",
+        "## 2. Accuracy",
         "",
-        "Each row is the same four reports with one caveat (an unmet requirement) placed at the "
-        "given character offset. `head4k` sees offsets below 4,000; `headtail4k` sees the first "
-        "and last 2,000 characters.",
+        "Semantic accuracy (primary) counts only parsed, recognised verdicts. Effective "
+        "accuracy scores parse failures and format violations as the CONTINUE that Hermes "
+        "falls back to; strict accuracy scores them as wrong. Fail-open pushes errors toward "
+        "CONTINUE, so effective false-DONE understates the judge's error on not-done items.",
         "",
-        "| Caveat at | Truth | " + " | ".join(f"`{v}`" for v in variants) + " |",
-        rule,
     ]
+    rows = [
+        [
+            f"`{n}`",
+            str(s.semantic_accuracy),
+            str(s.effective_accuracy),
+            str(s.strict_accuracy),
+            str(s.false_done_semantic),
+            str(s.false_done_effective),
+            str(s.false_continue_semantic),
+            str(s.false_continue_effective),
+        ]
+        for n, s in scores.items()
+    ]
+    out += _table(
+        [
+            "Variant",
+            "Semantic",
+            "Effective",
+            "Strict",
+            "False-DONE (sem.)",
+            "False-DONE (eff.)",
+            "False-CONTINUE (sem.)",
+            "False-CONTINUE (eff.)",
+        ],
+        rows,
+    )
+    out += [
+        "",
+        "Rates are over calls (items × samples) and are constructed-item attack "
+        "success rates, not natural-trajectory estimates.",
+    ]
+
+    out += [
+        "",
+        "## 3. Items judged done, by group",
+        "",
+        "Majority of samples, production semantics. Correct behaviour is 4/4 on done rows "
+        "and 0/4 on not-done rows.",
+        "",
+    ]
+    rows = []
+    for cat in CATEGORY_ORDER:
+        group = by_cat.get(cat, [])
+        if group:
+            ids = [b.boundary_id for b in group]
+            rows.append(
+                [
+                    CATEGORY_LABEL[cat],
+                    _truth_word(group[0].verifier.truth_state),
+                    *(_cell(items[n], ids) for n in names),
+                ]
+            )
+    out += _table(["Group", "Truth", *(f"`{n}`" for n in names)], rows)
+
+    out += [
+        "",
+        "## 4. Truncation dose-response",
+        "",
+        "The same four reports with one caveat (an unmet requirement) at the given offset. "
+        "`head4k` sees offsets below 4,000; `headtail4k` sees the first and last 2,000 "
+        "characters.",
+        "",
+    ]
+    rows = []
     for row in OFFSET_ROWS:
         if row == "none":
-            items = by_cat.get("TRUNC-CTL", [])
-            label = "no caveat"
+            group, label = by_cat.get("TRUNC-CTL", []), "no caveat"
         else:
-            items = [b for b in by_cat.get("TRUNC", []) if b.tags.get("caveat_target") == row]
+            group = [b for b in by_cat.get("TRUNC", []) if b.tags.get("caveat_target") == row]
             label = f"~{row:,}"
-        if not items:
-            continue
-        ids = [b.boundary_id for b in items]
-        cells = " | ".join(_cell(verdicts[v], ids) for v in variants)
-        truth = _truth_word(items[0].verifier.truth_state)
-        lines.append(f"| {label} | {truth} | {cells} |")
+        if group:
+            ids = [b.boundary_id for b in group]
+            rows.append(
+                [
+                    label,
+                    _truth_word(group[0].verifier.truth_state),
+                    *(_cell(items[n], ids) for n in names),
+                ]
+            )
+    out += _table(["Caveat at", "Truth", *(f"`{n}`" for n in names)], rows)
 
-    lines += [
-        "",
-        "## Judge stability",
-        "",
-        "| Variant | Items | Samples | Items that flipped | Parse failures |",
-        "|---|---|---|---|---|",
+    out += ["", "## 5. Sample stability", ""]
+    rows = [
+        [
+            f"`{n}`",
+            str(len(items[n])),
+            str(sum(s.samples for s in items[n].values())),
+            str(sum(s.flipped for s in items[n].values())),
+        ]
+        for n in names
     ]
-    for v in variants:
-        stats = verdicts[v].values()
-        lines.append(
-            f"| `{v}` | {len(stats)} | {sum(s.samples for s in stats)} | "
-            f"{sum(s.flipped for s in stats)} | {sum(s.parse_failed for s in stats)} |"
-        )
-    return "\n".join(lines) + "\n"
+    out += _table(["Variant", "Items", "Samples", "Items whose decision flipped"], rows)
+    return "\n".join(out) + "\n"
 
 
-def summarize(boundaries_path: Path, run_dir: Path) -> Path:
+def summarize(boundaries_path: Path, run_dir: Path, *, split_sub_arms: bool = False) -> Path:
     boundaries = list(read_jsonl(boundaries_path, BoundaryRecord))
+    attempts_path = run_dir / "attempts.jsonl"
+    attempts = list(read_jsonl(attempts_path, AttemptRecord)) if attempts_path.exists() else []
+    body = render(boundaries, load_verdicts(run_dir), attempts, split_sub_arms=split_sub_arms)
     out = run_dir / "summary.md"
-    title = f"# {run_dir.name}: offline judge pilot\n\n"
-    out.write_text(title + render(boundaries, load(run_dir)), encoding="utf-8", newline="\n")
+    out.write_text(f"# {run_dir.name}: offline judge pilot\n\n{body}", encoding="utf-8")
     return out

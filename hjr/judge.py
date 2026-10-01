@@ -15,7 +15,7 @@ from __future__ import annotations
 
 import hashlib
 import json
-from collections.abc import Callable, Sequence
+from collections.abc import Sequence
 from dataclasses import dataclass
 from datetime import datetime
 from typing import Any
@@ -234,15 +234,3 @@ class Variant:
 
     def __str__(self) -> str:
         return f"{self.prompt}:{self.model}:{self.view}"
-
-
-Completion = Callable[[list[dict[str, str]]], "CompletionResult"]
-
-
-@dataclass(frozen=True)
-class CompletionResult:
-    text: str
-    model_reported: str = ""
-    latency_ms: int = 0
-    tokens_in: int = 0
-    tokens_out: int = 0

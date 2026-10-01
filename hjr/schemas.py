@@ -67,21 +67,63 @@ class BoundaryRecord(_Record):
 
 
 class JudgeVerdict(_Record):
+    """One judge call that returned a response. Transport failures never become a verdict;
+    they are logged as AttemptRecords and the call is retried on the next run."""
+
     boundary_id: str
     variant: str
     sample: int
+    arm_id: str
+    # Arm plus the identity the provider reported; empty when no model call was made.
+    sub_arm_id: str
+    # parsed | parse_failed | format_violation | no_call (Hermes skips empty responses)
+    outcome: Literal["parsed", "parse_failed", "format_violation", "no_call"]
     verdict: str
     decision: Literal["done", "continue", "blocked"]
     reason: str
     parse_failed: bool
-    transport_failed: bool = False
+    format_violation: str | None = None
     raw: str
+    finish_reason: str = ""
     judge_model: str
     judge_model_reported: str = ""
+    provider_reported: str = ""
     prompt_sha256: str
+    attempts: int = 1
     latency_ms: int = 0
     tokens_in: int = 0
     tokens_out: int = 0
+    reasoning_tokens: int = 0
+    cost_usd: float | None = None
+    ts: AwareDatetime
+
+
+class AttemptRecord(_Record):
+    """Every HTTP attempt, successful or not. Transport reliability is computed from these."""
+
+    boundary_id: str
+    variant: str
+    sample: int
+    arm_id: str
+    attempt: int
+    status: Literal["ok", "error"]
+    error_type: str = ""
+    http_status: int | None = None
+    retryable: bool = False
+    latency_ms: int = 0
+    ts: AwareDatetime
+
+
+class DriftIncident(_Record):
+    """The provider-reported identity changed within an arm; the arm was halted."""
+
+    run_id: str
+    arm_id: str
+    expected: dict[str, str]
+    observed: dict[str, str]
+    boundary_id: str
+    variant: str
+    sample: int
     ts: AwareDatetime
 
 
@@ -96,11 +138,15 @@ class RunManifest(_Record):
     variants: list[str]
     samples: int
     judge_config_sha256: str
+    # Arm key -> identity, arm_id, model source and any substitution note.
     models: dict[str, dict[str, str]]
+    # arm_id -> each provider-reported (model, provider) seen, with its sub_arm_id and count.
+    observed_identities: dict[str, list[dict[str, str | int]]] = Field(default_factory=dict)
     seed: int
     started_at: datetime
     finished_at: datetime | None = None
     counts: dict[str, int] = Field(default_factory=dict)
+    usage: dict[str, dict[str, float]] = Field(default_factory=dict)
     notes: str = ""
 
 

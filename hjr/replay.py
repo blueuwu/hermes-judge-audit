@@ -1,29 +1,40 @@
-"""Replay judge variants over frozen boundaries. Resume-safe: reruns skip finished samples.
+"""Replay judge variants over frozen boundaries. Resume-safe: reruns only fill in missing samples.
 
 Output layout under ``results/runs/<run_id>/``::
 
-    judge/<prompt>__<model>__<view>.jsonl   one JudgeVerdict per (boundary, sample)
-    errors.jsonl                             calls that still failed after retries
+    judge/<prompt>__<model>__<view>.jsonl   one JudgeVerdict per answered (boundary, sample)
+    attempts.jsonl                           every HTTP attempt, including retries and failures
+    incidents.jsonl                          provider-reported identity changes (arm halted)
     manifest.json
+
+A call that still fails after retries leaves no verdict, so the next run retries it. If the
+provider-reported model or provider changes within an arm, new calls for that arm stop at once,
+completed records are kept under their own sub-arm id, and the incident is logged. An arm with
+a logged incident is not called again in the same run.
 """
 
 from __future__ import annotations
 
-import json
 import logging
+import threading
 from collections import Counter
 from collections.abc import Callable, Iterable, Mapping
 from concurrent.futures import ThreadPoolExecutor, as_completed
+from dataclasses import dataclass
 from datetime import UTC, datetime
 from pathlib import Path
 
 from hjr import judge
-from hjr.judge import Completion, CompletionResult, Variant
-from hjr.schemas import BoundaryRecord, JudgeVerdict
+from hjr.arms import Arm, sub_arm_id
+from hjr.client import CompletionResult, TransportError
+from hjr.judge import Variant
+from hjr.schemas import AttemptRecord, BoundaryRecord, DriftIncident, JudgeVerdict, read_jsonl
 
 log = logging.getLogger(__name__)
 
 EMPTY_RESPONSE_REASON = "empty response (nothing to evaluate)"
+
+Completion = Callable[[list[dict[str, str]]], CompletionResult]
 
 
 def verdict_path(run_dir: Path, variant: Variant) -> Path:
@@ -31,51 +42,101 @@ def verdict_path(run_dir: Path, variant: Variant) -> Path:
     return run_dir / "judge" / f"{variant.prompt}__{variant.model}__{variant.view}.jsonl"
 
 
-def _finished(path: Path) -> set[tuple[str, int]]:
-    if not path.exists():
-        return set()
-    done = set()
-    with path.open(encoding="utf-8") as fh:
-        for line in fh:
-            if line.strip():
-                rec = json.loads(line)
-                done.add((rec["boundary_id"], rec["sample"]))
-    return done
+def load_verdicts(run_dir: Path) -> list[JudgeVerdict]:
+    out: list[JudgeVerdict] = []
+    for path in sorted((run_dir / "judge").glob("*.jsonl")):
+        out.extend(read_jsonl(path, JudgeVerdict))
+    return out
+
+
+def _now() -> datetime:
+    return datetime.now(UTC)
+
+
+class ArmHalted(RuntimeError):
+    pass
+
+
+@dataclass
+class _ArmState:
+    """Expected provider-reported identity for one arm, shared across its variants."""
+
+    expected: tuple[str, str] | None
+    halted: threading.Event
+    lock: threading.Lock
 
 
 def judge_once(
     boundary: BoundaryRecord,
     variant: Variant,
     sample: int,
+    arm: Arm,
     complete: Completion,
-    judge_model_id: str,
-    now: Callable[[], datetime] = lambda: datetime.now(UTC),
-) -> JudgeVerdict:
+) -> tuple[JudgeVerdict, tuple]:
     messages = judge.build_messages(boundary, prompt=variant.prompt, view=variant.view)
     if not boundary.last_response.strip():
-        # judge_goal short-circuits before calling the model.
+        # judge_goal returns CONTINUE without calling the model.
         result = CompletionResult(text="")
         parsed = judge.ParsedVerdict("continue", EMPTY_RESPONSE_REASON, parse_failed=False)
+        outcome, sub = "no_call", ""
     else:
         result = complete(messages)
         parsed = judge.parse_verdict(result.text)
-    return JudgeVerdict(
+        outcome = parsed.outcome
+        sub = sub_arm_id(arm.arm_id, result.model_reported, result.provider_reported)
+    rec = JudgeVerdict(
         boundary_id=boundary.boundary_id,
         variant=str(variant),
         sample=sample,
+        arm_id=arm.arm_id,
+        sub_arm_id=sub,
+        outcome=outcome,
         verdict=parsed.verdict,
         decision=parsed.decision,
         reason=parsed.reason,
         parse_failed=parsed.parse_failed,
+        format_violation=parsed.format_violation,
         raw=result.text,
-        judge_model=judge_model_id,
+        finish_reason=result.finish_reason,
+        judge_model=arm.model_id,
         judge_model_reported=result.model_reported,
+        provider_reported=result.provider_reported,
         prompt_sha256=judge.prompt_sha256(messages),
+        attempts=len(result.attempts) or (0 if outcome == "no_call" else 1),
         latency_ms=result.latency_ms,
         tokens_in=result.tokens_in,
         tokens_out=result.tokens_out,
-        ts=now(),
+        reasoning_tokens=result.reasoning_tokens,
+        cost_usd=result.cost_usd,
+        ts=_now(),
     )
+    return rec, result.attempts
+
+
+class _Writer:
+    """Serialises appends from worker threads; one handle per file."""
+
+    def __init__(self) -> None:
+        self._lock = threading.Lock()
+        self._handles: dict[Path, object] = {}
+
+    def write(self, path: Path, line: str) -> None:
+        with self._lock:
+            fh = self._handles.get(path)
+            if fh is None:
+                path.parent.mkdir(parents=True, exist_ok=True)
+                fh = path.open("a", encoding="utf-8", newline="\n")
+                self._handles[path] = fh
+            fh.write(line + "\n")
+            fh.flush()
+
+    def close(self) -> None:
+        for fh in self._handles.values():
+            fh.close()
+
+
+def _identity(rec: JudgeVerdict) -> tuple[str, str]:
+    return rec.judge_model_reported, rec.provider_reported
 
 
 def replay(
@@ -84,57 +145,112 @@ def replay(
     *,
     samples: int,
     run_dir: Path,
+    arms: Mapping[str, Arm],
     completions: Mapping[str, Completion],
-    model_ids: Mapping[str, str],
     workers: int = 8,
 ) -> Counter[str]:
     """Judge every (boundary, variant, sample) not already on disk. Returns outcome counts."""
     boundaries = list(boundaries)
-    counts: Counter[str] = Counter()
-    errors_path = run_dir / "errors.jsonl"
+    variants = list(variants)
     run_dir.mkdir(parents=True, exist_ok=True)
+    counts: Counter[str] = Counter()
+    writer = _Writer()
+    attempts_path = run_dir / "attempts.jsonl"
+    incidents_path = run_dir / "incidents.jsonl"
 
-    for variant in variants:
-        path = verdict_path(run_dir, variant)
-        path.parent.mkdir(parents=True, exist_ok=True)
-        finished = _finished(path)
-        todo = [
-            (b, s) for b in boundaries for s in range(samples) if (b.boundary_id, s) not in finished
-        ]
-        counts["skipped"] += len(boundaries) * samples - len(todo)
-        if not todo:
-            continue
-        log.info("%s: %d calls (%d already done)", variant, len(todo), len(finished))
-        complete = completions[variant.model]
-        model_id = model_ids[variant.model]
-        with (
-            ThreadPoolExecutor(max_workers=workers) as pool,
-            path.open("a", encoding="utf-8", newline="\n") as out,
-            errors_path.open("a", encoding="utf-8", newline="\n") as err,
-        ):
-            futures = {
-                pool.submit(judge_once, b, variant, s, complete, model_id): (b, s) for b, s in todo
-            }
+    existing = load_verdicts(run_dir)
+    halted_before = {
+        i.arm_id
+        for i in (read_jsonl(incidents_path, DriftIncident) if incidents_path.exists() else [])
+    }
+    states: dict[str, _ArmState] = {}
+    for key, arm in arms.items():
+        prior = [r for r in existing if r.arm_id == arm.arm_id and r.outcome != "no_call"]
+        expected = _identity(min(prior, key=lambda r: r.ts)) if prior else None
+        state = _ArmState(expected, threading.Event(), threading.Lock())
+        if arm.arm_id in halted_before:
+            state.halted.set()
+        states[key] = state
+    finished = {(r.variant, r.boundary_id, r.sample) for r in existing}
+
+    def task(b: BoundaryRecord, v: Variant, s: int):
+        if states[v.model].halted.is_set():
+            raise ArmHalted(v.model)
+        rec, attempts = judge_once(b, v, s, arms[v.model], completions[v.model])
+        # Checked in the worker, so the halt takes effect before the next queued call starts.
+        return rec, attempts, check_identity(rec, v)
+
+    def log_attempts(b: BoundaryRecord, v: Variant, s: int, attempts) -> None:
+        for a in attempts:
+            writer.write(
+                attempts_path,
+                AttemptRecord(
+                    boundary_id=b.boundary_id,
+                    variant=str(v),
+                    sample=s,
+                    arm_id=arms[v.model].arm_id,
+                    attempt=a.attempt,
+                    status="ok" if a.ok else "error",
+                    error_type=a.error_type,
+                    http_status=a.http_status,
+                    retryable=a.retryable,
+                    latency_ms=a.latency_ms,
+                    ts=_now(),
+                ).model_dump_json(exclude_none=True),
+            )
+
+    def check_identity(rec: JudgeVerdict, v: Variant) -> DriftIncident | None:
+        if rec.outcome == "no_call":
+            return None
+        state = states[v.model]
+        with state.lock:
+            if state.expected is None:
+                state.expected = _identity(rec)
+                return None
+            if _identity(rec) == state.expected or state.halted.is_set():
+                return None
+            state.halted.set()
+        log.error("identity changed for arm %s (%s); halting it", v.model, rec.arm_id)
+        names = ("model", "provider")
+        return DriftIncident(
+            run_id=run_dir.name,
+            arm_id=rec.arm_id,
+            expected=dict(zip(names, state.expected, strict=True)),
+            observed=dict(zip(names, _identity(rec), strict=True)),
+            boundary_id=rec.boundary_id,
+            variant=rec.variant,
+            sample=rec.sample,
+            ts=_now(),
+        )
+
+    todo = [
+        (b, v, s)
+        for v in variants
+        for b in boundaries
+        for s in range(samples)
+        if (str(v), b.boundary_id, s) not in finished
+    ]
+    counts["skipped"] = len(boundaries) * len(variants) * samples - len(todo)
+    try:
+        with ThreadPoolExecutor(max_workers=workers) as pool:
+            futures = {pool.submit(task, *job): job for job in todo}
             for fut in as_completed(futures):
-                b, s = futures[fut]
+                b, v, s = futures[fut]
                 try:
-                    rec = fut.result()
-                except Exception as exc:  # noqa: BLE001 - logged and retried on the next run
-                    counts["failed"] += 1
-                    err.write(
-                        json.dumps(
-                            {
-                                "boundary_id": b.boundary_id,
-                                "variant": str(variant),
-                                "sample": s,
-                                "error": f"{type(exc).__name__}: {exc}",
-                                "ts": datetime.now(UTC).isoformat(),
-                            }
-                        )
-                        + "\n"
-                    )
+                    rec, attempts, incident = fut.result()
+                except ArmHalted:
+                    counts["halted"] += 1
                     continue
-                out.write(rec.model_dump_json() + "\n")
-                out.flush()
-                counts["parse_failed" if rec.parse_failed else "ok"] += 1
+                except TransportError as exc:
+                    log_attempts(b, v, s, exc.attempts)
+                    counts["transport_failed"] += 1
+                    continue
+                log_attempts(b, v, s, attempts)
+                writer.write(verdict_path(run_dir, v), rec.model_dump_json(exclude_none=True))
+                counts[rec.outcome] += 1
+                if incident is not None:
+                    writer.write(incidents_path, incident.model_dump_json())
+                    counts["drift_incidents"] += 1
+    finally:
+        writer.close()
     return counts

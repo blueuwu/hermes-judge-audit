@@ -1,24 +1,55 @@
-# Judge models and sampling for offline replay.
+# Judge arms for offline replay.
 #
-# Sampling matches production (hermes_cli/goals.py::_call_goal_judge_llm at ffc74885):
-# temperature 0, max_tokens = DEFAULT_JUDGE_MAX_TOKENS (4096). Those values are read from the
-# pinned Hermes code in hjr/judge.py and checked by tests, not duplicated here.
+# An arm is (model id, endpoint, provider, sampling). hjr/arms.py hashes those fields into the
+# arm_id stored on every record; analysis refuses to pool records from different arms.
 #
-# Every model is pinned to a single OpenRouter provider with fallbacks disabled, so a run never
-# silently mixes serving stacks. The provider-reported model id is stored on every verdict.
+# Every evaluation arm is pinned to one OpenRouter provider with fallbacks disabled, so pilot,
+# main and drift runs share one serving stack. Endpoints marked dev_only (free tiers) are for
+# development and can never be pooled with evaluation results.
+
+# Decoding parameters production sends for the goal_judge task at ffc74885
+# (hermes_cli/goals.py: temperature=0 at :885, max_tokens default 4096 at :37, no reasoning
+# config unless auxiliary.goal_judge sets one). tests/test_arms.py checks these against the
+# pinned code. Every judge arm, including `self`, uses them, because production does.
+[judge_sampling]
+temperature = 0.0
+max_tokens = 4096
+reasoning = "provider-default"
 
 [endpoints.openrouter]
 base_url = "https://openrouter.ai/api/v1"
 api_key_env = "OPENROUTER_API_KEY"
+rpm = 120
 
-# The cheap override the /goal docs suggest (website/docs/user-guide/features/goals.md).
+[endpoints.aistudio-free]
+base_url = "https://generativelanguage.googleapis.com/v1beta/openai"
+api_key_env = "GEMINI_API_KEY"
+rpm = 10
+dev_only = true
+
+# Agent arms. A `self` judge takes its model and provider from one of these.
+[agents.weak]
+id = "qwen/qwen3-coder-30b-a3b-instruct"
+endpoint = "openrouter"
+provider = "alibaba"
+
 [models.flash]
 id = "google/gemini-3-flash-preview"
 endpoint = "openrouter"
 provider = "google-ai-studio"
+source = "Recommended goal_judge override in website/docs/user-guide/features/goals.md:244 at ffc74885"
 
-# The weak agent model, judging its own work: the production default (goal_judge -> main model).
-[models.self-weak]
-id = "qwen/qwen3-coder-30b-a3b-instruct"
+[models.drift]
+id = "google/gemini-3.8-flash"
 endpoint = "openrouter"
-provider = "alibaba"
+provider = "google-ai-studio"
+source = "Drift cell: successor of the goals.md:244 model, same route, compared on frozen items"
+
+[models.self-weak]
+self_of = "weak"
+source = "Production default: goal_judge resolves to the main model (goals.md:238 at ffc74885)"
+
+[models.flash-dev]
+id = "gemini-3-flash-preview"
+endpoint = "aistudio-free"
+source = "Development only: free-tier AI Studio, never pooled with evaluation results"

@@ -12,20 +12,35 @@ from dotenv import load_dotenv
 from hjr import manifest
 from hjr.config import ROOT, global_seed, load_judge_config
 from hjr.judge import Variant
-from hjr.schemas import BoundaryRecord, RunManifest, read_jsonl
+from hjr.schemas import BoundaryRecord, read_jsonl
 
 RUNS = ROOT / "results" / "runs"
+DEV_PREFIX = "dev-"
 
 
 def cmd_replay(args: argparse.Namespace) -> int:
     from hjr.client import JudgeClient
+    from hjr.ratelimit import Limiters
     from hjr.replay import replay
 
     load_dotenv(ROOT / ".env")
     variants = [Variant.parse(v) for v in args.variant]
     cfg = load_judge_config()
-    models = {v.model: cfg.model(v.model) for v in variants}
-    clients = {key: JudgeClient(m).complete for key, m in models.items()}
+    arms = {v.model: cfg.model(v.model) for v in variants}
+    dev = sorted(k for k, a in arms.items() if a.dev_only)
+    if dev and not args.run_id.startswith(DEV_PREFIX):
+        raise SystemExit(f"dev-only arms {dev} need a run id starting with {DEV_PREFIX!r}")
+    if not dev and args.run_id.startswith(DEV_PREFIX):
+        raise SystemExit(f"run ids starting with {DEV_PREFIX!r} are reserved for dev-only arms")
+    limiters = Limiters({name: ep.rpm for name, ep in cfg.endpoints.items()})
+    clients = {
+        key: JudgeClient(
+            arm,
+            api_key_env=cfg.endpoint(arm).api_key_env,
+            limiter=limiters.get(arm.endpoint),
+        ).complete
+        for key, arm in arms.items()
+    }
     boundaries = list(read_jsonl(args.boundaries, BoundaryRecord))
     if args.limit:
         boundaries = boundaries[: args.limit]
@@ -38,32 +53,27 @@ def cmd_replay(args: argparse.Namespace) -> int:
         variants,
         samples=args.samples,
         run_dir=run_dir,
+        arms=arms,
         completions=clients,
-        model_ids={k: m.id for k, m in models.items()},
         workers=args.workers,
     )
-    record = RunManifest(
-        run_id=args.run_id,
-        kind="judge-replay",
+    record = manifest.judge_run_manifest(
+        run_dir,
         git_sha=git_sha,
         git_dirty=dirty,
-        hermes_sha=manifest.hermes_sha(),
-        uv_lock_sha256=manifest.sha256_file(ROOT / "uv.lock"),
-        inputs={manifest.rel(args.boundaries): manifest.sha256_file(args.boundaries)},
+        boundaries_path=args.boundaries,
+        n_boundaries=len(boundaries),
         variants=[str(v) for v in variants],
         samples=args.samples,
+        arms=arms,
         judge_config_sha256=cfg.sha256,
-        models={k: m.describe() for k, m in models.items()},
         seed=global_seed(),
         started_at=started,
-        finished_at=datetime.now(UTC),
-        counts={"boundaries": len(boundaries), **counts},
     )
-    (run_dir / "manifest.json").write_text(
-        record.model_dump_json(indent=2) + "\n", encoding="utf-8", newline="\n"
-    )
+    manifest.write_manifest(run_dir, record)
     print(f"{args.run_id}: {dict(counts)}")
-    return 1 if counts.get("failed") else 0
+    failed = counts.get("transport_failed") or counts.get("drift_incidents") or counts.get("halted")
+    return 1 if failed else 0
 
 
 def cmd_pilot_build(args: argparse.Namespace) -> int:
