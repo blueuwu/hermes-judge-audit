@@ -98,6 +98,54 @@ class JudgeVerdict(_Record):
     ts: AwareDatetime
 
 
+class TurnRecord(_Record):
+    """One turn boundary as the harness saw it, before verification. Ingest joins it with the
+    verifier's grade of the same workspace snapshot to make a BoundaryRecord."""
+
+    boundary_id: str
+    run_id: str
+    trial: str
+    task_id: str
+    agent_arm: str
+    agent_model: str
+    turn: int
+    prompt: str  # what the harness sent this turn
+    goal: str
+    contract: dict[str, str] | None = None
+    last_response: str
+    last_response_kind: str = ""  # display_kind; "failed_turn" is Hermes's failure notice
+    response_chars: int
+    session_id: str | None
+    recent_tool_events: list[ToolEvent] = Field(default_factory=list)  # this turn's calls
+    tool_calls_total: int = 0  # whole session so far
+    # What the judge was shown. Production lists Hermes-managed background processes; the
+    # harness passes none and records what was actually running instead.
+    background_processes: list[dict[str, Any]] = Field(default_factory=list)
+    processes_running: list[str] = Field(default_factory=list)
+    active_delegations: int = 0
+    snapshot: str
+    # The in-loop judge call (production prompt, self judge, head4k). None until the judge
+    # answers, and for good when it never returns; production then continues.
+    controller: JudgeVerdict | None = None
+    controller_error: str = ""
+    # What the loop did next; None only on the pending record the judge is shown.
+    action: (
+        Literal[
+            "done",
+            "blocked",
+            "continue",
+            "pause_parse",
+            "pause_transport",
+            "budget",
+            "empty_response",
+        ]
+        | None
+    ) = None
+    agent_exit_code: int | None = None
+    agent_seconds: float = 0.0
+    ts: AwareDatetime
+
+
 class AttemptRecord(_Record):
     """Every HTTP attempt, successful or not. Transport reliability is computed from these."""
 

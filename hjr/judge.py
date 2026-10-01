@@ -23,7 +23,10 @@ from typing import Any
 from hermes_cli import goals as hg
 from hermes_time import safe_strftime
 
-from hjr.schemas import BoundaryRecord, ToolEvent
+from hjr.schemas import BoundaryRecord, ToolEvent, TurnRecord
+
+# Anything the judge can be shown: a frozen boundary, or a live turn inside the harness.
+JudgeInput = BoundaryRecord | TurnRecord
 
 RESPONSE_CHARS = hg._JUDGE_RESPONSE_SNIPPET_CHARS
 GOAL_CHARS = 2000
@@ -78,7 +81,7 @@ def view_evidence(text: str, events: Sequence[ToolEvent]) -> str:
     )
 
 
-def apply_view(view: str, boundary: BoundaryRecord) -> str:
+def apply_view(view: str, boundary: JudgeInput) -> str:
     text = boundary.last_response
     if view == "head4k":
         return view_head4k(text)
@@ -136,7 +139,7 @@ def build_user_prompt(
     raise ValueError(f"unknown prompt {prompt!r}")
 
 
-def build_messages(boundary: BoundaryRecord, *, prompt: str, view: str) -> list[dict[str, str]]:
+def build_messages(boundary: JudgeInput, *, prompt: str, view: str) -> list[dict[str, str]]:
     user = build_user_prompt(
         boundary.goal,
         apply_view(view, boundary),

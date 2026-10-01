@@ -67,7 +67,7 @@ class _ArmState:
 
 
 def judge_once(
-    boundary: BoundaryRecord,
+    boundary: judge.JudgeInput,
     variant: Variant,
     sample: int,
     arm: Arm,
