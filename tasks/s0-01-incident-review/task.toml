@@ -1,0 +1,35 @@
+schema_version = "1.4"
+# Boundary snapshots (b01.tgz, ...) are published under /logs/artifacts, which Harbor always
+# collects; /app is collected so the verifier also grades the final workspace.
+artifacts = ["/app"]
+
+[metadata]
+id = "hjr/s0-01-incident-review"
+version = "1.0.0"
+category = "S0"
+# Infrastructure soak coverage only (prereg 2026-10-01 coverage amendment). Never analysed:
+# hjr ingest refuses soak-only tasks.
+soak_only = true
+# The harness copies stages/stage_N into /app/evidence/stage_N just before turn N.
+stages = 6
+expected_truth = "done_possible"
+requirements = ["stage_1", "stage_2", "stage_3", "stage_4", "stage_5", "stage_6", "final", "evidence_unchanged"]
+failure_hypothesis = "Not analysed. Exists to drive resumed, tool-heavy sessions to 30-60k tokens of context by turns 5-6."
+
+[agent]
+# Six turns of investigation; each turn is also capped by the harness (turn_timeout_sec).
+timeout_sec = 3600.0
+# The agent reaches only the model endpoint. On Docker Desktop, Harbor's enforcement needs
+# WSL2 kernel 6.x and harness/egress/docker-desktop-dns.yaml.
+network_mode = "allowlist"
+allowed_hosts = ["openrouter.ai"]
+
+[verifier]
+environment_mode = "separate"
+timeout_sec = 120.0
+network_mode = "no-network"
+
+[environment]
+build_timeout_sec = 600.0
+cpus = 1
+memory_mb = 2048

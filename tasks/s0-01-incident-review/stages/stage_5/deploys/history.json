@@ -1,0 +1,98 @@
+[
+  {
+    "id": "D-2284",
+    "service": "inventory",
+    "version": "v12.3",
+    "started": "2026-09-09T09:10:00Z",
+    "completed": "2026-09-09T09:17:00Z",
+    "strategy": "rolling",
+    "author": "a.mensah",
+    "change_ticket": "CHG-5488",
+    "summary": "Batch SKU lookups for cart reservation",
+    "status": "succeeded"
+  },
+  {
+    "id": "D-2286",
+    "service": "edge",
+    "version": "v7.1",
+    "started": "2026-09-10T15:30:00Z",
+    "completed": "2026-09-10T15:39:00Z",
+    "strategy": "rolling",
+    "author": "s.quint",
+    "change_ticket": "CHG-5497",
+    "summary": "TLS session cache size; access-log field order",
+    "status": "succeeded"
+  },
+  {
+    "id": "D-2288",
+    "service": "checkout",
+    "version": "v33",
+    "started": "2026-09-12T11:05:00Z",
+    "completed": "2026-09-12T11:17:00Z",
+    "strategy": "rolling",
+    "author": "j.alvarez",
+    "change_ticket": "CHG-5506",
+    "summary": "Retry once on payment upstream timeout (was: fail fast)",
+    "status": "succeeded"
+  },
+  {
+    "id": "D-2290",
+    "service": "inventory",
+    "version": "v12.4",
+    "started": "2026-09-14T11:20:00Z",
+    "completed": "2026-09-14T11:26:00Z",
+    "strategy": "rolling",
+    "author": "a.mensah",
+    "change_ticket": "CHG-5514",
+    "summary": "Fix reservation expiry off-by-one",
+    "status": "succeeded"
+  },
+  {
+    "id": "D-2291",
+    "service": "payments",
+    "version": "v41",
+    "started": "2026-09-14T13:41:05Z",
+    "completed": "2026-09-14T13:52:40Z",
+    "strategy": "rolling",
+    "author": "t.brandt",
+    "change_ticket": "CHG-5519",
+    "summary": "Connection handling cleanup; quieter ledger client; debug logging for PSP calls",
+    "status": "succeeded"
+  },
+  {
+    "id": "D-2293",
+    "service": "notifier",
+    "version": "v5.8",
+    "started": "2026-09-14T14:02:00Z",
+    "completed": "2026-09-14T14:06:00Z",
+    "strategy": "rolling",
+    "author": "k.osei",
+    "change_ticket": "CHG-5520",
+    "summary": "Email template tweaks for order confirmation",
+    "status": "succeeded"
+  },
+  {
+    "id": "D-2295",
+    "service": "edge",
+    "version": "v7.1-cfg2",
+    "started": "2026-09-14T14:33:00Z",
+    "completed": "2026-09-14T14:35:00Z",
+    "strategy": "rolling",
+    "author": "m.okafor",
+    "change_ticket": "CHG-5522",
+    "summary": "Raise checkout upstream timeout alert threshold from 2% to 5% (temporary)",
+    "status": "succeeded"
+  },
+  {
+    "id": "D-2297",
+    "service": "payments",
+    "version": "v40",
+    "started": "2026-09-14T14:47:10Z",
+    "completed": "2026-09-14T14:53:20Z",
+    "strategy": "rolling",
+    "author": "r.lindqvist",
+    "change_ticket": "CHG-5524",
+    "summary": "Rollback payments to v40",
+    "status": "succeeded"
+  }
+]

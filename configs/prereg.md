@@ -278,3 +278,13 @@ soak-only workload is frozen before execution and run identically on both arms.
   stored `reasoning_content` unchanged (DeepSeek) or carries none (Qwen), and that no resumed
   request is rejected (HTTP 400/422). Dumping is observation only and does not change the
   request.
+- Validation (`soak-validate-weak`, `soak-validate-strong`; one trial each, not counted). Both
+  were clean: 0 protocol events, 5/5 resumes, and DeepSeek's `reasoning_content` replayed
+  verbatim in all 35 resumed requests. Context at turns 5/6 was 44.1k/48.9k on Qwen and
+  49.6k/56.1k on DeepSeek, which read every file and some twice. 56.1k left about 7% headroom
+  under the 60k ceiling for the maximum over three measured trials. Before freezing, the logs
+  were therefore cut by about a quarter (fewer background requests and noise lines, a later
+  ledger start, a lower order rate). The scenario, stages and questions are unchanged. On
+  simulated sessions, Hermes's estimator puts a reader of every file at about 36k by turn 6 and a
+  reader of every file twice at about 51k. The Qwen trial's verifier ran after this change and
+  graded against the new answers, so its task score is void (the gate does not use truth).

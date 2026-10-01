@@ -4,7 +4,8 @@
 # model/provider pair speaks Hermes's tool protocol well enough to run Phase 1, but cannot
 # estimate a failure rate with useful precision. A failing arm is replaced, not reported on.
 #
-# The soak runs through Hermes + Harbor on the two M1 tasks, never through raw API calls.
+# The soak runs through Hermes + Harbor on the two M1 tasks plus a soak-only coverage workload
+# (2026-10-01 coverage amendment), never through raw API calls.
 # Each agent arm passes its own soak; arms never share a gate result.
 # Thresholds are fixed before any soak run; changing them is an amendment in prereg.md.
 
@@ -19,8 +20,10 @@ max_recovered_events = 1
 max_unrecovered_events = 0
 resumes_required = 5
 resumes_passed_required = 5
-# The two M1 tasks. The evaluator refuses an empty list.
-tasks = ["hjr/c1-01-csv-to-json", "hjr/c3-02-missing-sqlite"]
+# The two M1 tasks, and the soak-only workload that supplies long resumed sessions (both M1
+# tasks end in turn 1). Thresholds are unchanged by the amendment. The evaluator refuses an
+# empty list.
+tasks = ["hjr/c1-01-csv-to-json", "hjr/c3-02-missing-sqlite", "hjr/s0-01-incident-review"]
 
 # Every event is logged as exactly one of these types.
 [corruption_types]

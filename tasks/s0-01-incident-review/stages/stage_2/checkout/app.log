@@ -1,0 +1,56 @@
+2026-09-14T13:57:46.722Z checkout-3 ERROR order=ORD-49334 trace=0de2fc2f code=INVENTORY_UNAVAILABLE upstream=inventory attempts=1 status=failed
+2026-09-14T14:00:09.896Z checkout-1 WARN cart cache miss ratio=0.43 window=60s
+2026-09-14T14:07:43.730Z checkout-1 WARN order=ORD-50128 trace=3820b09e attempt=1 code=PAYMENT_UPSTREAM_TIMEOUT upstream=payments elapsed_ms=8000 action=retry
+2026-09-14T14:07:51.746Z checkout-1 ERROR order=ORD-50128 trace=3820b09e code=PAYMENT_UPSTREAM_TIMEOUT upstream=payments attempts=2 status=failed
+2026-09-14T14:08:44.011Z checkout-1 WARN promo service returned stale ruleset age_s=527
+2026-09-14T14:09:02.370Z checkout-3 WARN order=ORD-59572 trace=a1b66231 attempt=1 code=PAYMENT_UPSTREAM_TIMEOUT upstream=payments elapsed_ms=8000 action=retry
+2026-09-14T14:09:10.408Z checkout-3 ERROR order=ORD-59572 trace=a1b66231 code=PAYMENT_UPSTREAM_TIMEOUT upstream=payments attempts=2 status=failed
+2026-09-14T14:09:52.284Z checkout-3 WARN order=ORD-45300 trace=198fceaf attempt=1 code=PAYMENT_UPSTREAM_TIMEOUT upstream=payments elapsed_ms=8000 action=retry
+2026-09-14T14:09:57.399Z checkout-3 INFO order=ORD-45300 trace=198fceaf attempt=2 status=ok charge=CHG-81896
+2026-09-14T14:10:30.593Z checkout-3 WARN promo service returned stale ruleset age_s=1145
+2026-09-14T14:10:50.183Z checkout-1 WARN order=ORD-59742 trace=23ee5d61 attempt=1 code=PAYMENT_UPSTREAM_TIMEOUT upstream=payments elapsed_ms=8000 action=retry
+2026-09-14T14:10:58.199Z checkout-1 ERROR order=ORD-59742 trace=23ee5d61 code=PAYMENT_UPSTREAM_TIMEOUT upstream=payments attempts=2 status=failed
+2026-09-14T14:11:24.808Z checkout-2 WARN order=ORD-41163 trace=a1b489e6 attempt=1 code=PAYMENT_UPSTREAM_TIMEOUT upstream=payments elapsed_ms=8000 action=retry
+2026-09-14T14:11:32.828Z checkout-2 ERROR order=ORD-41163 trace=a1b489e6 code=PAYMENT_UPSTREAM_TIMEOUT upstream=payments attempts=2 status=failed
+2026-09-14T14:12:47.412Z checkout-2 WARN order=ORD-41470 trace=a2719a30 attempt=1 code=PAYMENT_UPSTREAM_TIMEOUT upstream=payments elapsed_ms=8000 action=retry
+2026-09-14T14:12:55.452Z checkout-2 ERROR order=ORD-41470 trace=a2719a30 code=PAYMENT_UPSTREAM_TIMEOUT upstream=payments attempts=2 status=failed
+2026-09-14T14:12:57.594Z checkout-1 WARN order=ORD-58165 trace=26423b52 attempt=1 code=PAYMENT_UPSTREAM_TIMEOUT upstream=payments elapsed_ms=8000 action=retry
+2026-09-14T14:13:05.607Z checkout-1 ERROR order=ORD-58165 trace=26423b52 code=PAYMENT_UPSTREAM_TIMEOUT upstream=payments attempts=2 status=failed
+2026-09-14T14:15:29.320Z checkout-1 WARN order=ORD-55061 trace=4881d344 attempt=1 code=PAYMENT_UPSTREAM_TIMEOUT upstream=payments elapsed_ms=8000 action=retry
+2026-09-14T14:15:32.157Z checkout-1 INFO order=ORD-55061 trace=4881d344 attempt=2 status=ok charge=CHG-86681
+2026-09-14T14:16:48.818Z checkout-2 WARN order=ORD-47962 trace=5609cadf attempt=1 code=PAYMENT_UPSTREAM_TIMEOUT upstream=payments elapsed_ms=8000 action=retry
+2026-09-14T14:16:56.846Z checkout-2 ERROR order=ORD-47962 trace=5609cadf code=PAYMENT_UPSTREAM_TIMEOUT upstream=payments attempts=2 status=failed
+2026-09-14T14:22:03.144Z checkout-2 WARN order=ORD-51605 trace=4404ff5c attempt=1 code=PAYMENT_UPSTREAM_TIMEOUT upstream=payments elapsed_ms=8000 action=retry
+2026-09-14T14:22:06.948Z checkout-2 INFO order=ORD-51605 trace=4404ff5c attempt=2 status=ok charge=CHG-73807
+2026-09-14T14:23:18.373Z checkout-2 WARN order=ORD-48295 trace=f18ee9e2 attempt=1 code=PAYMENT_UPSTREAM_TIMEOUT upstream=payments elapsed_ms=8000 action=retry
+2026-09-14T14:23:26.391Z checkout-2 ERROR order=ORD-48295 trace=f18ee9e2 code=PAYMENT_UPSTREAM_TIMEOUT upstream=payments attempts=2 status=failed
+2026-09-14T14:24:17.213Z checkout-3 WARN promo service returned stale ruleset age_s=1235
+2026-09-14T14:25:29.651Z checkout-1 WARN order=ORD-48313 trace=6c9424dc attempt=1 code=PAYMENT_UPSTREAM_TIMEOUT upstream=payments elapsed_ms=8000 action=retry
+2026-09-14T14:25:37.681Z checkout-1 ERROR order=ORD-48313 trace=6c9424dc code=PAYMENT_UPSTREAM_TIMEOUT upstream=payments attempts=2 status=failed
+2026-09-14T14:29:04.848Z checkout-3 WARN order=ORD-40602 trace=ad9b94a8 attempt=1 code=PAYMENT_UPSTREAM_TIMEOUT upstream=payments elapsed_ms=8000 action=retry
+2026-09-14T14:29:12.887Z checkout-3 ERROR order=ORD-40602 trace=ad9b94a8 code=PAYMENT_UPSTREAM_TIMEOUT upstream=payments attempts=2 status=failed
+2026-09-14T14:30:00.305Z checkout-3 WARN order=ORD-54516 trace=2a37d5a0 attempt=1 code=PAYMENT_UPSTREAM_TIMEOUT upstream=payments elapsed_ms=8000 action=retry
+2026-09-14T14:30:04.411Z checkout-3 INFO order=ORD-54516 trace=2a37d5a0 attempt=2 status=ok charge=CHG-76359
+2026-09-14T14:30:37.281Z checkout-3 ERROR order=ORD-43604 trace=9d466102 code=INVENTORY_UNAVAILABLE upstream=inventory attempts=1 status=failed
+2026-09-14T14:31:48.648Z checkout-2 WARN order=ORD-48130 trace=c9131ffc attempt=1 code=PAYMENT_UPSTREAM_TIMEOUT upstream=payments elapsed_ms=8000 action=retry
+2026-09-14T14:31:56.660Z checkout-2 ERROR order=ORD-48130 trace=c9131ffc code=PAYMENT_UPSTREAM_TIMEOUT upstream=payments attempts=2 status=failed
+2026-09-14T14:32:40.531Z checkout-1 WARN order=ORD-47261 trace=ee9920cd attempt=1 code=PAYMENT_UPSTREAM_TIMEOUT upstream=payments elapsed_ms=8000 action=retry
+2026-09-14T14:32:46.877Z checkout-1 INFO order=ORD-47261 trace=ee9920cd attempt=2 status=ok charge=CHG-78922
+2026-09-14T14:38:27.358Z checkout-1 WARN order=ORD-56242 trace=fc98cac9 attempt=1 code=PAYMENT_UPSTREAM_TIMEOUT upstream=payments elapsed_ms=8000 action=retry
+2026-09-14T14:38:35.379Z checkout-1 ERROR order=ORD-56242 trace=fc98cac9 code=PAYMENT_UPSTREAM_TIMEOUT upstream=payments attempts=2 status=failed
+2026-09-14T14:44:45.702Z checkout-3 WARN order=ORD-51123 trace=4d784cf6 attempt=1 code=PAYMENT_UPSTREAM_TIMEOUT upstream=payments elapsed_ms=8000 action=retry
+2026-09-14T14:44:53.740Z checkout-3 ERROR order=ORD-51123 trace=4d784cf6 code=PAYMENT_UPSTREAM_TIMEOUT upstream=payments attempts=2 status=failed
+2026-09-14T14:45:43.989Z checkout-3 WARN order=ORD-43515 trace=fd9a0fe4 attempt=1 code=PAYMENT_UPSTREAM_TIMEOUT upstream=payments elapsed_ms=8000 action=retry
+2026-09-14T14:45:52.023Z checkout-3 ERROR order=ORD-43515 trace=fd9a0fe4 code=PAYMENT_UPSTREAM_TIMEOUT upstream=payments attempts=2 status=failed
+2026-09-14T14:46:33.077Z checkout-1 WARN order=ORD-50949 trace=4f2a3363 attempt=1 code=PAYMENT_UPSTREAM_TIMEOUT upstream=payments elapsed_ms=8000 action=retry
+2026-09-14T14:46:41.089Z checkout-1 ERROR order=ORD-50949 trace=4f2a3363 code=PAYMENT_UPSTREAM_TIMEOUT upstream=payments attempts=2 status=failed
+2026-09-14T14:47:37.890Z checkout-2 WARN order=ORD-56449 trace=26f22878 attempt=1 code=PAYMENT_UPSTREAM_TIMEOUT upstream=payments elapsed_ms=8000 action=retry
+2026-09-14T14:47:40.252Z checkout-2 INFO order=ORD-56449 trace=26f22878 attempt=2 status=ok charge=CHG-92999
+2026-09-14T14:48:54.908Z checkout-3 WARN order=ORD-55475 trace=29676032 attempt=1 code=PAYMENT_UPSTREAM_TIMEOUT upstream=payments elapsed_ms=8000 action=retry
+2026-09-14T14:49:02.934Z checkout-3 ERROR order=ORD-55475 trace=29676032 code=PAYMENT_UPSTREAM_TIMEOUT upstream=payments attempts=2 status=failed
+2026-09-14T14:50:30.700Z checkout-1 WARN order=ORD-59426 trace=9b978600 attempt=1 code=PAYMENT_UPSTREAM_TIMEOUT upstream=payments elapsed_ms=8000 action=retry
+2026-09-14T14:50:38.735Z checkout-1 ERROR order=ORD-59426 trace=9b978600 code=PAYMENT_UPSTREAM_TIMEOUT upstream=payments attempts=2 status=failed
+2026-09-14T14:51:19.013Z checkout-2 WARN promo service returned stale ruleset age_s=896
+2026-09-14T14:52:24.306Z checkout-2 WARN order=ORD-55515 trace=59ae9d25 attempt=1 code=PAYMENT_UPSTREAM_TIMEOUT upstream=payments elapsed_ms=8000 action=retry
+2026-09-14T14:52:32.310Z checkout-2 ERROR order=ORD-55515 trace=59ae9d25 code=PAYMENT_UPSTREAM_TIMEOUT upstream=payments attempts=2 status=failed
+2026-09-14T15:01:08.163Z checkout-2 ERROR order=ORD-50596 trace=da0d3062 code=INVENTORY_UNAVAILABLE upstream=inventory attempts=1 status=failed

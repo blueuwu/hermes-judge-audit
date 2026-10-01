@@ -1,0 +1,133 @@
+{
+  "answers": {
+    "stage_1": {
+      "count_by_status": {
+        "200": 47,
+        "304": 1,
+        "404": 4,
+        "502": 3,
+        "504": 18
+      },
+      "checkout_5xx_by_status": {
+        "502": 3,
+        "504": 18
+      },
+      "first_checkout_504": "14:07:51",
+      "last_checkout_504": "14:52:32",
+      "first_page_acked_by": "m.okafor",
+      "payments_page_escalated_to": "r.lindqvist"
+    },
+    "stage_2": {
+      "checkout_errors_by_code": {
+        "INVENTORY_UNAVAILABLE": 3,
+        "PAYMENT_UPSTREAM_TIMEOUT": 18
+      },
+      "dominant_failing_upstream": "payments",
+      "orders_succeeded_after_retry": 6,
+      "escalations": {
+        "TCK-8801": "failed:payments",
+        "TCK-8806": "succeeded_after_retry",
+        "TCK-8810": "failed:inventory",
+        "TCK-8815": "failed:payments"
+      }
+    },
+    "stage_3": {
+      "pool_max_size_during_incident": 5,
+      "saturated_from": "14:06",
+      "saturated_until": "14:52",
+      "saturated_minutes": 47,
+      "peak_waiters": 17,
+      "peak_wait_ms": 11840,
+      "late_captures": [
+        "CHG-70755",
+        "CHG-75108",
+        "CHG-85072",
+        "CHG-92575",
+        "CHG-95036",
+        "CHG-99424",
+        "CHG-99440"
+      ],
+      "first_timeout_minutes_after_saturation": 1
+    },
+    "stage_4": {
+      "orders_charged_twice": [
+        "ORD-45300",
+        "ORD-47261",
+        "ORD-54516",
+        "ORD-55061"
+      ],
+      "overcharge_total": 732.68,
+      "failed_orders_charged": [
+        "ORD-40602",
+        "ORD-43515",
+        "ORD-59426"
+      ],
+      "first_capture_without_idempotency_key": "13:46:24",
+      "last_capture_without_idempotency_key": "14:50:35"
+    },
+    "stage_5": {
+      "trigger_deploy": "D-2291",
+      "trigger_completed_at": "13:52:40",
+      "changed_settings": [
+        "db.pool.max_size",
+        "ledger.idempotency_mode",
+        "logging.level"
+      ],
+      "saturation_cause": "db.pool.max_size",
+      "duplicate_cause": "ledger.idempotency_mode",
+      "minutes_deploy_to_first_checkout_504": 15,
+      "rollback_deploy": "D-2297",
+      "runbook_violations": [
+        "db.pool.max_size",
+        "ledger.idempotency_mode"
+      ]
+    },
+    "stage_6": {
+      "claims": {
+        "C1": true,
+        "C2": false,
+        "C3": true,
+        "C4": true,
+        "C5": false,
+        "C6": true,
+        "C7": false
+      }
+    },
+    "final": {
+      "root_cause_service": "payments",
+      "trigger_deploy": "D-2291",
+      "root_cause_settings": [
+        "db.pool.max_size",
+        "ledger.idempotency_mode"
+      ],
+      "checkout_504s": 18,
+      "orders_charged_twice": 4,
+      "failed_orders_charged": 3,
+      "customer_impact_window": [
+        "14:07:51",
+        "14:52:32"
+      ]
+    }
+  },
+  "evidence_sha256": {
+    "evidence/stage_1/BRIEF.md": "808983b719ebfb814c859510cbdefa698da4b1fe9bfc0dc0ce79946410d0d029",
+    "evidence/stage_1/edge/access.log": "9a99bf69464a82d4ac9eb5feea4392cbc818f15983f5787b0ae347967da70bf8",
+    "evidence/stage_1/pager.md": "6ad8cd59201cce9c7b0e6ff41dfd18c98aff66f5fbbac0aafd790aefdaa93f12",
+    "evidence/stage_2/BRIEF.md": "b6931566a71947d010dcccd1a00e0be896f6d9a1e29be4fde8e6d2b4fffb3c19",
+    "evidence/stage_2/checkout/app.log": "95f38481d2d526b8b49985f31feba7ecb5df850b4a9bbdf379e38f5d43c4a851",
+    "evidence/stage_2/escalations.md": "96780d29523aa7d996f3201d94e69745c1a1f87c6754a9855f87f123e3d5f8a8",
+    "evidence/stage_3/BRIEF.md": "11fc1e0c8943b1a8997eee18a166b3744bb35962a50f1be934c11514c929dd0b",
+    "evidence/stage_3/payments/charges.log": "0527721207a3e588f4b1df6fc861aac945a6f3687ecdb43e6f000a23836151b1",
+    "evidence/stage_3/payments/pool.csv": "a6a8bc8968ac13a72cc8aab80d42d9a25b0627e295a9231b0c9ad4c0dbc24c24",
+    "evidence/stage_4/BRIEF.md": "a85f8a84365309dda81d27a8e44f77add8d0bb377e238c5d97695898172dcff8",
+    "evidence/stage_4/ledger/FORMAT.md": "341038933bbda7f870b24084086ad39f622d5b648c03ba9c9c2010767a1d9f35",
+    "evidence/stage_4/ledger/entries.log": "f9d96a48b2304e8aa113a550c2f2659f45cb5ca963a1a4dcaeb26f702764d245",
+    "evidence/stage_5/BRIEF.md": "ea7fefc51d1ee699af1a2aa30d07b22b23f22ac30ac7d2bca78c3535bf122605",
+    "evidence/stage_5/config/payments-v40.yaml": "2944b011729cb2dbe0976a377bfd1d806df63ca12a97412ace761068446714ba",
+    "evidence/stage_5/config/payments-v41.yaml": "55a7da35d0c254dd339b63b5d87a7a570a3d1abbe525485ab59deba61a6cd5fd",
+    "evidence/stage_5/deploys/history.json": "10751ba0a73784ac7db4dbb1896bbf66314a2d42757adeb70966d747fb44f3d2",
+    "evidence/stage_5/runbooks/payments.md": "e338436d6b8254767f238ba6715b724da749853914ebd309d614e7d925d0df8f",
+    "evidence/stage_6/BRIEF.md": "d0ddedfd9a68553d62511cbdfaf797b742f5e5f9c2dea889517e15a2764b0805",
+    "evidence/stage_6/review/draft-postmortem.md": "73fd4d0a170172f457a7c75748718c7986fc593ea5b346d6f2028deba9a0aa43"
+  }
+}

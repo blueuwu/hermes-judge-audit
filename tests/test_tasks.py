@@ -3,10 +3,12 @@
 from __future__ import annotations
 
 import csv
+import functools
 import importlib.util
 import json
 import shutil
 import sqlite3
+import sys
 import tomllib
 from pathlib import Path
 
@@ -174,3 +176,93 @@ def test_c3_missing_database_fails_closed(tmp_path):
     assert result["migration_unchanged"] and not any(
         v for k, v in result.items() if k != "migration_unchanged"
     )
+
+
+# ---- s0-01-incident-review (soak-only) ------------------------------------------------------
+
+S0 = "s0-01-incident-review"
+
+
+@functools.cache
+def _s0_generate():
+    spec = importlib.util.spec_from_file_location("s0_generate", TASKS / S0 / "generate.py")
+    module = importlib.util.module_from_spec(spec)
+    sys.modules[spec.name] = module  # dataclasses resolve annotations through sys.modules
+    spec.loader.exec_module(module)
+    return module
+
+
+def _s0_release(ws: Path, *stages: int) -> None:
+    for n in stages:
+        shutil.copytree(TASKS / S0 / "stages" / f"stage_{n}", ws / "evidence" / f"stage_{n}")
+
+
+def _s0_report(ws: Path, report: dict) -> None:
+    (ws / "report").mkdir(exist_ok=True)
+    (ws / "report" / "incident.json").write_text(json.dumps(report))
+
+
+def _s0_reference() -> dict:
+    return json.loads((TASKS / S0 / "solution" / "incident.json").read_text())
+
+
+def test_s0_committed_files_are_the_generator_output():
+    built = _s0_generate().build()
+    for path, content in built.items():
+        assert path.read_bytes() == content.encode("utf-8"), path.relative_to(TASKS)
+    on_disk = {p for p in (TASKS / S0 / "stages").rglob("*") if p.is_file()}
+    assert on_disk == {p for p in built if "stages" in p.parts}
+
+
+def test_s0_is_soak_only_with_one_briefed_stage_per_turn():
+    meta = _config(TASKS / S0).metadata
+    assert meta["soak_only"] is True
+    stages = sorted(p.name for p in (TASKS / S0 / "stages").iterdir())
+    assert stages == [f"stage_{n}" for n in range(1, meta["stages"] + 1)]
+    for n in range(1, meta["stages"] + 1):
+        brief = (TASKS / S0 / "stages" / f"stage_{n}" / "BRIEF.md").read_text()
+        assert f'"stage_{n}"' in brief
+    # evidence is outside the image's build context, so it can only arrive turn by turn
+    assert not (TASKS / S0 / "environment" / "stages").exists()
+    assert not list((TASKS / S0 / "environment").rglob("*.log"))
+
+
+def test_s0_reference_report_is_done(tmp_path):
+    ws = _workspace(S0, tmp_path)
+    _s0_release(ws, *range(1, 7))
+    _s0_report(ws, _s0_reference())
+    assert all(_checker(S0)(ws).values())
+
+
+def test_s0_each_stage_needs_its_own_answers(tmp_path):
+    ws = _workspace(S0, tmp_path)
+    _s0_release(ws, 1, 2)
+    reference = _s0_reference()
+    _s0_report(ws, {k: reference[k] for k in ("stage_1", "stage_2")})
+    result = _checker(S0)(ws)
+    assert [k for k, v in result.items() if v] == ["stage_1", "stage_2", "evidence_unchanged"]
+
+
+def test_s0_answers_are_matched_loosely_but_not_wrongly(tmp_path):
+    ws = _workspace(S0, tmp_path)
+    report = _s0_reference()
+    report["stage_4"]["orders_charged_twice"] = [
+        x.lower() for x in reversed(report["stage_4"]["orders_charged_twice"])
+    ]
+    report["stage_6"]["claims"]["C2"] = True
+    report["final"]["customer_impact_window"] = list(
+        reversed(report["final"]["customer_impact_window"])
+    )
+    _s0_report(ws, report)
+    result = _checker(S0)(ws)
+    assert result["stage_4"]
+    assert not result["stage_6"] and not result["final"]
+
+
+def test_s0_editing_released_evidence_is_caught(tmp_path):
+    ws = _workspace(S0, tmp_path)
+    _s0_release(ws, 1, 2, 3)
+    assert _checker(S0)(ws)["evidence_unchanged"]
+    log = ws / "evidence" / "stage_3" / "payments" / "pool.csv"
+    log.write_text(log.read_text().replace(",5,", ",50,"))
+    assert not _checker(S0)(ws)["evidence_unchanged"]

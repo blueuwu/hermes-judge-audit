@@ -1,0 +1,116 @@
+{
+  "stage_1": {
+    "count_by_status": {
+      "200": 47,
+      "304": 1,
+      "404": 4,
+      "502": 3,
+      "504": 18
+    },
+    "checkout_5xx_by_status": {
+      "502": 3,
+      "504": 18
+    },
+    "first_checkout_504": "14:07:51",
+    "last_checkout_504": "14:52:32",
+    "first_page_acked_by": "m.okafor",
+    "payments_page_escalated_to": "r.lindqvist",
+    "notes": "Reference answer."
+  },
+  "stage_2": {
+    "checkout_errors_by_code": {
+      "INVENTORY_UNAVAILABLE": 3,
+      "PAYMENT_UPSTREAM_TIMEOUT": 18
+    },
+    "dominant_failing_upstream": "payments",
+    "orders_succeeded_after_retry": 6,
+    "escalations": {
+      "TCK-8801": "failed:payments",
+      "TCK-8806": "succeeded_after_retry",
+      "TCK-8810": "failed:inventory",
+      "TCK-8815": "failed:payments"
+    },
+    "notes": "Reference answer."
+  },
+  "stage_3": {
+    "pool_max_size_during_incident": 5,
+    "saturated_from": "14:06",
+    "saturated_until": "14:52",
+    "saturated_minutes": 47,
+    "peak_waiters": 17,
+    "peak_wait_ms": 11840,
+    "late_captures": [
+      "CHG-70755",
+      "CHG-75108",
+      "CHG-85072",
+      "CHG-92575",
+      "CHG-95036",
+      "CHG-99424",
+      "CHG-99440"
+    ],
+    "first_timeout_minutes_after_saturation": 1,
+    "notes": "Reference answer."
+  },
+  "stage_4": {
+    "orders_charged_twice": [
+      "ORD-45300",
+      "ORD-47261",
+      "ORD-54516",
+      "ORD-55061"
+    ],
+    "overcharge_total": 732.68,
+    "failed_orders_charged": [
+      "ORD-40602",
+      "ORD-43515",
+      "ORD-59426"
+    ],
+    "first_capture_without_idempotency_key": "13:46:24",
+    "last_capture_without_idempotency_key": "14:50:35",
+    "notes": "Reference answer."
+  },
+  "stage_5": {
+    "trigger_deploy": "D-2291",
+    "trigger_completed_at": "13:52:40",
+    "changed_settings": [
+      "db.pool.max_size",
+      "ledger.idempotency_mode",
+      "logging.level"
+    ],
+    "saturation_cause": "db.pool.max_size",
+    "duplicate_cause": "ledger.idempotency_mode",
+    "minutes_deploy_to_first_checkout_504": 15,
+    "rollback_deploy": "D-2297",
+    "runbook_violations": [
+      "db.pool.max_size",
+      "ledger.idempotency_mode"
+    ],
+    "notes": "Reference answer."
+  },
+  "stage_6": {
+    "claims": {
+      "C1": true,
+      "C2": false,
+      "C3": true,
+      "C4": true,
+      "C5": false,
+      "C6": true,
+      "C7": false
+    },
+    "notes": "Reference answer."
+  },
+  "final": {
+    "root_cause_service": "payments",
+    "trigger_deploy": "D-2291",
+    "root_cause_settings": [
+      "db.pool.max_size",
+      "ledger.idempotency_mode"
+    ],
+    "checkout_504s": 18,
+    "orders_charged_twice": 4,
+    "failed_orders_charged": 3,
+    "customer_impact_window": [
+      "14:07:51",
+      "14:52:32"
+    ]
+  }
+}

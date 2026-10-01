@@ -1,0 +1,49 @@
+2026-09-14T13:45:02.000Z ledger-1 INFO settlement batch=SB-4410 entries_closed=19 status=ok
+2026-09-14T13:46:24.402Z ledger-1 INFO entry=LE-77101 type=CAPTURE order=ORD-57336 charge=CHG-90377 amount=175.00 idem=none src=payments-3
+2026-09-14T13:47:51.409Z ledger-1 INFO entry=LE-77104 type=CAPTURE order=ORD-44066 charge=CHG-72844 amount=46.18 idem=none src=payments-2
+2026-09-14T13:49:02.410Z ledger-1 INFO entry=LE-77176 type=REFUND order=ORD-31877 charge=CHG-60645 amount=-64.10 idem=k-2e4f68c533 src=support
+2026-09-14T13:49:09.045Z ledger-1 INFO entry=LE-77106 type=CAPTURE order=ORD-46117 charge=CHG-80688 amount=98.44 idem=none src=payments-2
+2026-09-14T13:50:37.872Z ledger-1 INFO entry=LE-77107 type=CAPTURE order=ORD-48770 charge=CHG-99642 amount=197.95 idem=none src=payments-2
+2026-09-14T13:53:55.816Z ledger-1 INFO entry=LE-77110 type=CAPTURE order=ORD-57999 charge=CHG-81078 amount=182.65 idem=none src=payments-1
+2026-09-14T13:54:12.048Z ledger-1 INFO entry=LE-77112 type=CAPTURE order=ORD-52721 charge=CHG-92585 amount=170.60 idem=none src=payments-2
+2026-09-14T13:56:07.936Z ledger-1 INFO entry=LE-77114 type=CAPTURE order=ORD-56184 charge=CHG-79416 amount=239.81 idem=none src=payments-2
+2026-09-14T13:58:36.763Z ledger-1 INFO entry=LE-77115 type=CAPTURE order=ORD-54362 charge=CHG-81231 amount=164.97 idem=none src=payments-3
+2026-09-14T14:00:02.000Z ledger-1 INFO settlement batch=SB-4411 entries_closed=19 status=ok
+2026-09-14T14:00:37.660Z ledger-1 INFO entry=LE-77118 type=CAPTURE order=ORD-48100 charge=CHG-79681 amount=55.64 idem=none src=payments-1
+2026-09-14T14:01:49.390Z ledger-1 INFO entry=LE-77119 type=CAPTURE order=ORD-54354 charge=CHG-73076 amount=38.19 idem=none src=payments-3
+2026-09-14T14:02:05.778Z ledger-1 INFO entry=LE-77120 type=CAPTURE order=ORD-54687 charge=CHG-87393 amount=160.63 idem=none src=payments-2
+2026-09-14T14:04:35.676Z ledger-1 INFO entry=LE-77122 type=CAPTURE order=ORD-46278 charge=CHG-94676 amount=167.38 idem=none src=payments-3
+2026-09-14T14:05:30.893Z ledger-1 INFO entry=LE-77123 type=CAPTURE order=ORD-47409 charge=CHG-71024 amount=135.99 idem=none src=payments-3
+2026-09-14T14:06:28.712Z ledger-1 INFO entry=LE-77125 type=CAPTURE order=ORD-42277 charge=CHG-97557 amount=200.91 idem=none src=payments-2
+2026-09-14T14:09:56.628Z ledger-1 INFO entry=LE-77126 type=CAPTURE order=ORD-45300 charge=CHG-99440 amount=211.36 idem=none src=payments-1
+2026-09-14T14:09:57.616Z ledger-1 INFO entry=LE-77127 type=CAPTURE order=ORD-45300 charge=CHG-81896 amount=211.36 idem=none src=payments-1
+2026-09-14T14:15:02.000Z ledger-1 INFO settlement batch=SB-4412 entries_closed=13 status=ok
+2026-09-14T14:15:32.331Z ledger-1 INFO entry=LE-77128 type=CAPTURE order=ORD-55061 charge=CHG-86681 amount=78.64 idem=none src=payments-3
+2026-09-14T14:15:33.245Z ledger-1 INFO entry=LE-77130 type=CAPTURE order=ORD-55061 charge=CHG-92575 amount=78.64 idem=none src=payments-3
+2026-09-14T14:20:44.013Z ledger-1 INFO entry=LE-77132 type=CAPTURE order=ORD-44657 charge=CHG-95841 amount=133.32 idem=none src=payments-2
+2026-09-14T14:22:07.061Z ledger-1 INFO entry=LE-77135 type=CAPTURE order=ORD-51605 charge=CHG-73807 amount=146.97 idem=none src=payments-3
+2026-09-14T14:24:53.778Z ledger-1 INFO entry=LE-77138 type=CAPTURE order=ORD-55636 charge=CHG-83587 amount=35.73 idem=none src=payments-1
+2026-09-14T14:29:06.608Z ledger-1 INFO entry=LE-77140 type=CAPTURE order=ORD-40602 charge=CHG-99424 amount=202.20 idem=none src=payments-2
+2026-09-14T14:30:02.000Z ledger-1 INFO settlement batch=SB-4413 entries_closed=10 status=ok
+2026-09-14T14:30:04.272Z ledger-1 INFO entry=LE-77141 type=CAPTURE order=ORD-54516 charge=CHG-95036 amount=212.04 idem=none src=payments-3
+2026-09-14T14:30:04.685Z ledger-1 INFO entry=LE-77142 type=CAPTURE order=ORD-54516 charge=CHG-76359 amount=212.04 idem=none src=payments-3
+2026-09-14T14:32:42.245Z ledger-1 INFO entry=LE-77145 type=CAPTURE order=ORD-47261 charge=CHG-75108 amount=230.64 idem=none src=payments-2
+2026-09-14T14:32:47.100Z ledger-1 INFO entry=LE-77146 type=CAPTURE order=ORD-47261 charge=CHG-78922 amount=230.64 idem=none src=payments-2
+2026-09-14T14:34:12.826Z ledger-1 INFO entry=LE-77147 type=CAPTURE order=ORD-41602 charge=CHG-86252 amount=135.40 idem=none src=payments-3
+2026-09-14T14:39:11.159Z ledger-1 INFO entry=LE-77150 type=CAPTURE order=ORD-58348 charge=CHG-78917 amount=182.15 idem=none src=payments-2
+2026-09-14T14:41:37.095Z ledger-1 INFO entry=LE-77177 type=REFUND order=ORD-30562 charge=CHG-68339 amount=-18.99 idem=k-10cefd56e2 src=support
+2026-09-14T14:41:51.448Z ledger-1 INFO entry=LE-77151 type=CAPTURE order=ORD-49069 charge=CHG-90228 amount=80.16 idem=none src=payments-3
+2026-09-14T14:42:45.442Z ledger-1 INFO entry=LE-77154 type=CAPTURE order=ORD-55729 charge=CHG-95212 amount=145.11 idem=none src=payments-1
+2026-09-14T14:45:02.000Z ledger-1 INFO settlement batch=SB-4414 entries_closed=9 status=ok
+2026-09-14T14:45:48.001Z ledger-1 INFO entry=LE-77157 type=CAPTURE order=ORD-43515 charge=CHG-85072 amount=83.88 idem=none src=payments-3
+2026-09-14T14:47:40.328Z ledger-1 INFO entry=LE-77158 type=CAPTURE order=ORD-56449 charge=CHG-92999 amount=75.81 idem=none src=payments-2
+2026-09-14T14:50:35.551Z ledger-1 INFO entry=LE-77159 type=CAPTURE order=ORD-59426 charge=CHG-70755 amount=94.72 idem=none src=payments-1
+2026-09-14T14:53:22.452Z ledger-1 INFO entry=LE-77161 type=CAPTURE order=ORD-50185 charge=CHG-70149 amount=221.94 idem=k-4ebd724f41 src=payments-1
+2026-09-14T14:54:46.044Z ledger-1 INFO entry=LE-77163 type=CAPTURE order=ORD-46128 charge=CHG-86940 amount=38.80 idem=k-3e988ba477 src=payments-1
+2026-09-14T14:55:36.717Z ledger-1 INFO entry=LE-77165 type=CAPTURE order=ORD-51569 charge=CHG-97629 amount=77.45 idem=k-94ce6f89bb src=payments-2
+2026-09-14T14:59:40.117Z ledger-1 INFO entry=LE-77167 type=CAPTURE order=ORD-48037 charge=CHG-81104 amount=102.09 idem=k-2334740b66 src=payments-1
+2026-09-14T15:00:02.000Z ledger-1 INFO settlement batch=SB-4415 entries_closed=9 status=ok
+2026-09-14T15:00:29.188Z ledger-1 INFO entry=LE-77168 type=CAPTURE order=ORD-51647 charge=CHG-98259 amount=231.79 idem=k-ece896193b src=payments-3
+2026-09-14T15:02:26.953Z ledger-1 INFO entry=LE-77169 type=CAPTURE order=ORD-55093 charge=CHG-94996 amount=141.30 idem=k-38624d0aa5 src=payments-2
+2026-09-14T15:03:28.916Z ledger-1 INFO entry=LE-77172 type=CAPTURE order=ORD-58976 charge=CHG-78218 amount=125.98 idem=k-9184da2165 src=payments-3
+2026-09-14T15:04:09.438Z ledger-1 INFO entry=LE-77175 type=CAPTURE order=ORD-43363 charge=CHG-71718 amount=179.21 idem=k-2531aa39df src=payments-3

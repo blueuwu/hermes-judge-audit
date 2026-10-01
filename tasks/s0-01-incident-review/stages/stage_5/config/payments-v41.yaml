@@ -1,0 +1,29 @@
+service:
+  name: payments
+  version: v41
+http:
+  listen: 0.0.0.0:8080
+  timeout_ms: 9000
+  max_body_kb: 256
+db:
+  host: payments-db.internal:5432
+  name: payments
+  pool:
+    max_size: 5
+    min_idle: 5
+    acquire_timeout_ms: 10000
+processor:
+  endpoint: https://psp.internal/v2
+  retry:
+    max_attempts: 2
+    backoff_ms: 400
+ledger:
+  endpoint: http://ledger.internal:8080
+  idempotency_mode: log_only
+logging:
+  level: debug
+  format: kv
+  slow_charge_ms: 5000
+features:
+  wallets: true
+  partial_capture: false

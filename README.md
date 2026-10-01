@@ -120,10 +120,21 @@ uv run harbor run -p tasks/ -e docker --ek "$EK" -n 6 -o jobs --job-name <run> \
 uv run hjr ingest --job jobs/<run> --out data/frozen/<run>.jsonl
 ```
 
+Before Phase 1 each agent arm passes the soak gate (`configs/soak_gate.toml`): six concurrent
+trials, six turns each, run past any production stop. Both M1 tasks end in turn 1, so a soak-only
+workload supplies the long resumed sessions the gate requires. It releases its evidence one stage
+per turn, and `ingest` refuses it.
+
+```bash
+uv run harbor run -p tasks/ -e docker --ek "$EK" -k 3 -n 6 -o jobs --job-name soak-<arm>   --agent-import-path hjr.harness.agent:HermesGoalLoop --ak arm=<arm> --ak soak=true
+uv run hjr soak --job jobs/soak-<arm> --out results/soak/soak-<arm>.json
+```
+
 | Task | Category | What can go wrong |
 |---|---|---|
 | `c1-01-csv-to-json` | C1 control | Quoted fields with commas; amounts as strings; input edited |
 | `c3-02-missing-sqlite` | C3 tool friction | `bin/migrate.sh` needs a `sqlite3` CLI that is not installed; partial migrations |
+| `s0-01-incident-review` | Soak only, never analysed | Six-stage incident investigation; long resumed sessions with heavy tool use |
 
 ## Layout
 
@@ -134,7 +145,7 @@ uv run hjr ingest --job jobs/<run> --out data/frozen/<run>.jsonl
 | `hjr/replay.py`, `hjr/client.py`, `hjr/ratelimit.py` | Resume-safe replay with per-endpoint rate limits and logged retries |
 | `hjr/metrics.py` | Reliability rates and semantic, effective and strict accuracy |
 | `hjr/drift.py` | Judge-model drift on frozen items |
-| `hjr/soak.py` | Soak compatibility gate evaluation |
+| `hjr/soak.py`, `hjr/soakreport.py` | Soak gate evaluation, and soak reports built from Harbor trials |
 | `hjr/goalloop.py`, `hjr/harness/` | The `/goal` loop as Hermes runs it, and the Harbor agent that drives it |
 | `hjr/ingest.py` | Harbor job to `BoundaryRecord`s, with exclusions listed |
 | `harness/` | Hermes base image and the shared verifier entry point |

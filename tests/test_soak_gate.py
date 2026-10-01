@@ -1,6 +1,7 @@
 from __future__ import annotations
 
 import copy
+import tomllib
 import typing
 from pathlib import Path
 
@@ -59,10 +60,16 @@ def test_clean_soak_passes():
     assert result.counts["tool_calls"] == 55
 
 
-def test_committed_gate_names_the_two_m1_tasks():
+def test_committed_gate_names_the_m1_tasks_and_the_soak_workload():
     tasks_dir = Path(__file__).resolve().parents[1] / "tasks"
-    assert GATE["gate"]["tasks"] == TASKS
-    assert all((tasks_dir / t.removeprefix("hjr/") / "task.toml").is_file() for t in TASKS)
+    assert GATE["gate"]["tasks"] == [*TASKS, "hjr/s0-01-incident-review"]
+    soak_only = {
+        t: tomllib.loads((tasks_dir / t.removeprefix("hjr/") / "task.toml").read_text())[
+            "metadata"
+        ].get("soak_only", False)
+        for t in GATE["gate"]["tasks"]
+    }
+    assert soak_only == {**dict.fromkeys(TASKS, False), "hjr/s0-01-incident-review": True}
 
 
 def test_gate_without_tasks_cannot_pass():

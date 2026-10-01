@@ -1,0 +1,73 @@
+2026-09-14T13:55:42.381Z edge-2 GET /api/products status=200 dur_ms=203 trace=c95f6996
+2026-09-14T13:56:00.909Z edge-1 GET /api/cart status=200 dur_ms=239 trace=9feca9fa
+2026-09-14T13:56:07.694Z edge-2 POST /api/checkout status=200 dur_ms=846 trace=61ad5f4b order=ORD-56184
+2026-09-14T13:57:46.722Z edge-2 POST /api/checkout status=502 dur_ms=184 trace=0de2fc2f order=ORD-49334
+2026-09-14T13:58:36.492Z edge-2 POST /api/checkout status=200 dur_ms=246 trace=f12be2a9 order=ORD-54362
+2026-09-14T14:00:37.475Z edge-2 POST /api/checkout status=200 dur_ms=247 trace=178d1501 order=ORD-48100
+2026-09-14T14:01:37.799Z edge-1 POST /api/cart/items status=404 dur_ms=38 trace=ea26a697
+2026-09-14T14:01:49.150Z edge-1 POST /api/checkout status=200 dur_ms=939 trace=ff67a2f0 order=ORD-54354
+2026-09-14T14:02:05.655Z edge-2 POST /api/checkout status=200 dur_ms=504 trace=d2bf8f1a order=ORD-54687
+2026-09-14T14:04:35.501Z edge-2 POST /api/checkout status=200 dur_ms=352 trace=ac2837fd order=ORD-46278
+2026-09-14T14:04:47.201Z edge-2 GET /api/orders/ORD-36790 status=200 dur_ms=40 trace=58018ca7
+2026-09-14T14:05:30.619Z edge-2 POST /api/checkout status=200 dur_ms=836 trace=3a418cb1 order=ORD-47409
+2026-09-14T14:06:28.459Z edge-1 POST /api/checkout status=200 dur_ms=324 trace=3bd3d84f order=ORD-42277
+2026-09-14T14:07:51.746Z edge-1 POST /api/checkout status=504 dur_ms=16015 trace=3820b09e order=ORD-50128
+2026-09-14T14:09:10.408Z edge-2 POST /api/checkout status=504 dur_ms=16038 trace=a1b66231 order=ORD-59572
+2026-09-14T14:09:57.399Z edge-1 POST /api/checkout status=200 dur_ms=13115 trace=198fceaf order=ORD-45300
+2026-09-14T14:10:58.199Z edge-2 POST /api/checkout status=504 dur_ms=16015 trace=23ee5d61 order=ORD-59742
+2026-09-14T14:11:32.828Z edge-2 POST /api/checkout status=504 dur_ms=16020 trace=a1b489e6 order=ORD-41163
+2026-09-14T14:12:55.452Z edge-1 POST /api/checkout status=504 dur_ms=16040 trace=a2719a30 order=ORD-41470
+2026-09-14T14:13:05.607Z edge-2 POST /api/checkout status=504 dur_ms=16013 trace=26423b52 order=ORD-58165
+2026-09-14T14:15:21.742Z edge-2 GET /api/cart status=200 dur_ms=253 trace=f4959b4e
+2026-09-14T14:15:32.157Z edge-1 POST /api/checkout status=200 dur_ms=10837 trace=4881d344 order=ORD-55061
+2026-09-14T14:16:56.846Z edge-1 POST /api/checkout status=504 dur_ms=16027 trace=5609cadf order=ORD-47962
+2026-09-14T14:18:00.620Z edge-2 GET /api/cart status=200 dur_ms=94 trace=790fec6b
+2026-09-14T14:19:27.416Z edge-2 GET /api/orders/ORD-33678 status=200 dur_ms=101 trace=3b6845cc
+2026-09-14T14:20:43.930Z edge-1 POST /api/checkout status=200 dur_ms=6423 trace=e8742f63 order=ORD-44657
+2026-09-14T14:22:06.761Z edge-1 GET /api/orders/ORD-31614 status=404 dur_ms=84 trace=7aeec87b
+2026-09-14T14:22:06.948Z edge-1 POST /api/checkout status=200 dur_ms=11804 trace=4404ff5c order=ORD-51605
+2026-09-14T14:23:15.212Z edge-1 POST /api/cart/items status=200 dur_ms=236 trace=73687cbf
+2026-09-14T14:23:26.391Z edge-1 POST /api/checkout status=504 dur_ms=16018 trace=f18ee9e2 order=ORD-48295
+2026-09-14T14:24:53.603Z edge-2 POST /api/checkout status=200 dur_ms=5744 trace=a6a5df81 order=ORD-55636
+2026-09-14T14:25:11.898Z edge-1 POST /api/cart/items status=200 dur_ms=167 trace=67aa2afb
+2026-09-14T14:25:20.407Z edge-2 POST /api/cart/items status=200 dur_ms=198 trace=7c8521d4
+2026-09-14T14:25:37.681Z edge-1 POST /api/checkout status=504 dur_ms=16030 trace=6c9424dc order=ORD-48313
+2026-09-14T14:27:41.965Z edge-1 GET /api/orders/ORD-31740 status=200 dur_ms=148 trace=e77c131e
+2026-09-14T14:29:12.887Z edge-2 POST /api/checkout status=504 dur_ms=16039 trace=ad9b94a8 order=ORD-40602
+2026-09-14T14:30:04.411Z edge-2 POST /api/checkout status=200 dur_ms=12106 trace=2a37d5a0 order=ORD-54516
+2026-09-14T14:30:37.281Z edge-1 POST /api/checkout status=502 dur_ms=127 trace=9d466102 order=ORD-43604
+2026-09-14T14:31:56.660Z edge-2 POST /api/checkout status=504 dur_ms=16012 trace=c9131ffc order=ORD-48130
+2026-09-14T14:32:46.877Z edge-2 POST /api/checkout status=200 dur_ms=14346 trace=ee9920cd order=ORD-47261
+2026-09-14T14:34:12.527Z edge-2 POST /api/checkout status=200 dur_ms=6019 trace=25b47ac9 order=ORD-41602
+2026-09-14T14:35:55.895Z edge-1 POST /api/cart/items status=200 dur_ms=165 trace=6841bc88
+2026-09-14T14:38:35.379Z edge-2 POST /api/checkout status=504 dur_ms=16021 trace=fc98cac9 order=ORD-56242
+2026-09-14T14:39:11.046Z edge-2 POST /api/checkout status=200 dur_ms=6927 trace=506f2859 order=ORD-58348
+2026-09-14T14:40:52.986Z edge-2 GET /api/orders/ORD-35019 status=200 dur_ms=211 trace=aeefa472
+2026-09-14T14:41:51.389Z edge-1 POST /api/checkout status=200 dur_ms=6308 trace=ae41cdc6 order=ORD-49069
+2026-09-14T14:42:45.321Z edge-1 POST /api/checkout status=200 dur_ms=7104 trace=94608eba order=ORD-55729
+2026-09-14T14:43:36.656Z edge-1 GET /api/orders/ORD-37977 status=404 dur_ms=28 trace=3be09a74
+2026-09-14T14:44:23.317Z edge-1 GET /api/cart status=200 dur_ms=163 trace=fa469614
+2026-09-14T14:44:53.740Z edge-2 POST /api/checkout status=504 dur_ms=16038 trace=4d784cf6 order=ORD-51123
+2026-09-14T14:45:20.437Z edge-2 GET /api/products status=304 dur_ms=79 trace=8e5953e1
+2026-09-14T14:45:52.023Z edge-2 POST /api/checkout status=504 dur_ms=16033 trace=fd9a0fe4 order=ORD-43515
+2026-09-14T14:46:39.859Z edge-2 GET /api/cart status=200 dur_ms=127 trace=abdcf349
+2026-09-14T14:46:41.089Z edge-1 POST /api/checkout status=504 dur_ms=16012 trace=4f2a3363 order=ORD-50949
+2026-09-14T14:47:40.252Z edge-2 POST /api/checkout status=200 dur_ms=10362 trace=26f22878 order=ORD-56449
+2026-09-14T14:49:02.934Z edge-1 POST /api/checkout status=504 dur_ms=16026 trace=29676032 order=ORD-55475
+2026-09-14T14:50:38.735Z edge-2 POST /api/checkout status=504 dur_ms=16035 trace=9b978600 order=ORD-59426
+2026-09-14T14:52:32.310Z edge-1 POST /api/checkout status=504 dur_ms=16004 trace=59ae9d25 order=ORD-55515
+2026-09-14T14:53:22.253Z edge-1 POST /api/checkout status=200 dur_ms=298 trace=cd1ddcf2 order=ORD-50185
+2026-09-14T14:53:59.275Z edge-1 GET /api/products status=200 dur_ms=188 trace=df6fa292
+2026-09-14T14:54:16.860Z edge-1 GET /api/cart status=200 dur_ms=36 trace=454ad2d5
+2026-09-14T14:54:25.191Z edge-1 GET /api/products status=200 dur_ms=203 trace=b038dc76
+2026-09-14T14:54:45.810Z edge-1 POST /api/checkout status=200 dur_ms=523 trace=76f55ba5 order=ORD-46128
+2026-09-14T14:55:12.009Z edge-2 POST /api/cart/items status=404 dur_ms=221 trace=0322abb1
+2026-09-14T14:55:36.603Z edge-1 POST /api/checkout status=200 dur_ms=777 trace=3bf4d14e order=ORD-51569
+2026-09-14T14:58:44.202Z edge-1 POST /api/cart/items status=200 dur_ms=232 trace=673d9723
+2026-09-14T14:59:08.373Z edge-1 GET /api/cart status=200 dur_ms=110 trace=4dfb6be4
+2026-09-14T14:59:39.843Z edge-2 POST /api/checkout status=200 dur_ms=290 trace=25a67c98 order=ORD-48037
+2026-09-14T15:00:29.101Z edge-1 POST /api/checkout status=200 dur_ms=852 trace=576460fa order=ORD-51647
+2026-09-14T15:01:08.163Z edge-1 POST /api/checkout status=502 dur_ms=143 trace=da0d3062 order=ORD-50596
+2026-09-14T15:02:26.814Z edge-1 POST /api/checkout status=200 dur_ms=272 trace=52290532 order=ORD-55093
+2026-09-14T15:03:28.680Z edge-1 POST /api/checkout status=200 dur_ms=739 trace=80178cbf order=ORD-58976
+2026-09-14T15:04:09.240Z edge-2 POST /api/checkout status=200 dur_ms=583 trace=4c90ba63 order=ORD-43363
