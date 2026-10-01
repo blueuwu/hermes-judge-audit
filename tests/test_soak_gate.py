@@ -94,3 +94,25 @@ def test_too_few_calls_or_failed_resume():
     result = soak.evaluate(_report(segments=segs), _gate())
     assert any("tool calls" in f for f in result.failures)
     assert any("resumes passed" in f for f in result.failures)
+
+
+def test_recovery_that_leaves_history_counts_as_unrecovered():
+    event = _event("invalid_arguments", True).model_copy(update={"left_in_history": True})
+    result = soak.evaluate(_report(events=[event]), _gate())
+    assert not result.passed
+    assert (result.counts["recovered_events"], result.counts["unrecovered_events"]) == (0, 1)
+
+
+def test_rejected_resume_fails_even_when_recovered():
+    result = soak.evaluate(_report(events=[_event("resume_rejected", True)]), _gate())
+    assert not result.passed
+    assert any("resumed histories rejected" in f for f in result.failures)
+
+
+def test_concurrency_floor_is_six_peak_in_flight():
+    assert GATE["segments"]["concurrent"]["min_concurrency"] == 6
+    segs = dict(_report().segments)
+    segs["concurrent"] = segs["concurrent"].model_copy(update={"concurrency": 5, "rate_limited": 3})
+    result = soak.evaluate(_report(segments=segs), _gate())
+    assert any("concurrency 5 < 6" in f for f in result.failures)
+    assert result.counts["rate_limited"] == 3

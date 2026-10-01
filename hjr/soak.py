@@ -33,23 +33,32 @@ class _M(BaseModel):
 class CorruptionEvent(_M):
     type: CorruptionType
     recovered: bool
+    # Hermes recovered, but an error or retry message stayed in the conversation history.
+    left_in_history: bool = False
     task_id: str
     trial: str
     turn: int
     detail: str = ""
 
+    @property
+    def clean_recovery(self) -> bool:
+        """Recovered with nothing left behind. A rejected resume never counts as recovered:
+        it falls under the resume criterion, which requires every resume to pass."""
+        return self.recovered and not self.left_in_history and self.type != "resume_rejected"
+
 
 class Segment(_M):
     turns: list[int]
     tool_calls: int
-    concurrency: int = 1
+    concurrency: int = 1  # peak in-flight agent requests, not configured trial slots
+    rate_limited: int = 0  # agent requests answered 429; recorded, not gated
     context_tokens: int = 0  # peak prompt tokens observed in the segment
     resumes_attempted: int = 0
     resumes_passed: int = 0
 
 
 class SoakReport(_M):
-    arm_id: str
+    arm_id: str  # one agent arm; every arm passes its own soak
     tasks: list[str]
     segments: dict[str, Segment]
     events: list[CorruptionEvent] = Field(default_factory=list)
@@ -97,8 +106,9 @@ def evaluate(report: SoakReport, gate: dict | None = None) -> GateResult:
 
     segments = report.segments.values()
     tool_calls = sum(s.tool_calls for s in segments)
-    recovered = sum(e.recovered for e in report.events)
+    recovered = sum(e.clean_recovery for e in report.events)
     unrecovered = len(report.events) - recovered
+    rejected = sum(e.type == "resume_rejected" for e in report.events)
     resumes = sum(s.resumes_attempted for s in segments)
     resumes_ok = sum(s.resumes_passed for s in segments)
 
@@ -112,6 +122,7 @@ def evaluate(report: SoakReport, gate: dict | None = None) -> GateResult:
             unrecovered > g["max_unrecovered_events"],
             f"{unrecovered} unrecovered events > {g['max_unrecovered_events']}",
         ),
+        (rejected > 0, f"{rejected} resumed histories rejected by the provider"),
         (resumes < g["resumes_required"], f"{resumes} resumes attempted < {g['resumes_required']}"),
         (
             resumes_ok < g["resumes_passed_required"],
@@ -128,6 +139,8 @@ def evaluate(report: SoakReport, gate: dict | None = None) -> GateResult:
         "unrecovered_events": unrecovered,
         "resumes_attempted": resumes,
         "resumes_passed": resumes_ok,
+        "rate_limited": sum(s.rate_limited for s in segments),
+        "peak_concurrency": max((s.concurrency for s in segments), default=0),
         **{
             f"events.{t}": sum(e.type == t for e in report.events) for t in gate["corruption_types"]
         },
