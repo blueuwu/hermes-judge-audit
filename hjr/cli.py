@@ -202,17 +202,34 @@ def cmd_ingest(args: argparse.Namespace) -> int:
 
 
 def cmd_soak(args: argparse.Namespace) -> int:
+    import copy
     import json
+    import tomllib
 
-    from hjr.soak import evaluate
+    from hjr.soak import evaluate, load_gate
     from hjr.soakreport import build_report
 
+    gate = load_gate()
     built = build_report(args.job)
-    result = evaluate(built.report)
+    result = evaluate(built.report, gate)
+    # Informational: the same gate on the M1 tasks alone, without the soak-only workload.
+    m1 = [
+        t
+        for t in gate["gate"]["tasks"]
+        if not tomllib.loads(
+            (args.tasks / t.removeprefix("hjr/") / "task.toml").read_text(encoding="utf-8")
+        )["metadata"].get("soak_only")
+    ]
+    m1_gate = copy.deepcopy(gate)
+    m1_gate["gate"]["tasks"] = m1
+    m1_result = evaluate(build_report(args.job, tasks=set(m1)).report, m1_gate)
     record = {
         "jobs": [j.as_posix() for j in args.job],
         "trials": built.trials,
         "gate": result.model_dump(),
+        "m1_tasks_only": m1_result.model_dump(),
+        "by_task": built.by_task,
+        "reasoning_echo": built.reasoning_echo,
         "report": built.report.model_dump(),
         "failed_turns": built.failed_turns,
         "context_by_trial": built.context_by_trial,
@@ -226,6 +243,18 @@ def cmd_soak(args: argparse.Namespace) -> int:
         print(f"  failure: {failure}")
     for failed in built.failed_turns:
         print(f"  infrastructure failure: {failed}")
+    for task, summary in built.by_task.items():
+        print(
+            f"  {task}: {summary['trials']} trials, {summary['tool_calls']} tool calls, "
+            f"context t5 {summary['context_turn_5']} t6 {summary['context_turn_6']}"
+        )
+    print(f"  M1 tasks only: {'PASS' if m1_result.passed else 'FAIL'} {m1_result.failures}")
+    echo = built.reasoning_echo
+    print(
+        f"  reasoning_content round trip ({'replayed' if echo['echo_expected'] else 'stripped'}): "
+        f"{'PASS' if echo['passed'] else 'FAIL'} "
+        + ", ".join(f"{k}={v}" for k, v in echo.items() if k not in ("echo_expected", "passed"))
+    )
     return 0 if result.passed else 1
 
 
@@ -296,6 +325,7 @@ def main(argv: list[str] | None = None) -> int:
 
     p = sub.add_parser("soak", help="evaluate one agent arm's soak jobs against the gate")
     p.add_argument("--job", type=Path, action="append", required=True, help="jobs/<name>")
+    p.add_argument("--tasks", type=Path, default=Path("tasks"))
     p.add_argument("--out", type=Path, required=True)
     p.set_defaults(func=cmd_soak)
 

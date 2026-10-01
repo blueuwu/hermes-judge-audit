@@ -272,7 +272,9 @@ soak-only workload is frozen before execution and run identically on both arms.
   metric.
 - Two measurement refinements apply to both arms. Context now also counts `reasoning_content`
   on assistant messages when Hermes replays it on the wire (`needs_reasoning_echo`: DeepSeek
-  yes, Qwen no); the previous estimate dropped it. Soak trials also run with Hermes's
-  `HERMES_DUMP_REQUESTS`, which writes every request body before it is sent. These dumps check
-  that each resumed request replays every stored `reasoning_content` unchanged (DeepSeek) or
-  carries none (Qwen). Dumping is observation only and does not change the request.
+  yes, Qwen no), and failed-turn notices, which Hermes also sends back; the previous estimate
+  dropped both. Soak trials also run with Hermes's `HERMES_DUMP_REQUESTS`, which writes every
+  request body before it is sent. These dumps check that each resumed request replays every
+  stored `reasoning_content` unchanged (DeepSeek) or carries none (Qwen), and that no resumed
+  request is rejected (HTTP 400/422). Dumping is observation only and does not change the
+  request.

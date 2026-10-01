@@ -11,6 +11,10 @@ export after every turn (``session_NN.jsonl``) and Hermes's own output (``turn_N
   the turn's last request (system prompt, tool schemas, history).
 - Concurrency is the peak number of overlapping agent requests across all trials of a job, with
   each request spanning from the message before an assistant message to that message.
+- ``reasoning_content`` round trip: every request body Hermes dumped before sending it
+  (``request_dumps/``) is matched to the stored history. Where Hermes must replay the field
+  (DeepSeek), each assistant message of a resumed request must carry exactly the stored value;
+  elsewhere it must carry none. Stored values must also survive every resume unchanged.
 """
 
 from __future__ import annotations
@@ -35,6 +39,21 @@ REASONING_TEXT = re.compile(r"</?think>|</?reasoning>")
 # Provider throttling as Hermes reports it; a bare "429" also matches log timestamps (",429").
 RATE_LIMITED = re.compile(r"HTTP 429|\b429 Too Many|rate.?limited\b", re.IGNORECASE)
 HTTP_400 = re.compile(r"HTTP 400\b")
+ECHO_KEYS = (
+    "requests",
+    "resumed_requests",
+    "assistant_messages",
+    "identical",
+    "padded",
+    "missing",
+    "rewritten",
+    "unexpected",
+    "unaligned",
+    "history_changed",
+    "error_dumps",
+    "rejected_resumed",
+)
+REJECTED = (400, 422)
 SEGMENTS = {"early": (1, 2), "middle": (3, 4), "resumed": (5, 6)}
 
 
@@ -49,6 +68,7 @@ class TrialSoak:
     context_by_turn: dict[int, int] = field(default_factory=dict)
     requests: list[tuple[float, float]] = field(default_factory=list)
     rate_limited: int = 0
+    echo: Counter = field(default_factory=Counter)
 
 
 def _invalid_arguments(call: dict[str, Any]) -> bool:
@@ -112,6 +132,84 @@ def _provider_said(output: str) -> str:
     return output.strip().splitlines()[0] if output.strip() else ""
 
 
+def echo_expected(model: str) -> bool:
+    """Whether Hermes replays reasoning_content to this model. Of the soaked arms only DeepSeek
+    matches Hermes's rule table (agent/message_sanitization.py, _REASONING_ECHO_RULES)."""
+    return "deepseek" in model.lower()
+
+
+def _assistants(messages: list[dict[str, Any]]) -> list[dict[str, Any]]:
+    """Assistant messages as Hermes replays them; failed-turn notices are sent back too."""
+    return [m for m in messages if m.get("role") == "assistant"]
+
+
+def _call_ids(msg: dict[str, Any]) -> list[str]:
+    return [c.get("id", "") for c in msg.get("tool_calls") or []]
+
+
+def _prompt_text(content: Any) -> str:
+    return content.strip() if isinstance(content, str) else ""
+
+
+def check_reasoning_echo(agent: Path, turns: list[TurnRecord], echo: bool) -> Counter:
+    """Compare every dumped request with the stored history of the same turn."""
+    out: Counter = Counter(dict.fromkeys(ECHO_KEYS, 0))
+    stored: dict[int, list[dict[str, Any]]] = {}
+    for turn in turns:
+        export = _text(agent / f"session_{turn.turn:02d}.jsonl")
+        if export.strip():
+            stored[turn.turn] = _assistants(parse_session_export(export)[1])
+    for n, current in stored.items():
+        before = stored.get(n - 1, [])
+        out["history_changed"] += max(0, len(before) - len(current)) + sum(
+            a.get("reasoning_content") != b.get("reasoning_content")
+            for a, b in zip(before, current, strict=False)
+        )
+    prompts = {_prompt_text(t.prompt) for t in turns}
+    for path in sorted((agent / "request_dumps").glob("request_dump_*.json")):
+        dump = json.loads(_text(path) or "{}")
+        messages = ((dump.get("request") or {}).get("body") or {}).get("messages") or []
+        n = sum(
+            m.get("role") == "user" and _prompt_text(m.get("content")) in prompts for m in messages
+        )
+        if dump.get("reason") != "preflight":  # Hermes also dumps a request that failed
+            out["error_dumps"] += 1
+            status = (dump.get("error") or {}).get("status_code")
+            out["rejected_resumed"] += n >= 2 and status in REJECTED
+            continue
+        out["requests"] += 1
+        if n < 2 or n not in stored:
+            continue
+        out["resumed_requests"] += 1
+        wire = [m for m in messages if m.get("role") == "assistant"]
+        out["unaligned"] += max(0, len(wire) - len(stored[n]))
+        for sent, kept in zip(wire, stored[n], strict=False):
+            out["assistant_messages"] += 1
+            if _call_ids(sent) != _call_ids(kept):
+                out["unaligned"] += 1
+                continue
+            got, want = sent.get("reasoning_content"), kept.get("reasoning_content")
+            if not echo:
+                out["unexpected"] += "reasoning_content" in sent
+            elif got is None:
+                out["missing"] += 1
+            elif want and got == want:
+                out["identical"] += 1
+            elif not want and got == " ":  # Hermes's pad for a message stored without reasoning
+                out["padded"] += 1
+            else:
+                out["rewritten"] += 1
+    return out
+
+
+def echo_passed(counts: Counter, echo: bool) -> bool:
+    if counts["resumed_requests"] == 0:
+        return False
+    if any(counts[k] for k in ("unaligned", "history_changed", "rejected_resumed")):
+        return False
+    return not (counts["missing"] or counts["rewritten"]) if echo else not counts["unexpected"]
+
+
 def read_trial(trial_dir: Path) -> TrialSoak | None:
     agent = trial_dir / "agent"
     turns_path = agent / "turns.jsonl"
@@ -159,6 +257,8 @@ def read_trial(trial_dir: Path) -> TrialSoak | None:
                 )
     for log in sorted((agent / "hermes-logs").glob("*.log")):
         out.rate_limited += len(RATE_LIMITED.findall(_text(log)))
+    if (agent / "request_dumps").is_dir():
+        out.echo = check_reasoning_echo(agent, turns, echo_expected(turns[0].agent_model))
     return out
 
 
@@ -184,13 +284,36 @@ class SoakBuild:
     failed_turns: list[dict[str, Any]]
     trials: int
     context_by_trial: dict[str, dict[int, int]]
+    by_task: dict[str, dict[str, Any]]
+    reasoning_echo: dict[str, Any]
 
 
-def build_report(job_dirs: list[Path]) -> SoakBuild:
+def task_summary(trials: list[TrialSoak]) -> dict[str, Any]:
+    turns = [x for t in trials for x in t.turns]
+    resumes = [_resumed(x) for x in turns]
+    late = [t.context_by_turn.get(n, 0) for t in trials for n in (5, 6)]
+    return {
+        "trials": len(trials),
+        "turns_per_trial": sorted({len(t.turns) for t in trials}),
+        "tool_calls": sum(len(x.recent_tool_events) for x in turns),
+        "context_turn_5": sorted(t.context_by_turn.get(5, 0) for t in trials),
+        "context_turn_6": sorted(t.context_by_turn.get(6, 0) for t in trials),
+        "max_context_turns_5_6": max(late, default=0),
+        "events": dict(Counter(e.type for t in trials for e in t.events)),
+        "resumes_attempted": sum(a for a, _ in resumes),
+        "resumes_passed": sum(p for _, p in resumes),
+        "rate_limited": sum(t.rate_limited for t in trials),
+        "failed_turns": sum(len(t.failed_turns) for t in trials),
+    }
+
+
+def build_report(job_dirs: list[Path], tasks: set[str] | None = None) -> SoakBuild:
+    """Soak report over every trial in the jobs, or only the trials of ``tasks``."""
     trials: list[TrialSoak] = []
     peak = 0
     for job in job_dirs:
         job_trials = [t for d in sorted(job.iterdir()) if d.is_dir() and (t := read_trial(d))]
+        job_trials = [t for t in job_trials if tasks is None or t.task_id in tasks]
         peak = max(peak, peak_overlap([r for t in job_trials for r in t.requests]))
         trials += job_trials
     if not trials:
@@ -226,9 +349,21 @@ def build_report(job_dirs: list[Path]) -> SoakBuild:
         segments=segments,
         events=[e for t in trials for e in t.events],
     )
+    echo = echo_expected(model)
+    counts = sum((t.echo for t in trials), Counter(dict.fromkeys(ECHO_KEYS, 0)))
     return SoakBuild(
         report=report,
         failed_turns=[f for t in trials for f in t.failed_turns],
         trials=len(trials),
         context_by_trial={t.trial: t.context_by_turn for t in trials},
+        by_task={
+            task: task_summary([t for t in trials if t.task_id == task])
+            for task in sorted({t.task_id for t in trials})
+        },
+        reasoning_echo={
+            "echo_expected": echo,
+            "trials_with_dumps": sum(bool(t.echo) for t in trials),
+            **{k: counts[k] for k in ECHO_KEYS},
+            "passed": echo_passed(counts, echo),
+        },
     )
