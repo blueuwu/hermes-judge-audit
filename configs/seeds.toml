@@ -1,0 +1,3 @@
+# One global seed for every seedable step: dev/held-out split, label sampling, bootstrap.
+# Agent and judge sampling go through hosted APIs and are not seedable.
+global = 20261001

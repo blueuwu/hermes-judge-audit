@@ -1,0 +1,24 @@
+# Judge models and sampling for offline replay.
+#
+# Sampling matches production (hermes_cli/goals.py::_call_goal_judge_llm at ffc74885):
+# temperature 0, max_tokens = DEFAULT_JUDGE_MAX_TOKENS (4096). Those values are read from the
+# pinned Hermes code in hjr/judge.py and checked by tests, not duplicated here.
+#
+# Every model is pinned to a single OpenRouter provider with fallbacks disabled, so a run never
+# silently mixes serving stacks. The provider-reported model id is stored on every verdict.
+
+[endpoints.openrouter]
+base_url = "https://openrouter.ai/api/v1"
+api_key_env = "OPENROUTER_API_KEY"
+
+# The cheap override the /goal docs suggest (website/docs/user-guide/features/goals.md).
+[models.flash]
+id = "google/gemini-3-flash-preview"
+endpoint = "openrouter"
+provider = "google-ai-studio"
+
+# The weak agent model, judging its own work: the production default (goal_judge -> main model).
+[models.self-weak]
+id = "qwen/qwen3-coder-30b-a3b-instruct"
+endpoint = "openrouter"
+provider = "alibaba"
