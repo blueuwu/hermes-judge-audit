@@ -116,6 +116,11 @@ def ingest_trial(
         if truth is None:
             out.excluded.append({"trial": name, "reason": f"snapshot {turn.snapshot} not graded"})
             continue
+        if turn.past_stop:
+            out.excluded.append(
+                {"trial": name, "reason": f"turn {turn.turn} ran past a production stop (soak)"}
+            )
+            continue
         if turn.action is None:
             out.excluded.append({"trial": name, "reason": f"turn {turn.turn} has no action"})
             continue

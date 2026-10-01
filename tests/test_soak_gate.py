@@ -2,11 +2,12 @@ from __future__ import annotations
 
 import copy
 import typing
+from pathlib import Path
 
 from hjr import soak
 
 GATE = soak.load_gate()
-TASKS = ["hjr/c1-01", "hjr/c3-02"]
+TASKS = ["hjr/c1-01-csv-to-json", "hjr/c3-02-missing-sqlite"]
 
 
 def _gate():
@@ -58,8 +59,16 @@ def test_clean_soak_passes():
     assert result.counts["tool_calls"] == 55
 
 
+def test_committed_gate_names_the_two_m1_tasks():
+    tasks_dir = Path(__file__).resolve().parents[1] / "tasks"
+    assert GATE["gate"]["tasks"] == TASKS
+    assert all((tasks_dir / t.removeprefix("hjr/") / "task.toml").is_file() for t in TASKS)
+
+
 def test_gate_without_tasks_cannot_pass():
-    result = soak.evaluate(_report(), GATE)
+    empty = copy.deepcopy(GATE)
+    empty["gate"]["tasks"] = []
+    result = soak.evaluate(_report(), empty)
     assert not result.passed
     assert any("no tasks" in f for f in result.failures)
 

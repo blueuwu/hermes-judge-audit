@@ -19,8 +19,8 @@ max_recovered_events = 1
 max_unrecovered_events = 0
 resumes_required = 5
 resumes_passed_required = 5
-# Filled with the two M1 task ids before the gate is tagged; the evaluator refuses an empty list.
-tasks = []
+# The two M1 tasks. The evaluator refuses an empty list.
+tasks = ["hjr/c1-01-csv-to-json", "hjr/c3-02-missing-sqlite"]
 
 # Every event is logged as exactly one of these types.
 [corruption_types]

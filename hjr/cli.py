@@ -201,6 +201,34 @@ def cmd_ingest(args: argparse.Namespace) -> int:
     return 0
 
 
+def cmd_soak(args: argparse.Namespace) -> int:
+    import json
+
+    from hjr.soak import evaluate
+    from hjr.soakreport import build_report
+
+    built = build_report(args.job)
+    result = evaluate(built.report)
+    record = {
+        "jobs": [j.as_posix() for j in args.job],
+        "trials": built.trials,
+        "gate": result.model_dump(),
+        "report": built.report.model_dump(),
+        "failed_turns": built.failed_turns,
+        "context_by_trial": built.context_by_trial,
+    }
+    args.out.parent.mkdir(parents=True, exist_ok=True)
+    args.out.write_bytes((json.dumps(record, indent=2) + "\n").encode("utf-8"))
+    print(f"{built.report.arm_id}: {'PASS' if result.passed else 'FAIL'} ({built.trials} trials)")
+    for key, value in result.counts.items():
+        print(f"  {key}: {value}")
+    for failure in result.failures:
+        print(f"  failure: {failure}")
+    for failed in built.failed_turns:
+        print(f"  infrastructure failure: {failed}")
+    return 0 if result.passed else 1
+
+
 def cmd_check_route(args: argparse.Namespace) -> int:
     from hjr.routes import check_routes
 
@@ -265,6 +293,11 @@ def main(argv: list[str] | None = None) -> int:
     p.add_argument("--split", default="dev", choices=["dev", "heldout"])
     p.add_argument("--out", type=Path, required=True)
     p.set_defaults(func=cmd_ingest)
+
+    p = sub.add_parser("soak", help="evaluate one agent arm's soak jobs against the gate")
+    p.add_argument("--job", type=Path, action="append", required=True, help="jobs/<name>")
+    p.add_argument("--out", type=Path, required=True)
+    p.set_defaults(func=cmd_soak)
 
     p = sub.add_parser(
         "check-route", help="verify pinned models and providers are listed (metadata only)"

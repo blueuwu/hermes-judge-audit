@@ -115,6 +115,8 @@ class TurnRecord(_Record):
     last_response: str
     last_response_kind: str = ""  # display_kind; "failed_turn" is Hermes's failure notice
     response_chars: int
+    # Hermes's estimate of the turn's last request, system prompt and history (no tool schemas)
+    context_tokens_est: int = 0
     session_id: str | None
     recent_tool_events: list[ToolEvent] = Field(default_factory=list)  # this turn's calls
     tool_calls_total: int = 0  # whole session so far
@@ -143,6 +145,8 @@ class TurnRecord(_Record):
     ) = None
     agent_exit_code: int | None = None
     agent_seconds: float = 0.0
+    # Soak only: production would already have ended the goal. Never analysed.
+    past_stop: bool = False
     ts: AwareDatetime
 
 

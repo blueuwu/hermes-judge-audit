@@ -46,7 +46,24 @@ WORKSPACE = "/app"
 SNAPSHOT_DIR = "/logs/artifacts/boundaries"
 AGENT_LOG_DIR = "/logs/agent"
 PROMPT_DIR = "/tmp/hjr"
+# Even a soak stops here: the judge is unreachable or the turn budget is spent.
+SOAK_STOPS = ("pause_transport", "budget")
 PROCESS_FILTER = ("ps -eo args", "sleep infinity", "/bin/sh -c", "bash -c")
+HERMES_PYTHON = "/opt/hermes/.venv/bin/python"
+# Size of the turn's last request by Hermes's own estimate: system prompt plus the history before
+# the final reply, without display-only rows. Tool schemas are not in the export, so this is a
+# lower bound. Runs in the sandbox, where Hermes's dependencies are installed.
+CONTEXT_SCRIPT = """
+import json, sys
+from agent.model_metadata import estimate_request_tokens_rough
+s = json.loads(open(sys.argv[1], encoding="utf-8").readline())
+sent = [m for m in s["messages"] if m.get("display_kind") != "failed_turn"]
+if sent and sent[-1].get("role") == "assistant":
+    sent = sent[:-1]
+keys = ("role", "content", "tool_calls", "tool_call_id")
+wire = [{k: m[k] for k in keys if m.get(k)} for m in sent]
+print(estimate_request_tokens_rough(wire, system_prompt=s.get("system_prompt") or ""))
+"""
 
 # One limiter set per Harbor process, shared by every concurrent trial.
 _LIMITERS: Limiters | None = None
@@ -65,6 +82,14 @@ class GoalLoopOptions(HermesOptions):
     arm: str = Field(description="Agent arm in configs/judge_variants.toml ([agents.<arm>]).")
     max_turns: int = Field(default=6, ge=1, description="Goal turn budget for one trial.")
     turn_timeout_sec: int = Field(default=600, ge=30, description="Wall clock per Hermes turn.")
+    soak: bool = Field(
+        default=False,
+        description=(
+            "Compatibility soak: keep resuming past a production stop (DONE, BLOCKED, empty "
+            "response) until max_turns, so long resumed sessions are exercised. Turns after "
+            "the stop are marked past_stop and never enter analysis."
+        ),
+    )
 
 
 class HermesGoalLoop(Hermes):
@@ -162,6 +187,18 @@ class HermesGoalLoop(Hermes):
         )
         return goalloop.parse_session_export(result.stdout or "")
 
+    async def _context_tokens(self, environment: BaseEnvironment, turn: int) -> int:
+        export = f"{AGENT_LOG_DIR}/session_{turn:02d}.jsonl"
+        result = await environment.exec(
+            command=f"cd /opt/hermes && {HERMES_PYTHON} -c {shlex.quote(CONTEXT_SCRIPT)} {export}",
+            env={"HERMES_HOME": HERMES_HOME},
+            timeout_sec=60,
+        )
+        try:
+            return int((result.stdout or "").strip().splitlines()[-1])
+        except (ValueError, IndexError):
+            return 0
+
     async def _snapshot(self, environment: BaseEnvironment, turn: int) -> str:
         name = f"b{turn:02d}.tgz"
         await environment.exec(
@@ -203,6 +240,7 @@ class HermesGoalLoop(Hermes):
         state = goalloop.LoopState(max_turns=self.options.max_turns)
         session_id: str | None = None
         seen = 0
+        stopped = False  # production would have ended the goal before this turn
         summary: dict[str, Any] = {
             "arm": self.options.arm,
             "agent_model": self._agent_model,
@@ -210,8 +248,10 @@ class HermesGoalLoop(Hermes):
             "judge": str(self._variant),
             "judge_arm_id": judge_arm.arm_id,
             "max_turns": self.options.max_turns,
+            "soak": self.options.soak,
             "turns": 0,
             "end": None,
+            "production_end": None,
         }
         try:
             for turn in range(1, self.options.max_turns + 1):
@@ -233,6 +273,7 @@ class HermesGoalLoop(Hermes):
                     last_response=last,
                     last_response_kind=goalloop.last_assistant_kind(messages),
                     response_chars=len(last),
+                    context_tokens_est=await self._context_tokens(environment, turn),
                     session_id=session_id,
                     recent_tool_events=goalloop.tool_events(messages[seen:]),
                     tool_calls_total=goalloop.count_tool_calls(messages),
@@ -240,6 +281,7 @@ class HermesGoalLoop(Hermes):
                     snapshot=snapshot,
                     agent_exit_code=code,
                     agent_seconds=round(seconds, 1),
+                    past_stop=stopped,
                     ts=datetime.now(UTC),
                 )
                 seen = len(messages)
@@ -260,13 +302,18 @@ class HermesGoalLoop(Hermes):
                 )
                 self._append("turns.jsonl", record.model_dump_json())
                 summary.update(turns=turn, end=action, session_id=session_id)
-                if action != "continue":
-                    break
+                if action != "continue" and not stopped:
+                    summary["production_end"] = {"turn": turn, "action": action}
+                    stopped = True
+                if action == "continue" or (self.options.soak and action not in SOAK_STOPS):
+                    continue
+                break
         finally:
             (self.logs_dir / "goal_loop.json").write_text(json.dumps(summary, indent=2) + "\n")
             await environment.exec(
                 command=f"cp $(ls {AGENT_LOG_DIR}/session_*.jsonl | tail -1) "
-                f"{AGENT_LOG_DIR}/hermes-session.jsonl 2>/dev/null || true"
+                f"{AGENT_LOG_DIR}/hermes-session.jsonl 2>/dev/null || true; "
+                f"cp -r {HERMES_HOME}/logs {AGENT_LOG_DIR}/hermes-logs 2>/dev/null || true"
             )
 
     def _append(self, name: str, line: str) -> None:

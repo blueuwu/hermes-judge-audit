@@ -229,3 +229,19 @@ interactive `/goal` session, each recorded per boundary where it applies:
   hostname. Boundaries whose tool calls try the network are still tagged.
 - OpenRouter provider pinning (`provider_routing.only`) covers the agent's own requests.
   Hermes's auxiliary calls (titles; compression only above 85% of context) are not pinned.
+
+**2026-10-01. Soak mode and soak measurements, before any soak run.** In the smoke runs both
+arms finished both M1 tasks in turn 1, so the normal loop never reaches the resumed turn 5–6
+the gate requires. The soak therefore runs the harness with `soak=true`: after a production
+stop (DONE, BLOCKED, empty response) it keeps sending `CONTINUATION_PROMPT_TEMPLATE` until
+turn 6, still judging every boundary. Those turns are marked `past_stop` and are excluded from
+every analysis; soak runs are never pooled with Phase-1 data. Measurements (`hjr/soakreport.py`):
+- Protocol events are detected in the exported history after each turn; anything found there
+  counts as unrecovered. A failed turn on a resumed turn with an HTTP 400 is `resume_rejected`;
+  other failed turns are infrastructure failures, listed with their provider message.
+- Context is Hermes's own estimate (`estimate_request_tokens_rough`) of the system prompt and
+  history of the turn's last request, computed in the sandbox. It omits tool schemas, so it is
+  a lower bound on the real request.
+- Peak in-flight requests are counted across all trials of a soak job, each request spanning
+  from the message before an assistant message to that message. 429s are counted from Hermes's
+  output and logs.
