@@ -222,12 +222,15 @@ def cmd_soak(args: argparse.Namespace) -> int:
     ]
     m1_gate = copy.deepcopy(gate)
     m1_gate["gate"]["tasks"] = m1
-    m1_result = evaluate(build_report(args.job, tasks=set(m1)).report, m1_gate)
+    try:
+        m1_result = evaluate(build_report(args.job, tasks=set(m1)).report, m1_gate)
+    except ValueError:  # no M1 trials in these jobs
+        m1_result = None
     record = {
         "jobs": [j.as_posix() for j in args.job],
         "trials": built.trials,
         "gate": result.model_dump(),
-        "m1_tasks_only": m1_result.model_dump(),
+        "m1_tasks_only": m1_result.model_dump() if m1_result else None,
         "by_task": built.by_task,
         "reasoning_echo": built.reasoning_echo,
         "report": built.report.model_dump(),
@@ -248,7 +251,8 @@ def cmd_soak(args: argparse.Namespace) -> int:
             f"  {task}: {summary['trials']} trials, {summary['tool_calls']} tool calls, "
             f"context t5 {summary['context_turn_5']} t6 {summary['context_turn_6']}"
         )
-    print(f"  M1 tasks only: {'PASS' if m1_result.passed else 'FAIL'} {m1_result.failures}")
+    if m1_result:
+        print(f"  M1 tasks only: {'PASS' if m1_result.passed else 'FAIL'} {m1_result.failures}")
     echo = built.reasoning_echo
     print(
         f"  reasoning_content round trip ({'replayed' if echo['echo_expected'] else 'stripped'}): "
