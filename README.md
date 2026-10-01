@@ -103,14 +103,19 @@ Harbor's Hermes agent: Hermes is baked into `hjr/hermes-base` at the audited com
 per-trial install from `main`), each turn is one `hermes chat --resume`, the workspace is
 snapshotted at every turn boundary, and the production judge runs on the host with the replay
 client. A separate verifier container grades the final workspace and every snapshot against
-per-requirement checks that never enter the agent's image. Departures from an interactive
-`/goal` session are listed in the pre-registration amendments.
+per-requirement checks that never enter the agent's image. The agent can reach only the model
+endpoint and the verifier has no network. On Docker Desktop this needs WSL2 kernel 6.x and the
+compose override in `harness/egress/`, which lets Harbor's egress sidecar resolve names through
+Docker Desktop's DNS. Departures from an interactive `/goal` session are listed in the
+pre-registration amendments.
 
 ```bash
 docker build -t hjr/hermes-base:ffc74885 harness/base
 uv sync --extra harness
-uv run harbor run -p tasks/ -a oracle -e docker          # every task must score 1.0
-uv run harbor run -p tasks/ -e docker -n 6 -o jobs --job-name <run> \
+export HJR_ROOT="$PWD"
+EK='extra_docker_compose=["harness/egress/docker-desktop-dns.yaml"]'   # Docker Desktop only
+uv run harbor run -p tasks/ -a oracle -e docker --ek "$EK"   # every task must score 1.0
+uv run harbor run -p tasks/ -e docker --ek "$EK" -n 6 -o jobs --job-name <run> \
   --agent-import-path hjr.harness.agent:HermesGoalLoop --ak arm=weak
 uv run hjr ingest --job jobs/<run> --out data/frozen/<run>.jsonl
 ```

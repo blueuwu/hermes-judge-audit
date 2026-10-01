@@ -13,16 +13,15 @@ failure_hypothesis = "bin/migrate.sh fails because sqlite3 is not installed; the
 
 [agent]
 timeout_sec = 900.0
-# Intended policy: allowlist openrouter.ai. Harbor's Docker backend enforces network policies
-# with nftables fib rules, which Docker Desktop's WSL2 kernel (5.15) lacks, so local runs use
-# public egress. Tasks need no internet; ingest flags trials whose tool calls reach the network.
-network_mode = "public"
+# The agent reaches only the model endpoint. On Docker Desktop, Harbor's enforcement needs
+# WSL2 kernel 6.x and harness/egress/docker-desktop-dns.yaml.
+network_mode = "allowlist"
+allowed_hosts = ["openrouter.ai"]
 
 [verifier]
 environment_mode = "separate"
 timeout_sec = 120.0
-# Intended: no-network (see [agent]). The verifier holds no secrets and reads only artifacts.
-network_mode = "public"
+network_mode = "no-network"
 
 [environment]
 build_timeout_sec = 600.0

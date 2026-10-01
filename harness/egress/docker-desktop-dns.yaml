@@ -1,0 +1,16 @@
+# Compose override for Harbor's Docker backend on Docker Desktop. Pass it with
+#   --ek 'extra_docker_compose=["harness/egress/docker-desktop-dns.yaml"]'
+# and HJR_ROOT set to the repository root.
+#
+# Harbor's egress sidecar lets DNS through only to nameservers listed in /etc/resolv.conf, which
+# under Docker is the embedded resolver 127.0.0.11. Docker Desktop's embedded resolver forwards
+# from the sandbox's own network namespace to the VM's resolver, which the sidecar then rejects,
+# so every lookup fails, allowlisted hosts included. The wrapper admits those upstream resolvers;
+# hostname allowlisting is unchanged (gost still filters TCP by SNI).
+services:
+  harbor-docker-egress-control-sidecar:
+    volumes:
+      - type: bind
+        source: ${HJR_ROOT:?set HJR_ROOT to the repository root}/harness/egress/network-policy
+        target: /usr/local/sbin/network-policy
+        read_only: true

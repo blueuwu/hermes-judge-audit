@@ -1,0 +1,9 @@
+#!/bin/sh
+# Shadows Harbor's /usr/local/bin/network-policy in the egress sidecar (mounted earlier on PATH).
+# Adds the embedded resolver's upstream servers, which Docker records as "# ExtServers: [...]",
+# to resolv.conf so Harbor's DNS rule admits them, then runs Harbor's script unchanged.
+set -eu
+for ns in $(sed -n 's/^# ExtServers: \[\(.*\)\]$/\1/p' /etc/resolv.conf | tr ' ' '\n' | grep -E '^[0-9.]+$' || true); do
+  grep -q "^nameserver $ns\$" /etc/resolv.conf || echo "nameserver $ns" >> /etc/resolv.conf
+done
+exec /usr/local/bin/network-policy "$@"

@@ -222,8 +222,10 @@ interactive `/goal` session, each recorded per boundary where it applies:
 - When a turn fails, Hermes writes a fixed notice as the assistant message
   (`display_kind = failed_turn`) and the CLI hands it to the judge. The harness does the same
   and tags those boundaries.
-- Local Docker cannot enforce network policy (Harbor's Docker backend needs nftables fib rules,
-  which the Docker Desktop WSL2 kernel lacks), so local agent egress is public. Tasks need no
-  internet; boundaries whose tool calls reach the network are tagged.
+- Network policy is enforced locally: the agent reaches only `openrouter.ai` and the verifier
+  has no network. This needs a WSL2 kernel with nftables fib support (6.x) and a compose
+  override (`harness/egress/`) that lets Harbor's egress sidecar pass DNS to Docker Desktop's
+  upstream resolver; DNS lookups are therefore allowed for any name, while TCP is filtered by
+  hostname. Boundaries whose tool calls try the network are still tagged.
 - OpenRouter provider pinning (`provider_routing.only`) covers the agent's own requests.
   Hermes's auxiliary calls (titles; compression only above 85% of context) are not pinned.
