@@ -288,3 +288,26 @@ soak-only workload is frozen before execution and run identically on both arms.
   simulated sessions, Hermes's estimator puts a reader of every file at about 36k by turn 6 and a
   reader of every file twice at about 51k. The Qwen trial's verifier ran after this change and
   graded against the new answers, so its task score is void (the gate does not use truth).
+
+**2026-10-01. Weak-arm route, after `soak-weak-2`.** `soak-weak-2` failed the gate on 13
+unrecovered `tool_call_as_text` events: on the Alibaba route Qwen3-Coder sometimes returned its
+native XML call syntax as message text with `finish_reason=stop`, which Hermes at `ffc74885`
+does not execute (`results/soak/README.md`). The model is kept and the route is changed, to test
+whether the failure belongs to the model or to the provider's tool-call parsing.
+- The weak arm moves from `alibaba` to `siliconflow`. Of the other routes OpenRouter lists for
+  this model, Amazon Bedrock returned HTTP 500 to every request, and Novita and SiliconFlow
+  both serve fp8. fp8 is acceptable here because Qwen publishes an official FP8 checkpoint of
+  this model; the rule against third-party quantization stays for the strong arm. SiliconFlow
+  was chosen over Novita by a fixed rule, not by any trial: the full 262k context, as on
+  Alibaba, and the higher recent uptime.
+- Before the change, one toy request with a single tool (no task, no workload) confirmed the
+  route returns structured tool calls. Nothing else was run on it.
+- `self-weak` follows the arm, so the weak `self` judge moves to SiliconFlow as well. The
+  arm id changes with the provider, so records from the two routes can never be pooled.
+  `pilot-v1` and `probe-v1` ran `self-weak` on Alibaba; they are dev material and stay as
+  recorded.
+- The weak arm is soaked again as `soak-weak-3`, with the frozen gate, tasks and workload and
+  the same settings as run 2. `soak-weak-2` stays as the record of the Alibaba route. The
+  strong arm is unchanged and its pass stands.
+- If `soak-weak-3` fails the same way, the failure is attributed to the model, and the next
+  step is a further amendment, not a third route.

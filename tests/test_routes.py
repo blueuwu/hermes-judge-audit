@@ -27,7 +27,7 @@ def test_all_pinned_routes_present():
     served = {
         "google/gemini-3-flash-preview": ["google-ai-studio", "google-ai-studio/flex"],
         "google/gemini-3.8-flash": ["google-ai-studio"],
-        "qwen/qwen3-coder-30b-a3b-instruct": ["alibaba", "novita/fp8"],
+        "qwen/qwen3-coder-30b-a3b-instruct": ["siliconflow/fp8", "alibaba"],
         "deepseek/deepseek-v4.1-flash": ["deepseek", "deepinfra/fp8"],
     }
     results = list(check_routes(CFG, client=_client(served)))
