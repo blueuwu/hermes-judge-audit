@@ -245,3 +245,34 @@ every analysis; soak runs are never pooled with Phase-1 data. Measurements (`hjr
 - Peak in-flight requests are counted across all trials of a soak job, each request spanning
   from the message before an assistant message to that message. 429s are counted from Hermes's
   output and logs.
+
+**2026-10-01. Soak coverage workload (coverage amendment, not an analytical task-set change).**
+The two M1 tasks were found empirically to end after the first turn, so they cannot produce the
+long-context, tool-heavy coverage the soak gate requires. In `soak-weak-1` and `soak-strong-1`
+both arms passed every protocol criterion but failed coverage: 40 and 46 tool calls, and
+resumed-turn context of about 17–20k tokens. A third workload is therefore added, used only for
+infrastructure soak testing and excluded from all downstream evaluation analysis. The original
+M1 tasks, gate thresholds, model configurations and reported results are unchanged. The
+soak-only workload is frozen before execution and run identically on both arms.
+- The workload is `tasks/s0-01-incident-review` (`soak_only = true`): a staged incident
+  investigation over service logs, metrics, deploy records and configuration, with a
+  cumulative structured report. Evidence is released in six stages, and the harness copies
+  stage N into the workspace just before turn N. The agent cannot see a stage before its turn,
+  so no first-turn action can complete the task, and every later turn has new artifacts to
+  inspect. Later stages ask questions that depend on earlier findings. The generator is
+  deterministic (global seed), and a test regenerates the committed files byte for byte.
+- It is frozen in the commit that adds it, before any measured soak run. Before freezing, at
+  most one validation trial per arm (same configuration as the measured run) checks that the
+  workload reaches the coverage range. If it does not, only the workload is changed, and the
+  final version is frozen before either measured arm runs. Validation trials are listed and are
+  never counted in the gate.
+- The gate's task list becomes the two M1 tasks plus the workload. Thresholds are unchanged.
+  Soak results are reported separately for the M1 tasks and for the workload.
+- `ingest` refuses soak-only tasks, so they cannot enter boundary records, labels or any judge
+  metric.
+- Two measurement refinements apply to both arms. Context now also counts `reasoning_content`
+  on assistant messages when Hermes replays it on the wire (`needs_reasoning_echo`: DeepSeek
+  yes, Qwen no); the previous estimate dropped it. Soak trials also run with Hermes's
+  `HERMES_DUMP_REQUESTS`, which writes every request body before it is sent. These dumps check
+  that each resumed request replays every stored `reasoning_content` unchanged (DeepSeek) or
+  carries none (Qwen). Dumping is observation only and does not change the request.
