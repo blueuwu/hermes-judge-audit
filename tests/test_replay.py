@@ -163,3 +163,17 @@ def test_identity_baseline_survives_resume(tmp_path):
     assert counts["drift_incidents"] == 1
     lines = (tmp_path / "incidents.jsonl").read_text().splitlines()
     assert json.loads(lines[0])["expected"]["model"] == "fake-0001"
+
+
+def test_reparse_rewrites_copies_only(tmp_path):
+    from hjr.replay import reparse
+
+    _run(tmp_path, _boundaries(1), FakeJudge(reply='{"verdict": "finished"}'), samples=1)
+    original = (verdict_path(tmp_path, VARIANT)).read_text()
+    counts = reparse(tmp_path, tmp_path / "reparsed")
+    assert counts["records"] == 1 and counts["outcome_changed"] == 0
+    assert verdict_path(tmp_path, VARIANT).read_text() == original
+    (rec,) = read_jsonl(
+        tmp_path / "reparsed" / "judge" / verdict_path(tmp_path, VARIANT).name, JudgeVerdict
+    )
+    assert rec.format_violation == "unknown_label"

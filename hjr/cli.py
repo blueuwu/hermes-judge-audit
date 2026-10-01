@@ -92,6 +92,76 @@ def cmd_pilot_summary(args: argparse.Namespace) -> int:
     return 0
 
 
+def cmd_reparse(args: argparse.Namespace) -> int:
+    from hjr.replay import reparse
+
+    run_dir = RUNS / args.run_id
+    out = run_dir / "reparsed"
+    counts = reparse(run_dir, out)
+    print(f"{manifest.rel(out)}: {dict(counts)}")
+    return 0
+
+
+def cmd_drift(args: argparse.Namespace) -> int:
+    from hjr import drift
+    from hjr.replay import load_verdicts
+
+    run_dir = RUNS / args.run_id
+    rows = load_verdicts(run_dir)
+    pick = {str(Variant.parse(v)) for v in (args.baseline, args.candidate)}
+    if len(pick) != 2:
+        raise SystemExit("baseline and candidate must differ")
+    base = [r for r in rows if r.variant == str(Variant.parse(args.baseline))]
+    cand = [r for r in rows if r.variant == str(Variant.parse(args.candidate))]
+    if not base or not cand:
+        raise SystemExit("no verdicts for one of the variants in this run")
+    boundaries = list(read_jsonl(args.boundaries, BoundaryRecord))
+    report = drift.compare(boundaries, base, cand)
+    path = drift.write(report, run_dir / "drift")
+    print(path.read_text(encoding="utf-8"))
+    return 0
+
+
+def cmd_cost(args: argparse.Namespace) -> int:
+    from hjr.replay import load_verdicts
+
+    rows = [r for r in load_verdicts(RUNS / args.run_id) if r.outcome != "no_call"]
+    if not rows:
+        raise SystemExit("no model calls in this run")
+    usage = manifest.usage_by_variant(rows)
+    print(f"Measured in {args.run_id} (provider-billed cost):")
+    for variant, u in sorted(usage.items()):
+        calls = int(u["calls"])
+        per_call = u["cost_usd"] / calls
+        line = (
+            f"  {variant}: {calls} calls, ${u['cost_usd']:.4f} total, ${per_call:.6f}/call, "
+            f"{u['tokens_in'] / calls:.0f} in / {u['tokens_out'] / calls:.0f} out "
+            f"({u['reasoning_tokens'] / calls:.0f} reasoning) tokens/call"
+        )
+        if u["calls_without_cost"]:
+            line += f", {int(u['calls_without_cost'])} calls without billed cost"
+        print(line)
+        if args.calls:
+            print(f"    extrapolated to {args.calls} calls: ${per_call * args.calls:.2f}")
+            if args.input_tokens:
+                scale = args.input_tokens / (u["tokens_in"] / calls)
+                print(
+                    f"    scaled to {args.input_tokens} input tokens/call "
+                    f"(assumes cost ∝ input tokens): ${per_call * scale * args.calls:.2f}"
+                )
+    return 0
+
+
+def cmd_check_route(args: argparse.Namespace) -> int:
+    from hjr.routes import check_routes
+
+    ok = True
+    for line, good in check_routes(load_judge_config(), args.model):
+        ok &= good
+        print(("ok    " if good else "FAIL  ") + line)
+    return 0 if ok else 1
+
+
 def main(argv: list[str] | None = None) -> int:
     parser = argparse.ArgumentParser(prog="hjr", description=__doc__)
     parser.add_argument("-v", "--verbose", action="store_true")
@@ -115,6 +185,29 @@ def main(argv: list[str] | None = None) -> int:
     p = sub.add_parser("pilot-summary", help="tabulate pilot verdicts into summary.md")
     p.add_argument("--run-id", default="pilot-v1")
     p.set_defaults(func=cmd_pilot_summary)
+
+    p = sub.add_parser("reparse", help="re-parse stored raw judge responses (no model calls)")
+    p.add_argument("--run-id", required=True)
+    p.set_defaults(func=cmd_reparse)
+
+    p = sub.add_parser("drift", help="compare two judge arms on the same frozen items")
+    p.add_argument("--run-id", required=True)
+    p.add_argument("--boundaries", type=Path, required=True)
+    p.add_argument("--baseline", required=True, help="prompt:model:view")
+    p.add_argument("--candidate", required=True, help="prompt:model:view")
+    p.set_defaults(func=cmd_drift)
+
+    p = sub.add_parser("cost", help="measured token use and spend, with extrapolation")
+    p.add_argument("--run-id", required=True)
+    p.add_argument("--calls", type=int, default=0, help="planned calls to extrapolate to")
+    p.add_argument("--input-tokens", type=int, default=0, help="planned mean input tokens/call")
+    p.set_defaults(func=cmd_cost)
+
+    p = sub.add_parser(
+        "check-route", help="verify pinned models and providers are listed (metadata only)"
+    )
+    p.add_argument("--model", action="append", help="model key (default: all non-dev arms)")
+    p.set_defaults(func=cmd_check_route)
 
     args = parser.parse_args(argv)
     logging.basicConfig(

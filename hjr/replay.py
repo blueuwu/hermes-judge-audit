@@ -254,3 +254,38 @@ def replay(
     finally:
         writer.close()
     return counts
+
+
+def reparse(run_dir: Path, out_dir: Path) -> Counter[str]:
+    """Re-parse stored raw responses with the current parser; never touches the originals.
+
+    Writes ``out_dir/judge/*.jsonl`` and returns how many records changed outcome or decision.
+    """
+    counts: Counter[str] = Counter()
+    for path in sorted((run_dir / "judge").glob("*.jsonl")):
+        rows = []
+        for rec in read_jsonl(path, JudgeVerdict):
+            counts["records"] += 1
+            if rec.outcome == "no_call":
+                rows.append(rec)
+                continue
+            parsed = judge.parse_verdict(rec.raw)
+            new = rec.model_copy(
+                update={
+                    "outcome": parsed.outcome,
+                    "verdict": parsed.verdict,
+                    "decision": parsed.decision,
+                    "reason": parsed.reason,
+                    "parse_failed": parsed.parse_failed,
+                    "format_violation": parsed.format_violation,
+                }
+            )
+            counts["outcome_changed"] += new.outcome != rec.outcome
+            counts["decision_changed"] += new.decision != rec.decision
+            rows.append(new)
+        target = out_dir / "judge" / path.name
+        target.parent.mkdir(parents=True, exist_ok=True)
+        with target.open("w", encoding="utf-8", newline="\n") as fh:
+            for r in rows:
+                fh.write(r.model_dump_json(exclude_none=True) + "\n")
+    return counts
