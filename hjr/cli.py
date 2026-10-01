@@ -66,6 +66,14 @@ def cmd_replay(args: argparse.Namespace) -> int:
     return 1 if counts.get("failed") else 0
 
 
+def cmd_pilot_build(args: argparse.Namespace) -> int:
+    from hjr.pilot import build
+
+    n = build.write(args.out)
+    print(f"wrote {n} boundaries to {manifest.rel(args.out)}")
+    return 0
+
+
 def main(argv: list[str] | None = None) -> int:
     parser = argparse.ArgumentParser(prog="hjr", description=__doc__)
     parser.add_argument("-v", "--verbose", action="store_true")
@@ -81,6 +89,10 @@ def main(argv: list[str] | None = None) -> int:
     p.add_argument("--workers", type=int, default=8)
     p.add_argument("--limit", type=int, default=0, help="first N boundaries only (smoke runs)")
     p.set_defaults(func=cmd_replay)
+
+    p = sub.add_parser("pilot-build", help="write the constructed M0.5 pilot boundaries")
+    p.add_argument("--out", type=Path, default=ROOT / "data" / "frozen" / "pilot_boundaries.jsonl")
+    p.set_defaults(func=cmd_pilot_build)
 
     args = parser.parse_args(argv)
     logging.basicConfig(
