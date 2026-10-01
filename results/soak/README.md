@@ -13,9 +13,10 @@ per-trial outcomes. Full job directories ship as release assets.
 | `soak-strong-1.json` | M1 tasks only | FAIL | Both M1 tasks end in turn 1, so resumed context stays near 17–20k. This coverage gap motivated the workload amendment. |
 | `soak-weak-2.json` | M1 tasks + `s0-01-incident-review` | **FAIL** | 13 unrecovered `tool_call_as_text` events. |
 | `soak-strong-2.json` | M1 tasks + `s0-01-incident-review` | **PASS** | |
+| `soak-weak-3.json` | M1 tasks + `s0-01-incident-review` | **FAIL** | Weak arm moved to SiliconFlow by amendment. 1 unrecovered `tool_call_as_text` event. |
 
-Run 2 used the frozen workload (`b50a3e1`) with harness code at `00a6bf4`. Later commits change
-only reporting. Both arms used the same settings: `-k 3 -n 6`, six turns, `soak=true`, request
+Runs 2 and 3 used the frozen workload (`b50a3e1`) with harness code at `00a6bf4`. Run 3 differs only in the weak
+arm's provider (`1eed5ed`). Other later commits change only reporting. All runs used the same settings: `-k 3 -n 6`, six turns, `soak=true`, request
 dumps on, and no per-arm tuning.
 
 ## Run 2 by arm and task
@@ -50,7 +51,8 @@ The check compared every request body Hermes dumped against the stored history.
 
 | Arm | Hermes policy | Requests | Resumed | Assistant messages checked | Result |
 |---|---|---|---|---|---|
-| weak | strip | 159 | 113 | 2087 | PASS: field never sent |
+| weak (run 2, Alibaba) | strip | 159 | 113 | 2087 | PASS: field never sent |
+| weak (run 3, SiliconFlow) | strip | 262 | 176 | 4735 | PASS: field never sent |
 | strong | replay | 179 | 127 | 2199 | PASS: 1989 identical, 210 padded |
 
 For DeepSeek, every assistant message in every resumed request carried its stored
@@ -59,7 +61,7 @@ turns with no reasoning) carried Hermes's `" "` pad. Totals: 0 missing, 0 rewrit
 unaligned with stored tool-call ids, 0 stored values changed between turns, and 0 error dumps.
 No resumed request was rejected.
 
-## The weak-arm failure
+## The weak-arm failure in run 2
 
 All 13 events are in `s0-01` and share one form. Instead of making a tool call, Qwen wrote its
 native XML call syntax as message text. The text has no `<tool_call>` wrapper and no closing
@@ -95,12 +97,52 @@ infrastructure fault. The harness recorded no failed turns, every resume was acc
 strong arm passed the same workload. The weak arm does not proceed to Phase 1 as configured.
 Any change of model or route must be made by dated amendment and soaked again.
 
+## Run 3: weak arm on SiliconFlow
+
+The weak arm was moved from Alibaba to SiliconFlow (fp8, the official Qwen checkpoint precision)
+by the amendment of 2026-10-01 in `configs/prereg.md`, committed before the run. Gate, tasks,
+workload and settings were unchanged.
+
+| Task | Trials × turns | Tool calls | Events | Resumes | 429s | Infra failures | Context t5 | Context t6 |
+|---|---|---|---|---|---|---|---|---|
+| c1-01 (M1) | 3 × 6 | 34 | 0 | 15/15 | 0 | 0 | 18.5k, 18.9k, 21.2k | 19.2k, 19.2k, 21.6k |
+| c3-02 (M1) | 3 × 6 | 31 | 0 | 15/15 | 0 | 0 | 17.4k, 18.8k, 20.0k | 17.6k, 19.0k, 20.7k |
+| s0-01 (soak only) | 3 × 6 | 144 | 1 `tool_call_as_text` | 15/15 | 0 | 0 | 42.1k, 50.6k, 51.0k | 46.7k, 55.4k, 57.3k |
+
+Peak in-flight was 6. Harbor recorded no errored trials and no retries, and no failed turns were
+recorded. The `reasoning_content` check passed: 262 requests (176 resumed) and 4735 assistant
+messages, none carrying the field.
+
+**Gate: FAIL**, on 1 unrecovered event against a threshold of 0. Every other criterion passes,
+including coverage: all three `s0-01` trials made structured calls throughout and reached
+42–57k resumed context.
+
+The event is in `s0-01` trial `egHoNyz`, turn 6, a normal turn (not `past_stop`). The final
+answer is a complete prose summary of the report, followed by one line of text:
+
+```
+<function=terminate>
+```
+
+There is no `terminate` tool among the 23 Hermes offered, the call carries no parameters, and it
+was the trial's last message, so nothing was left stalled. It is still Qwen's native call syntax
+in the content of a message with no structured calls, which is exactly what the frozen detector
+counts, and the gate has no exception for it.
+
+Reading against run 2:
+
+- The stalling failure did not recur. On Alibaba, 2 of 3 `s0-01` trials made no structured call
+  for six turns; on SiliconFlow, none did. The provider's parsing evidently mattered for that.
+- Qwen3-Coder still emits its XML call syntax as text on SiliconFlow, at a much lower rate. As
+  the amendment fixed in advance, this residual is attributed to the model, not the route, and
+  no third route is tried. The weak arm stays blocked from Phase 1 pending a further amendment.
+
 ## Separation from the evaluation
 
-- **M1 behaviour:** unchanged by the amendment. All 12 M1 trials across both arms were free of
-  events and had every resume accepted. They score 1.0 in the manifests, but soak scores are
-  not results.
-- **Infrastructure soak coverage:** comes from `s0-01`, a soak-only task. It reached 41.9k–55.9k
+- **M1 behaviour:** unchanged by the amendments. All 18 M1 trials in runs 2 and 3 were free of
+  events and had every resume accepted. Their task scores are in the manifests, but soak scores
+  are not results.
+- **Infrastructure soak coverage:** comes from `s0-01`, a soak-only task. It reached 41.9k–57.3k
   resumed context with 6 requests in flight and no 429s.
 - **Model evaluation:** unaffected. `s0-01` is `soak_only`, `ingest` refuses it, and no soak
   trial or boundary enters any analysis.

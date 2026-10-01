@@ -1,0 +1,287 @@
+{
+  "jobs": [
+    "jobs/soak-weak-3"
+  ],
+  "trials": 9,
+  "gate": {
+    "passed": false,
+    "failures": [
+      "1 unrecovered events > 0"
+    ],
+    "counts": {
+      "tool_calls": 209,
+      "recovered_events": 0,
+      "unrecovered_events": 1,
+      "resumes_attempted": 45,
+      "resumes_passed": 45,
+      "rate_limited": 0,
+      "peak_concurrency": 6,
+      "events.tool_call_as_text": 1,
+      "events.invalid_arguments": 0,
+      "events.length_mid_call": 0,
+      "events.empty_completion": 0,
+      "events.reasoning_leak": 0,
+      "events.resume_rejected": 0
+    }
+  },
+  "m1_tasks_only": {
+    "passed": false,
+    "failures": [
+      "resumed: context 21566 outside [30000, 60000]",
+      "concurrent: concurrency 4 < 6"
+    ],
+    "counts": {
+      "tool_calls": 65,
+      "recovered_events": 0,
+      "unrecovered_events": 0,
+      "resumes_attempted": 30,
+      "resumes_passed": 30,
+      "rate_limited": 0,
+      "peak_concurrency": 4,
+      "events.tool_call_as_text": 0,
+      "events.invalid_arguments": 0,
+      "events.length_mid_call": 0,
+      "events.empty_completion": 0,
+      "events.reasoning_leak": 0,
+      "events.resume_rejected": 0
+    }
+  },
+  "by_task": {
+    "hjr/c1-01-csv-to-json": {
+      "trials": 3,
+      "turns_per_trial": [
+        6
+      ],
+      "tool_calls": 34,
+      "context_turn_5": [
+        18507,
+        18850,
+        21190
+      ],
+      "context_turn_6": [
+        19157,
+        19249,
+        21566
+      ],
+      "max_context_turns_5_6": 21566,
+      "events": {},
+      "resumes_attempted": 15,
+      "resumes_passed": 15,
+      "rate_limited": 0,
+      "failed_turns": 0
+    },
+    "hjr/c3-02-missing-sqlite": {
+      "trials": 3,
+      "turns_per_trial": [
+        6
+      ],
+      "tool_calls": 31,
+      "context_turn_5": [
+        17405,
+        18759,
+        19977
+      ],
+      "context_turn_6": [
+        17625,
+        18992,
+        20737
+      ],
+      "max_context_turns_5_6": 20737,
+      "events": {},
+      "resumes_attempted": 15,
+      "resumes_passed": 15,
+      "rate_limited": 0,
+      "failed_turns": 0
+    },
+    "hjr/s0-01-incident-review": {
+      "trials": 3,
+      "turns_per_trial": [
+        6
+      ],
+      "tool_calls": 144,
+      "context_turn_5": [
+        42093,
+        50592,
+        50995
+      ],
+      "context_turn_6": [
+        46664,
+        55416,
+        57310
+      ],
+      "max_context_turns_5_6": 57310,
+      "events": {
+        "tool_call_as_text": 1
+      },
+      "resumes_attempted": 15,
+      "resumes_passed": 15,
+      "rate_limited": 0,
+      "failed_turns": 0
+    }
+  },
+  "reasoning_echo": {
+    "echo_expected": false,
+    "trials_with_dumps": 9,
+    "requests": 262,
+    "resumed_requests": 176,
+    "assistant_messages": 4735,
+    "identical": 0,
+    "padded": 0,
+    "missing": 0,
+    "rewritten": 0,
+    "unexpected": 0,
+    "unaligned": 0,
+    "history_changed": 0,
+    "error_dumps": 0,
+    "rejected_resumed": 0,
+    "passed": true
+  },
+  "report": {
+    "arm_id": "weak:qwen/qwen3-coder-30b-a3b-instruct",
+    "tasks": [
+      "hjr/c1-01-csv-to-json",
+      "hjr/c3-02-missing-sqlite",
+      "hjr/s0-01-incident-review"
+    ],
+    "segments": {
+      "early": {
+        "turns": [
+          1,
+          2
+        ],
+        "tool_calls": 101,
+        "concurrency": 1,
+        "rate_limited": 0,
+        "context_tokens": 26739,
+        "resumes_attempted": 9,
+        "resumes_passed": 9
+      },
+      "middle": {
+        "turns": [
+          3,
+          4
+        ],
+        "tool_calls": 54,
+        "concurrency": 1,
+        "rate_limited": 0,
+        "context_tokens": 40138,
+        "resumes_attempted": 18,
+        "resumes_passed": 18
+      },
+      "resumed": {
+        "turns": [
+          5,
+          6
+        ],
+        "tool_calls": 54,
+        "concurrency": 1,
+        "rate_limited": 0,
+        "context_tokens": 57310,
+        "resumes_attempted": 18,
+        "resumes_passed": 18
+      },
+      "concurrent": {
+        "turns": [
+          1,
+          2,
+          3,
+          4,
+          5,
+          6
+        ],
+        "tool_calls": 0,
+        "concurrency": 6,
+        "rate_limited": 0,
+        "context_tokens": 0,
+        "resumes_attempted": 0,
+        "resumes_passed": 0
+      }
+    },
+    "events": [
+      {
+        "type": "tool_call_as_text",
+        "recovered": false,
+        "left_in_history": true,
+        "task_id": "hjr/s0-01-incident-review",
+        "trial": "s0-01-incident-review__egHoNyz",
+        "turn": 6,
+        "detail": "I have completed the investigation of the 2026-09-14 checkout outage at Larkspur and have compiled a complete incident report with all six stages and the final section.\n\nThe incident report includes:\n\n1. **Stage 1**: Edge view and paging - Analyzed access logs showing 18 checkout 504 errors, first a"
+      }
+    ]
+  },
+  "failed_turns": [],
+  "context_by_trial": {
+    "c1-01-csv-to-json__bukoMH9": {
+      "1": 19178,
+      "2": 19620,
+      "3": 19960,
+      "4": 20787,
+      "5": 21190,
+      "6": 21566
+    },
+    "c1-01-csv-to-json__sMCwxfs": {
+      "1": 16750,
+      "2": 17170,
+      "3": 17509,
+      "4": 17834,
+      "5": 18507,
+      "6": 19157
+    },
+    "c1-01-csv-to-json__UyY8oVF": {
+      "1": 16173,
+      "2": 16537,
+      "3": 16899,
+      "4": 18440,
+      "5": 18850,
+      "6": 19249
+    },
+    "c3-02-missing-sqlite__2M8XcCx": {
+      "1": 16036,
+      "2": 16736,
+      "3": 16943,
+      "4": 17190,
+      "5": 17405,
+      "6": 17625
+    },
+    "c3-02-missing-sqlite__deejPhq": {
+      "1": 15325,
+      "2": 16562,
+      "3": 17707,
+      "4": 18884,
+      "5": 19977,
+      "6": 20737
+    },
+    "c3-02-missing-sqlite__Pn3tRgk": {
+      "1": 16859,
+      "2": 17124,
+      "3": 18224,
+      "4": 18540,
+      "5": 18759,
+      "6": 18992
+    },
+    "s0-01-incident-review__75L8CEx": {
+      "1": 20828,
+      "2": 26739,
+      "3": 33534,
+      "4": 40138,
+      "5": 50995,
+      "6": 57310
+    },
+    "s0-01-incident-review__egHoNyz": {
+      "1": 19446,
+      "2": 24673,
+      "3": 30046,
+      "4": 37527,
+      "5": 42093,
+      "6": 46664
+    },
+    "s0-01-incident-review__KtUyQgm": {
+      "1": 19672,
+      "2": 25916,
+      "3": 32016,
+      "4": 39916,
+      "5": 50592,
+      "6": 55416
+    }
+  }
+}
