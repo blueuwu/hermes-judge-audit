@@ -29,15 +29,20 @@ class Arm:
     endpoint: str
     base_url: str
     provider: str
-    temperature: float
-    max_tokens: int
+    # None when the serving path does not let us set it (a CLI harness, or a model that rejects
+    # the parameter). It is then not sent, and the arm's identity records it as unset.
+    temperature: float | None
+    max_tokens: int | None
     reasoning: str
     dev_only: bool = False
     source: str = ""
     substitution: str = ""
+    # Non-empty for arms served through something other than a chat-completions endpoint,
+    # e.g. "codex-cli". Part of identity only when set, so existing arm ids are unchanged.
+    harness: str = ""
 
     def identity(self) -> dict:
-        return {
+        out = {
             "model_id": self.model_id,
             "base_url": self.base_url,
             "provider": self.provider,
@@ -45,6 +50,9 @@ class Arm:
             "max_tokens": self.max_tokens,
             "reasoning": self.reasoning,
         }
+        if self.harness:
+            out["harness"] = self.harness
+        return out
 
     @property
     def arm_id(self) -> str:

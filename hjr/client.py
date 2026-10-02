@@ -23,6 +23,8 @@ MAX_BACKOFF_S = 120.0
 
 RETRYABLE_ERRORS = (openai.APIConnectionError, openai.APITimeoutError)
 RETRYABLE_STATUS = {408, 409, 425, 429, 500, 502, 503, 504}
+# Production sends no reasoning configuration; any other value is sent as an effort level.
+REASONING_DEFAULT = "provider-default"
 
 
 @dataclass(frozen=True)
@@ -45,8 +47,11 @@ class CompletionResult:
     tokens_in: int = 0
     tokens_out: int = 0
     reasoning_tokens: int = 0
+    cached_tokens: int = 0
     cost_usd: float | None = None
     attempts: tuple[Attempt, ...] = field(default_factory=tuple)
+    # Serving metadata that has no field of its own (CLI session id, harness version)
+    meta: dict[str, str] = field(default_factory=dict)
 
 
 class TransportError(RuntimeError):
@@ -104,15 +109,22 @@ class JudgeClient:
             body["provider"] = {"order": [self.arm.provider], "allow_fallbacks": False}
         if "openrouter.ai" in self.arm.base_url:
             body["usage"] = {"include": True}  # per-request cost in the response
+        if self.arm.reasoning != REASONING_DEFAULT:
+            body["reasoning"] = {"effort": self.arm.reasoning}
         return body or None
 
     def _request(self, messages: list[dict[str, str]]):
+        # Parameters the arm leaves unset are not sent at all, rather than sent and dropped.
+        params: dict = {}
+        if self.arm.temperature is not None:
+            params["temperature"] = self.arm.temperature
+        if self.arm.max_tokens is not None:
+            params["max_tokens"] = self.arm.max_tokens
         return self._client.chat.completions.create(
             model=self.arm.model_id,
             messages=messages,
-            temperature=self.arm.temperature,
-            max_tokens=self.arm.max_tokens,
             extra_body=self._extra_body(),
+            **params,
         )
 
     def complete(self, messages: list[dict[str, str]]) -> CompletionResult:
@@ -141,6 +153,7 @@ class JudgeClient:
         choice = resp.choices[0] if resp.choices else None
         usage = resp.usage
         details = getattr(usage, "completion_tokens_details", None) if usage else None
+        prompt_details = getattr(usage, "prompt_tokens_details", None) if usage else None
         cost = _extra(usage, "cost") if usage else None
         return CompletionResult(
             text=(choice.message.content if choice else None) or "",
@@ -151,6 +164,9 @@ class JudgeClient:
             tokens_in=usage.prompt_tokens if usage else 0,
             tokens_out=usage.completion_tokens if usage else 0,
             reasoning_tokens=(getattr(details, "reasoning_tokens", 0) or 0) if details else 0,
+            cached_tokens=(getattr(prompt_details, "cached_tokens", 0) or 0)
+            if prompt_details
+            else 0,
             cost_usd=float(cost) if cost is not None else None,
             attempts=attempts,
         )

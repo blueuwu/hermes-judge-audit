@@ -111,3 +111,31 @@ def test_empty_content_is_a_response_not_a_transport_error():
     client, _, _ = _client([_response(content=None, finish="length")])
     res = client.complete([])
     assert (res.text, res.finish_reason) == ("", "length")
+
+
+def test_unset_sampling_is_not_sent_and_pinned_effort_is():
+    stub = StubOpenAI([_response()])
+    client = JudgeClient(
+        load_judge_config().model("strong-api"),
+        api_key_env="UNUSED",
+        limiter=TokenBucket(6000, burst=100),
+        client=stub,
+    )
+    client.complete([])
+    req = stub.requests[0]
+    assert "temperature" not in req and "max_tokens" not in req
+    assert req["extra_body"]["reasoning"] == {"effort": "medium"}
+    assert req["extra_body"]["provider"]["order"] == ["openai"]
+
+
+def test_production_arms_send_no_reasoning_config():
+    client, stub, _ = _client([_response()])
+    client.complete([])
+    assert "reasoning" not in stub.requests[0]["extra_body"]
+
+
+def test_cached_prompt_tokens_are_recorded():
+    resp = _response()
+    resp.usage.prompt_tokens_details = SimpleNamespace(cached_tokens=640)
+    client, _, _ = _client([resp])
+    assert client.complete([]).cached_tokens == 640

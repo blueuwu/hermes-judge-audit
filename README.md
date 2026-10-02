@@ -9,7 +9,7 @@ against deterministic state verifiers and human labels, then measures judge-side
 frozen held-out set. Hypotheses and analysis rules are fixed in
 [`configs/prereg.md`](configs/prereg.md).
 
-Status: offline pilot done; soak gate passed by both agent arms, GLM-5.3-Flash (weak) and DeepSeek V4.1 Flash (strong), after Qwen3-Coder failed it on two routes (`results/soak/`). Task suite (30 tasks) and split frozen; Phase 1 trajectories frozen (178 boundaries, `results/phase1/`); Phase 2 judge replays next.
+Status: offline pilot done; soak gate passed by both agent arms, GLM-5.3-Flash (weak) and DeepSeek V4.1 Flash (strong), after Qwen3-Coder failed it on two routes (`results/soak/`). Task suite (30 tasks) and split frozen; Phase 1 trajectories frozen (178 boundaries, `results/phase1/`). Phase 2 design frozen by amendment (`configs/phase2.toml`); human truth labelling of all 178 boundaries next, then the judge replays.
 
 ## Pilot findings (M0.5, constructed items)
 
@@ -153,6 +153,9 @@ uv run hjr ingest --job jobs/phase1-<arm> --out data/frozen/phase1-<arm>.jsonl
 | `hjr/replay.py`, `hjr/client.py`, `hjr/ratelimit.py` | Resume-safe replay with per-endpoint rate limits and logged retries |
 | `hjr/metrics.py` | Reliability rates and semantic, effective and strict accuracy |
 | `hjr/drift.py` | Judge-model drift on frozen items |
+| `hjr/phase2.py`, `hjr/analysis.py`, `hjr/stats.py` | Phase 2 plan, per-arm analysis, intervals and paired tests |
+| `hjr/codex.py` | The `strong` judge through the Codex CLI: isolated calls, pinned model and version |
+| `hjr/estimate.py` | Cost estimate per Phase 2 cell from measured token ratios and live prices |
 | `hjr/soak.py`, `hjr/soakreport.py` | Soak gate evaluation, and soak reports built from Harbor trials |
 | `hjr/goalloop.py`, `hjr/harness/` | The `/goal` loop as Hermes runs it, and the Harbor agent that drives it |
 | `hjr/ingest.py`, `hjr/split.py` | Harbor job to `BoundaryRecord`s, with exclusions listed; the dev/held-out split |

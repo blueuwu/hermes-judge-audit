@@ -21,6 +21,16 @@ base_url = "https://openrouter.ai/api/v1"
 api_key_env = "OPENROUTER_API_KEY"
 rpm = 120
 
+# The Codex CLI (`codex exec`), on the project owner's subscription: no per-call billing. Used
+# only for the `strong` judge (prereg amendment "Phase 2 design"). Each call runs from a fresh
+# empty directory, read-only, with tools disabled and user config ignored (hjr/codex.py). The
+# CLI version is pinned; a call on any other version is refused.
+[endpoints.codex-cli]
+kind = "codex"
+base_url = "codex-cli://exec"
+version = "0.159.3"
+rpm = 6
+
 [endpoints.aistudio-free]
 base_url = "https://generativelanguage.googleapis.com/v1beta/openai"
 api_key_env = "GEMINI_API_KEY"
@@ -57,6 +67,33 @@ source = "Drift cell: successor of the goals.md:244 model, same route, compared 
 # The route serves at most 20 successful requests a minute (pilot-v1 attempts.jsonl: a flat
 # 19-22/min under sustained 429s). Judge replay stays below that; agent runs are unaffected.
 rpm = 18
+
+# Independent strong judge: a frontier model from a vendor other than both agent arms and the
+# flash judge. Served through the Codex CLI, so temperature and max_tokens cannot be set and the
+# CLI adds its own instructions around the judge prompt; reasoning effort is pinned. Labelled
+# "GPT-6.1 Sol via Codex CLI; harness prompt and sampling params not controllable".
+[models.strong]
+id = "gpt-6.1-sol"
+endpoint = "codex-cli"
+provider = "openai-codex"
+temperature = "unset"
+max_tokens = "unset"
+reasoning = "medium"
+sampling_note = "Codex CLI exposes no temperature or max_tokens; reasoning effort pinned to medium on both strong arms"
+source = "Independent strong judge, prereg amendment 2026-10-02 (Phase 2 design)"
+
+# The same model on the paid API, for the harness sanity check only (20 preregistered
+# boundaries, configs/phase2.toml). The model rejects temperature on every listed route, so none
+# is sent; no max_tokens, to match the CLI; same reasoning effort.
+[models.strong-api]
+id = "openai/gpt-6.1-sol"
+endpoint = "openrouter"
+provider = "openai"
+temperature = "unset"
+max_tokens = "unset"
+reasoning = "medium"
+sampling_note = "Matched to the Codex arm: no temperature (rejected by the model), no max_tokens, reasoning effort medium"
+source = "Harness sanity check for `strong`, prereg amendment 2026-10-02 (Phase 2 design)"
 
 [models.self-weak]
 self_of = "weak"

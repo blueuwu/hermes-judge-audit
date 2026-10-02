@@ -94,7 +94,10 @@ class JudgeVerdict(_Record):
     tokens_in: int = 0
     tokens_out: int = 0
     reasoning_tokens: int = 0
+    cached_tokens: int = 0
     cost_usd: float | None = None
+    # Serving metadata without a field of its own, e.g. the Codex CLI session id and version
+    harness_meta: dict[str, str] | None = None
     ts: AwareDatetime
 
 
@@ -176,6 +179,32 @@ class DriftIncident(_Record):
     boundary_id: str
     variant: str
     sample: int
+    ts: AwareDatetime
+
+
+HumanLabel = Literal["done", "not_done", "blocked", "ambiguous"]
+
+
+class LabelRecord(_Record):
+    """One human truth label, appended to data/labels/phase1-labels.jsonl and never edited.
+
+    ``blind``: given from the goal, tool calls and workspace only, with the agent's own messages
+    and the verifier hidden. ``adjudicated``: given after both are revealed; the latest one per
+    boundary is that boundary's truth. ``relabel``: a later blind repeat for intra-rater
+    agreement, never used as truth.
+    """
+
+    boundary_id: str
+    stage: Literal["blind", "adjudicated", "relabel"]
+    label: HumanLabel
+    confidence: Literal["sure", "unsure"]
+    # Adjudication only: did the verifier get this boundary right?
+    verifier_correct: Literal["yes", "no", "na"] | None = None
+    notes: str = ""
+    # Position in the seeded labelling order, and a hash of exactly what was shown
+    order_index: int
+    view_sha256: str
+    annotator: str
     ts: AwareDatetime
 
 

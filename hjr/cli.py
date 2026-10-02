@@ -10,7 +10,7 @@ from pathlib import Path
 from dotenv import load_dotenv
 
 from hjr import manifest
-from hjr.config import ROOT, global_seed, load_judge_config
+from hjr.config import ROOT, check_self_judges, global_seed, load_judge_config
 from hjr.judge import Variant
 from hjr.schemas import BoundaryRecord, read_jsonl
 
@@ -32,18 +32,36 @@ def cmd_replay(args: argparse.Namespace) -> int:
         raise SystemExit(f"dev-only arms {dev} need a run id starting with {DEV_PREFIX!r}")
     if not dev and args.run_id.startswith(DEV_PREFIX):
         raise SystemExit(f"run ids starting with {DEV_PREFIX!r} are reserved for dev-only arms")
-    limiters = Limiters(cfg.limits())
-    clients = {
-        key: JudgeClient(
-            arm,
-            api_key_env=cfg.endpoint(arm).api_key_env,
-            limiter=limiters.get(cfg.limiter_key(key)),
-        ).complete
-        for key, arm in arms.items()
-    }
     boundaries = list(read_jsonl(args.boundaries, BoundaryRecord))
     if args.limit:
         boundaries = boundaries[: args.limit]
+    if args.subset == "sanity":
+        from hjr.phase2 import load_plan
+
+        arms_seen = {str(b.tags.get("agent_arm", "")) for b in boundaries}
+        if len(arms_seen) != 1:
+            raise SystemExit("--subset sanity needs boundaries from exactly one agent arm")
+        ids = set(load_plan().sanity_ids(arms_seen.pop()))
+        boundaries = [b for b in boundaries if b.boundary_id in ids]
+        if len(boundaries) != len(ids):
+            raise SystemExit("sanity subset ids not all found in these boundaries")
+    try:
+        agent_arms = {str(b.tags["agent_arm"]) for b in boundaries if "agent_arm" in b.tags}
+        check_self_judges(cfg, arms, agent_arms)
+    except ValueError as exc:
+        raise SystemExit(str(exc)) from None
+    limiters = Limiters(cfg.limits())
+    clients = {}
+    for key, arm in arms.items():
+        endpoint = cfg.endpoint(arm)
+        limiter = limiters.get(cfg.limiter_key(key))
+        if endpoint.kind == "codex":
+            from hjr.codex import CodexClient
+
+            client = CodexClient(arm, version=endpoint.version, limiter=limiter)
+        else:
+            client = JudgeClient(arm, api_key_env=endpoint.api_key_env, limiter=limiter)
+        clients[key] = client.complete
     run_dir = RUNS / args.run_id
 
     git_sha, dirty = manifest.git_state()
@@ -291,6 +309,63 @@ def cmd_check_route(args: argparse.Namespace) -> int:
     return 0 if ok else 1
 
 
+def cmd_phase2_estimate(args: argparse.Namespace) -> int:
+    from hjr import estimate
+    from hjr.phase2 import load_plan
+
+    ratio = estimate.measured_chars_per_token()
+    lines = estimate.estimate(
+        load_plan(),
+        load_judge_config(),
+        price=estimate.live_price(),
+        chars_per_token=ratio,
+        pilot_output=estimate.measured_output_tokens(),
+    )
+    print(estimate.render(lines, ratio))
+    return 0
+
+
+def cmd_phase2_summary(args: argparse.Namespace) -> int:
+    from hjr import analysis
+    from hjr.phase2 import load_boundaries, load_plan
+    from hjr.replay import load_verdicts
+    from hjr.schemas import AttemptRecord, LabelRecord
+
+    plan = load_plan()
+    boundaries = {arm: load_boundaries(plan, arm) for arm in plan.arms}
+    if args.truth == "labels":
+        labels = list(read_jsonl(plan.labels_path, LabelRecord))
+        truth = {a: analysis.truth_from_labels(labels, boundaries[a]) for a in plan.arms}
+        unlabelled = sum(len(t.unlabelled) for t in truth.values())
+        if unlabelled and not args.allow_unlabelled:
+            raise SystemExit(f"{unlabelled} boundaries have no adjudicated label")
+    else:
+        truth = {a: analysis.truth_from_verifier(boundaries[a]) for a in plan.arms}
+
+    def attempts(run_dir: Path) -> list:
+        path = run_dir / "attempts.jsonl"
+        return list(read_jsonl(path, AttemptRecord)) if path.exists() else []
+
+    runs = {a: RUNS / spec.run_id for a, spec in plan.arms.items()}
+    sanity = {}
+    for arm in plan.arms:
+        run_dir = RUNS / plan.sanity_run_id(arm)
+        sanity[arm] = load_verdicts(run_dir) if run_dir.exists() else []
+    report = analysis.analyse(
+        plan,
+        truth,
+        boundaries,
+        {a: load_verdicts(d) if d.exists() else [] for a, d in runs.items()},
+        {a: attempts(d) for a, d in runs.items()},
+        sanity,
+    )
+    out = RUNS / "phase2" / f"summary-{args.truth}.md"
+    out.parent.mkdir(parents=True, exist_ok=True)
+    out.write_text(analysis.render(report), encoding="utf-8", newline="\n")
+    print(out.read_text(encoding="utf-8"))
+    return 0
+
+
 def main(argv: list[str] | None = None) -> int:
     parser = argparse.ArgumentParser(prog="hjr", description=__doc__)
     parser.add_argument("-v", "--verbose", action="store_true")
@@ -305,6 +380,11 @@ def main(argv: list[str] | None = None) -> int:
     p.add_argument("--samples", type=int, default=3)
     p.add_argument("--workers", type=int, default=8)
     p.add_argument("--limit", type=int, default=0, help="first N boundaries only (smoke runs)")
+    p.add_argument(
+        "--subset",
+        choices=["sanity"],
+        help="only the preregistered subset of configs/phase2.toml for these boundaries' arm",
+    )
     p.set_defaults(func=cmd_replay)
 
     p = sub.add_parser("pilot-build", help="write the constructed M0.5 pilot boundaries")
@@ -360,6 +440,16 @@ def main(argv: list[str] | None = None) -> int:
     )
     p.add_argument("--model", action="append", help="model key (default: all non-dev arms)")
     p.set_defaults(func=cmd_check_route)
+
+    p = sub.add_parser("phase2-estimate", help="estimated cost per Phase 2 cell (no model calls)")
+    p.set_defaults(func=cmd_phase2_estimate)
+
+    p = sub.add_parser("phase2-summary", help="Phase 2 analysis tables (no model calls)")
+    p.add_argument("--truth", choices=["labels", "verifier"], default="labels")
+    p.add_argument(
+        "--allow-unlabelled", action="store_true", help="report before labelling is complete"
+    )
+    p.set_defaults(func=cmd_phase2_summary)
 
     args = parser.parse_args(argv)
     logging.basicConfig(

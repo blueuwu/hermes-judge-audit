@@ -1,6 +1,7 @@
 from __future__ import annotations
 
 import dataclasses
+import tomllib
 from types import SimpleNamespace
 
 import pytest
@@ -8,7 +9,7 @@ from hermes_cli import goals as hg
 
 from hjr import judge
 from hjr.arms import Arm, MixedArmError, require_single_arm, sub_arm_id
-from hjr.config import load_judge_config
+from hjr.config import JUDGE_CONFIG, check_self_judges, load_judge_config
 
 CFG = load_judge_config()
 
@@ -16,8 +17,40 @@ CFG = load_judge_config()
 def test_judge_sampling_matches_pinned_hermes():
     assert CFG.sampling["temperature"] == judge.TEMPERATURE == 0.0
     assert CFG.sampling["max_tokens"] == judge.MAX_TOKENS == hg.DEFAULT_JUDGE_MAX_TOKENS
-    for arm in CFG.models.values():
-        assert (arm.temperature, arm.max_tokens) == (judge.TEMPERATURE, judge.MAX_TOKENS)
+    raw = tomllib.loads(JUDGE_CONFIG.read_text(encoding="utf-8"))["models"]
+    noted = {key for key, spec in raw.items() if spec.get("sampling_note")}
+    # Only the strong judge (CLI harness) and its API sanity arm depart, each with a note.
+    assert noted == {"strong", "strong-api"}
+    for key, arm in CFG.models.items():
+        if key not in noted:
+            assert (arm.temperature, arm.max_tokens) == (judge.TEMPERATURE, judge.MAX_TOKENS)
+            assert arm.reasoning == "provider-default"
+
+
+def test_sampling_override_needs_a_note(tmp_path):
+    text = JUDGE_CONFIG.read_text(encoding="utf-8").replace(
+        'sampling_note = "Codex CLI exposes', 'unused_note = "Codex CLI exposes'
+    )
+    path = tmp_path / "judge_variants.toml"
+    path.write_text(text, encoding="utf-8")
+    with pytest.raises(ValueError, match="sampling_note"):
+        load_judge_config(path)
+
+
+def test_strong_arms_share_model_and_effort_and_differ_in_harness():
+    cli, api = CFG.model("strong"), CFG.model("strong-api")
+    assert cli.model_id == api.model_id.split("/")[1]
+    assert cli.reasoning == api.reasoning == "medium"
+    assert (cli.temperature, cli.max_tokens, api.temperature, api.max_tokens) == (None,) * 4
+    assert cli.harness == "codex" and api.harness == ""
+    vendors = {CFG.model(k).model_id.split("/")[0] for k in ("self-weak", "self-strong", "flash")}
+    assert "openai" not in vendors
+
+
+def test_unset_harness_keeps_existing_arm_ids():
+    # Recorded in results/runs/pilot-v1/manifest.json before arms gained a harness field
+    assert CFG.model("flash").arm_id == "6b9d36f0d198"
+    assert CFG.model("drift").arm_id == "34c80ac404ad"
 
 
 def test_self_judge_uses_agent_model_and_provider():
@@ -93,3 +126,12 @@ def test_capped_model_gets_its_own_limiter():
     assert CFG.limiter_key("drift") == "model:drift"
     assert CFG.limiter_key("flash") == "openrouter"
     assert CFG.limits()["model:drift"] < CFG.endpoints["openrouter"].rpm
+
+
+def test_self_judge_only_judges_its_own_arm():
+    check_self_judges(CFG, ["self-weak", "flash"], {"weak"})
+    check_self_judges(CFG, ["self-weak"], set())  # constructed items have no agent arm
+    with pytest.raises(ValueError, match="self-strong judges the strong arm"):
+        check_self_judges(CFG, ["self-strong"], {"weak"})
+    with pytest.raises(ValueError):
+        check_self_judges(CFG, ["self-weak"], {"weak", "strong"})

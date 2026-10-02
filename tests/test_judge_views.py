@@ -99,3 +99,17 @@ def test_variant_round_trips(spec):
 def test_variant_rejects_bad_specs(spec):
     with pytest.raises(ValueError):
         judge.Variant.parse(spec)
+
+
+def test_evidence_cuts_long_commands_and_marks_processless_tools():
+    body = "x" * 5000
+    events = [ToolEvent(tool="write_file", cmd='{"content": "' + body + '"}', exit=None)]
+    line = judge.render_tool_events(events)
+    assert line.startswith('- write_file: {"content": "xxx')
+    assert " … → exit n/a |" in line
+    assert len(line) < judge.EVIDENCE_CMD_CHARS + 40
+
+
+def test_evidence_puts_each_command_on_one_line():
+    events = [ToolEvent(tool="terminal", cmd="cd /app &&\n  make   test", exit=0, out_tail="ok")]
+    assert judge.render_tool_events(events) == "- terminal: cd /app && make test → exit 0 | ok"

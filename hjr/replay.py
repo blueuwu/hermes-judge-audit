@@ -5,6 +5,7 @@ Output layout under ``results/runs/<run_id>/``::
     judge/<prompt>__<model>__<view>.jsonl   one JudgeVerdict per answered (boundary, sample)
     attempts.jsonl                           every HTTP attempt, including retries and failures
     incidents.jsonl                          provider-reported identity changes (arm halted)
+    halts.jsonl                              arms a client stopped (CLI harness violation, quota)
     manifest.json
 
 A call that still fails after retries leaves no verdict, so the next run retries it. If the
@@ -15,6 +16,7 @@ a logged incident is not called again in the same run.
 
 from __future__ import annotations
 
+import json
 import logging
 import threading
 from collections import Counter
@@ -107,7 +109,9 @@ def judge_once(
         tokens_in=result.tokens_in,
         tokens_out=result.tokens_out,
         reasoning_tokens=result.reasoning_tokens,
+        cached_tokens=result.cached_tokens,
         cost_usd=result.cost_usd,
+        harness_meta=result.meta or None,
         ts=_now(),
     )
     return rec, result.attempts
@@ -238,7 +242,17 @@ def replay(
                 b, v, s = futures[fut]
                 try:
                     rec, attempts, incident = fut.result()
-                except ArmHalted:
+                except ArmHalted as exc:
+                    # Raised by the replay itself, or by a client that cannot go on (a CLI
+                    # harness violation, an exhausted quota). Either way the arm stops here.
+                    if not states[v.model].halted.is_set():
+                        states[v.model].halted.set()
+                        log.error("arm %s halted: %s", v.model, exc)
+                        halt = {"arm": v.model, "variant": str(v), "reason": str(exc)}
+                        writer.write(
+                            run_dir / "halts.jsonl",
+                            json.dumps(halt | {"ts": _now().isoformat()}),
+                        )
                     counts["halted"] += 1
                     continue
                 except TransportError as exc:

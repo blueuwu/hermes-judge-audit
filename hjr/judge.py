@@ -6,7 +6,7 @@ Prompt text, truncation and verdict parsing are imported from the pinned Hermes 
 
 A judge variant is ``<prompt>:<model>:<view>``:
 
-* prompt: ``prod-plain`` | ``prod-contract``
+* prompt: ``prod-plain`` | ``prod-contract`` | ``repair-v1``
 * model: a key from ``configs/judge_variants.toml``
 * view: how the agent's final response is cut down before it reaches the judge
 """
@@ -37,11 +37,17 @@ TIME_FORMAT = "%Y-%m-%d %H:%M:%S %Z"
 TEMPERATURE = 0.0
 MAX_TOKENS = hg.DEFAULT_JUDGE_MAX_TOKENS
 
-PROMPTS = ("prod-plain", "prod-contract")
+# repair-v1 is designed from dev data only and frozen at tag repair-freeze-v1 (prereg amendment
+# "Phase 2 design"); until then it is a name the plan can refer to, and building it fails.
+PROMPTS = ("prod-plain", "prod-contract", "repair-v1")
 VIEWS = ("head4k", "headtail4k", "evidence")
 
 HEADTAIL_MARKER = "\n… [truncated middle] …\n"
+# Evidence rule, fixed by the prereg amendment "Phase 2 design" before any evidence call: the
+# last 3 tool calls, each on one line with its command cut to the first 200 characters, its exit
+# code ("n/a" for tools that run no process) and the last 300 characters of its output.
 EVIDENCE_EVENTS = 3
+EVIDENCE_CMD_CHARS = 200
 EVIDENCE_OUTPUT_CHARS = 300
 EVIDENCE_HEADER = "Most recent tool calls (from the trajectory, not the agent's summary):"
 
@@ -62,11 +68,19 @@ def view_headtail4k(text: str) -> str:
     return text[:half] + HEADTAIL_MARKER + text[-half:]
 
 
+def _one_line(text: str) -> str:
+    return " ".join(text.split())
+
+
 def render_tool_events(events: Sequence[ToolEvent]) -> str:
     lines = []
     for ev in list(events)[-EVIDENCE_EVENTS:]:
+        cmd = _one_line(ev.cmd)
+        if len(cmd) > EVIDENCE_CMD_CHARS:
+            cmd = cmd[:EVIDENCE_CMD_CHARS] + " …"
         out = ev.out_tail[-EVIDENCE_OUTPUT_CHARS:].replace("\n", " ").strip()
-        lines.append(f"- {ev.tool}: {ev.cmd} → exit {ev.exit} | {out}")
+        code = "n/a" if ev.exit is None else ev.exit
+        lines.append(f"- {ev.tool}: {cmd} → exit {code} | {out}")
     return "\n".join(lines)
 
 
@@ -76,9 +90,7 @@ def view_evidence(text: str, events: Sequence[ToolEvent]) -> str:
     block = render_tool_events(events)
     if not block:
         return body
-    return (
-        f"{body}\n\nMost recent tool calls (from the trajectory, not the agent's summary):\n{block}"
-    )
+    return f"{body}\n\n{EVIDENCE_HEADER}\n{block}"
 
 
 def apply_view(view: str, boundary: JudgeInput) -> str:
@@ -136,6 +148,8 @@ def build_user_prompt(
         return hg.JUDGE_USER_PROMPT_WITH_CONTRACT_TEMPLATE.format(
             contract_block=hg._truncate(block, CONTRACT_CHARS), **common
         )
+    if prompt == "repair-v1":
+        raise NotImplementedError("repair-v1 is not designed yet (see the Phase 2 amendment)")
     raise ValueError(f"unknown prompt {prompt!r}")
 
 

@@ -6,7 +6,8 @@ from hjr.config import load_judge_config
 from hjr.routes import check_routes
 
 CFG = load_judge_config()
-N_PINNED = sum(not arm.dev_only for arm in CFG.models.values())
+# Routes on OpenRouter; the Codex CLI arm has no listing to check and is pinned by version.
+N_PINNED = sum(not arm.dev_only and "openrouter.ai" in arm.base_url for arm in CFG.models.values())
 
 
 def _client(served: dict[str, list[str]]):
@@ -29,6 +30,7 @@ def test_all_pinned_routes_present():
         "google/gemini-3.8-flash": ["google-ai-studio"],
         "z-ai/glm-5.3-flash": ["z-ai/fp8", "deepinfra/fp4"],
         "deepseek/deepseek-v4.1-flash": ["deepseek", "deepinfra/fp8"],
+        "openai/gpt-6.1-sol": ["openai", "openai/flex", "azure"],
     }
     results = list(check_routes(CFG, client=_client(served)))
     assert len(results) == N_PINNED and all(ok for _, ok in results)

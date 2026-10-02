@@ -374,3 +374,128 @@ observations are recorded, not acted on, because acting on them would mean tunin
 the model: every trial ended after its first turn, so Phase 1 should yield about one boundary
 per trial; and no C6 reply exceeded 1,800 characters, so on the weak arm C6 may not reach the
 judge's 4,000-character view.
+
+**2026-10-02. Phase 2 design, before any truth label or Phase-2 judge call.** Phase 2 replays the
+frozen Phase-1 boundaries (`data/frozen/phase1-{weak,strong}.jsonl`) offline under the judge
+cells below. The cells, sampling, evidence rule, seeds, sanity subset and analysis are fixed
+here and in `configs/phase2.toml`, `hjr/judge.py`, `hjr/codex.py`, `hjr/stats.py` and
+`hjr/analysis.py`, all committed with this amendment.
+
+*Truth audit.* Before this amendment the 8 dev not-done boundaries and the hidden checks of
+their two tasks were read; no held-out boundary content was read beyond the counts in
+`results/phase1/README.md`. All 6 `c2-01` boundaries fail only checks that reject reasonable
+work: `tests_pass` requires the output `Ran 3 tests`, so adding a test fails it;
+`callers_updated` requires no `calc_total` in `tests/test_totals.py`, so testing the required
+alias fails it; `docs_updated` requires no `calc_total` in `docs/API.md`, so documenting the
+required alias fails it. Both `c6-04` boundaries name the duplicate rule `id` where the hidden key
+is `unique`, a name `SCHEMA.md` never gives. The Definitions already make truth "a state verifier
+audited by human labels", and no labels exist yet, so every Phase-1 boundary is labelled:
+- All 178 boundaries, by one annotator, with `hjr label`. The blind view shows the goal, the
+  trajectory's tool calls with their outputs, and the workspace at the boundary against the
+  task's seed workspace. It hides the verifier, the in-loop judge and every message the agent
+  wrote (its final response included), and it does not name the task, category or arm.
+- Labels: `done`, `not_done`, `blocked` or `ambiguous` (a real option, not a fallback), with
+  `sure`/`unsure` and notes. Committing a blind label reveals the agent's messages and the
+  verifier's per-requirement result, and the annotator then records an adjudicated label and
+  whether the verifier was right. Records are appended to `data/labels/phase1-labels.jsonl`
+  (`LabelRecord`), never edited; quitting at any point loses nothing.
+- Order: dev boundaries first, then held-out, each in a seeded shuffle (stream `label-order`),
+  logged with the seed. Held-out boundaries are served only once tag `repair-freeze-v1` exists,
+  so no held-out trajectory is read before the repair is frozen.
+- Intra-rater check: once every boundary has a blind label, 25 are drawn (stream `relabel`)
+  and shown again, blind as before and without the first label, each at least 24 hours after its
+  first blind label. Raw agreement, Cohen's κ, prevalence and PABAK are reported. Relabels are
+  never used as truth.
+- Primary truth is the latest adjudicated label. `ambiguous` boundaries leave the primary
+  analysis and are listed. Every table is also produced with verifier truth as a sensitivity
+  analysis (`hjr phase2-summary --truth verifier`). The frozen tasks are not changed; the `c2-01`
+  checks are reported as a verifier finding.
+
+*Cells* (3 samples each, per agent arm, runs `phase2-weak` and `phase2-strong`):
+`prod-plain:self:head4k`, `prod-plain:flash:head4k`, `prod-plain:strong:head4k`,
+`prod-plain:flash:evidence`, `repair-v1:flash:evidence`, `repair-v1:strong:evidence`.
+- `self` is `self-weak` on weak boundaries and `self-strong` on strong ones. `hjr replay` refuses
+  a self judge on another arm's boundaries, and the analysis never pools agent arms.
+- `prod-plain:flash:evidence` is added to separate the evidence view from the repair prompt.
+- `prod-plain:flash:headtail4k` is not called: no Phase-1 response exceeds 4,000 characters, so
+  its prompts are byte-identical to `head4k` on all 178 boundaries (checked by a test). It is
+  reported as identical by construction.
+- `prod-contract` cells are out of scope: Phase 1 has no G-contract boundaries. H3 is not tested
+  in Phase 2.
+
+*Flash.* Unchanged route: Gemini 3 Flash Preview on Google AI Studio, fallbacks off, production
+sampling. OpenRouter's batch variant of this model is served only by Google Vertex, so using it
+would break the pinned-provider rule for Flash cells; it is not used (saving would be about $1).
+The production prompts' static prefix (Hermes's 3,414-character system prompt) is fixed by
+byte parity and is likely below the provider's implicit-cache minimum; `repair-v1` puts its
+static instructions first. Cached prompt tokens are recorded per call.
+
+*Strong judge.* `strong` is GPT-6.1 Sol (`gpt-6.1-sol`), a frontier model from a vendor other than
+both agent arms and Flash, run through the Codex CLI (`codex exec` 0.159.3) on the project
+owner's subscription. Each call runs from a fresh empty temporary directory with a read-only
+sandbox, user config and exec rules ignored, no persisted session, every tool-bearing feature
+disabled and web search off; the model and reasoning effort (`medium`) are pinned on the command
+line, and any other CLI version is refused. The judge prompt (system then user message) is piped
+in on stdin. The final message is constrained by a JSON Schema of the Hermes verdict shapes and
+parsed by the same Hermes parser as every other arm, with no retry on a malformed reply; replies
+that do not match the schema exactly are counted as their own failure category. A call that uses
+a tool or leaves a file halts the arm; usage limits halt it until a later resume; rate limits are
+retried with backoff. The CLI's own instructions around the prompt, temperature and max_tokens
+cannot be set; results are labelled "GPT-6.1 Sol via Codex CLI; harness prompt and sampling
+params not controllable". Within-item agreement across the 3 samples is reported for every cell.
+- Harness sanity check: 20 boundaries, 10 per arm (5 with verifier truth ≠ done, 5 done),
+  drawn with stream `harness-sanity` and listed in `configs/phase2.toml`, are judged by the same
+  model through the paid API (`strong-api`, OpenAI on OpenRouter, fallbacks off, no temperature
+  or max_tokens sent, reasoning effort `medium`) with identical prompts, in both strong cells,
+  3 samples each. Item-decision agreement between the two harnesses is reported. This is the only
+  paid strong-judge spend.
+- Limitation, stated with every strong-judge result: the strong and Flash cells differ in
+  harness as well as model, and the harness effect is bounded only by this 20-boundary check.
+
+*Evidence rule* (fixed now; no evidence-view call has been made): the head-plus-tail response,
+then the last 3 tool calls, one line each: tool name, the command with whitespace collapsed and
+cut to its first 200 characters, the exit code (`n/a` for tools that run no process) and the last
+300 characters of the output.
+
+*repair-v1.* Designed from dev material only: the M0.5 pilot items and the Phase-1 dev boundaries
+with their dev labels. Static instructions come first and per-item content last. At most three
+design iterations, each a Flash replay on dev boundaries and pilot items only. The final prompt
+is committed and tagged `repair-freeze-v1` before any held-out label exists and before any
+`repair-v1` call on a held-out boundary.
+
+*Probes.* Before the main replay, `probe-p2` runs the format probes once for `strong`,
+`self-strong` and the new `self-weak` (GLM-5.3-Flash; `probe-v1` ran Qwen3-Coder). `repair-v1`
+is probed on Flash and `strong` after the freeze.
+
+*Analysis* (`hjr phase2-summary`), per agent arm, never pooled:
+- Reliability first: transport errors per attempt and unresolved calls, parse failures, format
+  violations and, for the CLI arm, schema-invalid replies; then semantic, effective and strict
+  accuracy per call.
+- Item decision: the effective decision at least 2 of 3 samples share; a three-way split is a
+  tie, which is not DONE and is never correct. First-sample rates are a sensitivity check.
+- False-DONE and false-CONTINUE per cell with Wilson and task-clustered bootstrap intervals
+  (2,000 resamples, stream `bootstrap`); counts only below 20 items. κ (done vs not done) only
+  next to prevalence and PABAK.
+- H1: false-DONE minus false-CONTINUE under `prod-plain:self:head4k`, with a task-bootstrap
+  interval; H1 holds if the interval lies below 0.
+- H2: false-DONE counts by category for every cell (descriptive).
+- H4, the planned family: exact McNemar on held-out false-DONE, `prod-plain:<m>:head4k` against
+  `repair-v1:<m>:evidence` for `m` in {flash, strong} and both arms (4 tests, Holm-corrected).
+  H4 is met when false-DONE falls by at least 10 points with an interval excluding 0 and at least
+  15 discordant pairs, and false-CONTINUE on held-out done items rises by at most 5 points. Dev
+  results are shown beside held-out ones.
+- Exploratory, unadjusted: the view/prompt decomposition and H5 (self, Flash and strong compared
+  on item correctness).
+- Fewer than 15 discordant pairs, or an interval including 0, reads "no detectable difference at
+  n = …".
+
+*Power, stated in advance.* By verifier truth each arm has 10 held-out boundaries with truth ≠
+done (4 not done, 6 blocked) and 44 done. H4 cannot reach 15 discordant pairs on those 10, so its
+expected reading is "no detectable difference at n = 10" unless labels change the counts. The 16
+not-done boundaries come from 5 tasks, C1 and C3 have none, and no Phase-1 response reached the
+4,000-character view, so truncation is not exercised. Phase 2 is reported as a small natural
+sample, not as a precise estimate.
+
+*Cost.* `hjr phase2-estimate` puts the billed calls at about $7.60 at the highest listed tier of
+each pinned route (Flash and self cells about $3.10, the API sanity check about $4.50); the 1,068
+CLI calls are not billed per call. Paid calls stop at $20 without a further amendment.

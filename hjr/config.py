@@ -22,6 +22,10 @@ class Endpoint:
     api_key_env: str
     rpm: int
     dev_only: bool = False
+    # "chat" (OpenAI-compatible HTTP) or "codex" (the Codex CLI, `hjr/codex.py`)
+    kind: str = "chat"
+    # For a CLI harness: the exact version every call must run on
+    version: str = ""
 
 
 @dataclass(frozen=True)
@@ -34,6 +38,8 @@ class JudgeConfig:
     # Judge-side request limits per model key, for models whose provider caps them below their
     # endpoint's limit. Throttling does not change outputs, so it is not part of arm identity.
     model_rpm: dict[str, int] = field(default_factory=dict)
+    # Self-judge key -> the agent arm it judges (self-weak -> weak)
+    self_of: dict[str, str] = field(default_factory=dict)
 
     def model(self, key: str) -> Arm:
         try:
@@ -55,20 +61,34 @@ class JudgeConfig:
         return f"model:{key}" if key in self.model_rpm else self.model(key).endpoint
 
 
+UNSET = "unset"
+SAMPLING_KEYS = ("temperature", "max_tokens", "reasoning")
+
+
+def _optional(value, cast):
+    return None if value == UNSET else cast(value)
+
+
 def _arm(key: str, spec: dict, endpoints: dict[str, Endpoint], sampling: dict) -> Arm:
     ep = endpoints[spec["endpoint"]]
+    # An arm may depart from production judge sampling only with a stated reason.
+    overrides = {k: spec[k] for k in SAMPLING_KEYS if k in spec}
+    if overrides and not spec.get("sampling_note"):
+        raise ValueError(f"judge model {key!r} overrides {sorted(overrides)} without sampling_note")
+    merged = {**sampling, **overrides}
     return Arm(
         key=key,
         model_id=spec["id"],
         endpoint=ep.name,
         base_url=ep.base_url,
         provider=spec.get("provider", ""),
-        temperature=float(sampling["temperature"]),
-        max_tokens=int(sampling["max_tokens"]),
-        reasoning=str(sampling["reasoning"]),
+        temperature=_optional(merged["temperature"], float),
+        max_tokens=_optional(merged["max_tokens"], int),
+        reasoning=str(merged["reasoning"]),
         dev_only=ep.dev_only,
         source=spec.get("source", ""),
         substitution=spec.get("substitution", ""),
+        harness=ep.kind if ep.kind != "chat" else "",
     )
 
 
@@ -80,9 +100,11 @@ def load_judge_config(path: Path = JUDGE_CONFIG) -> JudgeConfig:
         name: Endpoint(
             name=name,
             base_url=v["base_url"],
-            api_key_env=v["api_key_env"],
+            api_key_env=v.get("api_key_env", ""),
             rpm=int(v["rpm"]),
             dev_only=bool(v.get("dev_only", False)),
+            kind=v.get("kind", "chat"),
+            version=v.get("version", ""),
         )
         for name, v in data.get("endpoints", {}).items()
     }
@@ -96,9 +118,28 @@ def load_judge_config(path: Path = JUDGE_CONFIG) -> JudgeConfig:
             agent = agents[spec["self_of"]]
             spec = {**agent, "source": spec.get("source", "")}
         models[key] = _arm(key, spec, endpoints, sampling)
+    self_of = {k: v["self_of"] for k, v in data.get("models", {}).items() if "self_of" in v}
     return JudgeConfig(
-        endpoints, agents, models, dict(sampling), hashlib.sha256(raw).hexdigest(), model_rpm
+        endpoints,
+        agents,
+        models,
+        dict(sampling),
+        hashlib.sha256(raw).hexdigest(),
+        model_rpm,
+        self_of,
     )
+
+
+def check_self_judges(cfg: JudgeConfig, model_keys, agent_arms: set[str]) -> None:
+    """A self judge may only judge boundaries from its own agent arm (no cross-arm self).
+
+    Constructed items have no agent arm and are exempt.
+    """
+    for key in model_keys:
+        owner = cfg.self_of.get(key)
+        if owner is not None and agent_arms and agent_arms != {owner}:
+            found = ", ".join(sorted(agent_arms)) or "none"
+            raise ValueError(f"{key} judges the {owner} arm; these boundaries come from: {found}")
 
 
 def global_seed(path: Path = SEEDS_CONFIG) -> int:
