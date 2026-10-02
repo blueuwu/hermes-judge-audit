@@ -1,0 +1,13 @@
+{
+  "tiers": {
+    "free": {
+      "retention_days": 30
+    },
+    "pro": {
+      "retention_days": 180
+    },
+    "enterprise": {
+      "retention_days": 365
+    }
+  }
+}

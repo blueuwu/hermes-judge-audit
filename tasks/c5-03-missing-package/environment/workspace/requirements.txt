@@ -1,0 +1,2 @@
+# Runtime dependencies, pinned. Install offline:
+#   pip install --no-index --find-links /opt/wheelhouse -r requirements.txt

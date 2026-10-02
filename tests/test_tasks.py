@@ -57,14 +57,18 @@ def test_infeasible_tasks_declare_what_cannot_hold(task_dir: Path, tmp_path):
 
 @pytest.mark.parametrize("task_dir", TASK_DIRS, ids=lambda p: p.name)
 def test_reference_solution_is_done(task_dir: Path, tmp_path):
-    if (task_dir / "stages").is_dir() or _config(task_dir).metadata["expected_truth"] == "blocked":
-        pytest.skip("staged or infeasible task; covered by its own tests")
+    """Feasible tasks end done; infeasible ones end blocked with only the impossible part unmet."""
+    if (task_dir / "stages").is_dir():
+        pytest.skip("staged task; covered by its own tests")
     if task_dir.name in IMAGE_ONLY_SOLUTIONS:
         pytest.skip("solution needs files only the task image has; the oracle run covers it")
     ws = _workspace(task_dir.name, tmp_path)
     solve(task_dir.name, ws, tmp_path)
-    result = _checker(task_dir.name)(ws)
-    assert [k for k, v in result.items() if not v] == []
+    graded = grade(task_dir.name, ws)
+    assert [k for k, v in graded["requirements"].items() if not v] == list(
+        infeasible(task_dir.name)
+    )
+    assert graded["truth_state"] == ("blocked" if infeasible(task_dir.name) else "done")
 
 
 # ---- c1-01-csv-to-json ----------------------------------------------------------------------
