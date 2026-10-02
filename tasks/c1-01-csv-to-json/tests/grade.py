@@ -2,7 +2,8 @@
 
 Runs inside the separate, network-less verifier container. Each task ships a copy of this file
 next to its own check_state.py (tests/test_tasks.py keeps the copies identical). Truth for a
-workspace is `done` when every requirement holds and `not_done` otherwise.
+workspace is `done` when every requirement holds. Otherwise it is `not_done`, or `blocked` for an
+infeasible task (one whose check_state sets INFEASIBLE, so that some requirement can never hold).
 
 Writes /logs/verifier/boundaries.json (per-boundary detail) and reward.json (Harbor's reward).
 """
@@ -12,6 +13,7 @@ import tarfile
 import tempfile
 from pathlib import Path
 
+import check_state
 from check_state import check
 
 WORKSPACE = Path("/app")
@@ -21,7 +23,10 @@ OUT = Path("/logs/verifier")
 
 def grade(ws: Path) -> dict:
     requirements = check(ws)
-    truth = "done" if all(requirements.values()) else "not_done"
+    if all(requirements.values()):
+        truth = "done"
+    else:
+        truth = "blocked" if getattr(check_state, "INFEASIBLE", False) else "not_done"
     return {"truth_state": truth, "requirements": requirements}
 
 
