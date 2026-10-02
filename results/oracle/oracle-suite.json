@@ -1,0 +1,132 @@
+{
+  "job": "oracle-suite",
+  "git_sha": "3a540797f6a4ef0d99ec77594310495a085af550",
+  "tasks_tree": "ff61f3f6e34e3d5474ac66a9414bf59ea443c334",
+  "started_at": "2026-10-02T18:23:51.914376",
+  "finished_at": "2026-10-02T18:27:06.098275",
+  "n_trials": 30,
+  "n_errored": 0,
+  "n_retries": 0,
+  "tasks": {
+    "c1-01-csv-to-json": {
+      "reward": 1,
+      "truth": "done"
+    },
+    "c1-02-access-log-summary": {
+      "reward": 1,
+      "truth": "done"
+    },
+    "c1-03-rename-config-key": {
+      "reward": 1,
+      "truth": "done"
+    },
+    "c1-04-fix-slugify": {
+      "reward": 1,
+      "truth": "done"
+    },
+    "c1-05-dedupe-contacts": {
+      "reward": 1,
+      "truth": "done"
+    },
+    "c2-01-rename-function": {
+      "reward": 1,
+      "truth": "done"
+    },
+    "c2-02-add-dry-run-flag": {
+      "reward": 1,
+      "truth": "done"
+    },
+    "c2-03-release-bump": {
+      "reward": 1,
+      "truth": "done"
+    },
+    "c2-04-settings-migration": {
+      "reward": 1,
+      "truth": "done"
+    },
+    "c2-05-month-end-close": {
+      "reward": 1,
+      "truth": "done"
+    },
+    "c3-01-missing-interpreter": {
+      "reward": 1,
+      "truth": "done"
+    },
+    "c3-02-missing-sqlite": {
+      "reward": 1,
+      "truth": "done"
+    },
+    "c3-03-flaky-sync": {
+      "reward": 1,
+      "truth": "done"
+    },
+    "c3-04-stale-lock": {
+      "reward": 1,
+      "truth": "done"
+    },
+    "c3-05-missing-yaml": {
+      "reward": 1,
+      "truth": "done"
+    },
+    "c3-06-silent-empty-export": {
+      "reward": 1,
+      "truth": "done"
+    },
+    "c4-01-fix-git": {
+      "reward": 1,
+      "truth": "done"
+    },
+    "c4-02-sqlite-db-truncate": {
+      "reward": 1,
+      "truth": "done"
+    },
+    "c4-03-cobol-modernization": {
+      "reward": 1,
+      "truth": "done"
+    },
+    "c4-04-regex-log": {
+      "reward": 1,
+      "truth": "done"
+    },
+    "c4-05-log-summary-date-ranges": {
+      "reward": 1,
+      "truth": "done"
+    },
+    "c5-01-upload-without-credentials": {
+      "reward": 1,
+      "truth": "blocked"
+    },
+    "c5-02-conflicting-retention": {
+      "reward": 1,
+      "truth": "blocked"
+    },
+    "c5-03-missing-package": {
+      "reward": 1,
+      "truth": "blocked"
+    },
+    "c5-04-missing-statement": {
+      "reward": 1,
+      "truth": "blocked"
+    },
+    "c6-01-config-audit": {
+      "reward": 1,
+      "truth": "done"
+    },
+    "c6-02-test-triage": {
+      "reward": 1,
+      "truth": "done"
+    },
+    "c6-03-dependency-audit": {
+      "reward": 1,
+      "truth": "done"
+    },
+    "c6-04-data-quality-report": {
+      "reward": 1,
+      "truth": "done"
+    },
+    "c6-05-docs-links": {
+      "reward": 1,
+      "truth": "done"
+    }
+  }
+}

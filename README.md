@@ -9,7 +9,7 @@ against deterministic state verifiers and human labels, then measures judge-side
 frozen held-out set. Hypotheses and analysis rules are fixed in
 [`configs/prereg.md`](configs/prereg.md).
 
-Status: offline pilot done; soak gate passed by both agent arms, GLM-5.3-Flash (weak) and DeepSeek V4.1 Flash (strong), after Qwen3-Coder failed it on two routes (`results/soak/`).
+Status: offline pilot done; soak gate passed by both agent arms, GLM-5.3-Flash (weak) and DeepSeek V4.1 Flash (strong), after Qwen3-Coder failed it on two routes (`results/soak/`). Task suite (30 tasks) and dev/held-out split frozen; Phase 1 next.
 
 ## Pilot findings (M0.5, constructed items)
 
@@ -126,15 +126,23 @@ workload supplies the long resumed sessions the gate requires. It releases its e
 per turn, and `ingest` refuses it.
 
 ```bash
-uv run harbor run -p tasks/ -e docker --ek "$EK" -k 3 -n 6 -o jobs --job-name soak-<arm>   --agent-import-path hjr.harness.agent:HermesGoalLoop --ak arm=<arm> --ak soak=true
+uv run harbor run -p tasks/ -e docker --ek "$EK" -k 3 -n 6 -o jobs --job-name soak-<arm> \
+  --agent-import-path hjr.harness.agent:HermesGoalLoop --ak arm=<arm> --ak soak=true
 uv run hjr soak --job jobs/soak-<arm> --out results/soak/soak-<arm>.json
 ```
 
-| Task | Category | What can go wrong |
-|---|---|---|
-| `c1-01-csv-to-json` | C1 control | Quoted fields with commas; amounts as strings; input edited |
-| `c3-02-missing-sqlite` | C3 tool friction | `bin/migrate.sh` needs a `sqlite3` CLI that is not installed; partial migrations |
-| `s0-01-incident-review` | Soak only, never analysed | Six-stage incident investigation; long resumed sessions with heavy tool use |
+The task suite is 30 tasks in six categories, described in [`tasks/README.md`](tasks/README.md):
+controls, multi-part goals, tool friction, verification-required tasks adapted from
+Terminal-Bench 2.0, infeasible goals, and long reports that run past the judge's 4,000-character
+view. Every task's oracle scores 1.0 (`results/oracle/`). A seeded, category-stratified split
+(`configs/split.toml`, `hjr split`) puts 12 tasks in dev and 18 in held-out, and `ingest` takes
+each boundary's split from it.
+
+```bash
+uv run harbor run -p tasks/ -e docker --ek "$EK" -x "s0-*" -k 3 -n 6 -o jobs --job-name phase1-<arm> \
+  --agent-import-path hjr.harness.agent:HermesGoalLoop --ak arm=<arm>
+uv run hjr ingest --job jobs/phase1-<arm> --out data/frozen/phase1-<arm>.jsonl
+```
 
 ## Layout
 
@@ -147,11 +155,12 @@ uv run hjr soak --job jobs/soak-<arm> --out results/soak/soak-<arm>.json
 | `hjr/drift.py` | Judge-model drift on frozen items |
 | `hjr/soak.py`, `hjr/soakreport.py` | Soak gate evaluation, and soak reports built from Harbor trials |
 | `hjr/goalloop.py`, `hjr/harness/` | The `/goal` loop as Hermes runs it, and the Harbor agent that drives it |
-| `hjr/ingest.py` | Harbor job to `BoundaryRecord`s, with exclusions listed |
+| `hjr/ingest.py`, `hjr/split.py` | Harbor job to `BoundaryRecord`s, with exclusions listed; the dev/held-out split |
 | `harness/` | Hermes base image and the shared verifier entry point |
-| `tasks/` | Harbor tasks: goal, workspace, oracle and hidden state checks |
+| `tasks/` | Harbor tasks: goal, workspace, oracle and hidden state checks ([`tasks/README.md`](tasks/README.md)) |
 | `hjr/schemas.py` | Pydantic records for every JSONL file |
 | `hjr/pilot/` | Pilot items, format probes and summary tables |
-| `configs/` | Pre-registration, judge arms, soak gate, seeds |
+| `configs/` | Pre-registration, judge arms, soak gate, seeds, task split |
 | `data/frozen/` | Frozen decision points |
 | `results/runs/` | Per-run verdicts, attempts, incidents, summaries and manifests |
+| `results/oracle/`, `results/soak/` | Oracle and soak-gate reports |

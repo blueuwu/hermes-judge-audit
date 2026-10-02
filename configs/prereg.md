@@ -332,3 +332,37 @@ the model, and Qwen3-Coder is replaced as the weak arm.
 - The weak arm is soaked as `soak-weak-4`, with the frozen gate, tasks and workload and the
   same settings as runs 2 and 3. `soak-weak-2` and `soak-weak-3` stay as the record of
   Qwen3-Coder. The strong arm is unchanged and its pass stands.
+
+**2026-10-02. Task suite, split and Phase 1, before any Phase-1 run.** Both agent arms have
+passed the soak gate. This amendment freezes what Phase 1 runs on and how.
+- The suite is 30 analysable tasks, the plan's floor rather than its 40-task target: 5 C1
+  controls, 5 C2 multi-part, 6 C3 tool friction, 5 C4 verification-required, 4 C5 infeasible
+  and 5 C6 long-report tasks (`tasks/README.md`), frozen in the tasks tree `ff61f3f`. Each task
+  has per-requirement hidden checks in the network-less verifier, a reference solution, and
+  negative fixtures in `tests/test_tasks*.py`. The oracle scores 1.0 on all 30 in one job
+  (`results/oracle/oracle-suite.json`).
+- Truth for a C5 task is `blocked` whatever the agent does: its checks name the requirements
+  that cannot hold without something the agent lacks (credentials, a decision, a package, a
+  statement). Harbor's reward for these tasks is whether the feasible part holds; rewards are
+  not used in any judge analysis.
+- The C4 tasks are adapted from Terminal-Bench 2.0 (Apache-2.0). The agent sees part of the
+  checking, or none; the hidden checks keep upstream's tests and add stricter ones. `fix-git`
+  takes its repository from the pinned upstream image, because the source repository no longer
+  exists. Provenance is in each `task.toml`.
+- The shared verifier changed after the soak runs: it grades `blocked` and its image gains git.
+  The soak gate never uses truth, so no soak result changes.
+- Split (`configs/split.toml`, `hjr/split.py`): seed 20261001; within each category a seeded
+  shuffle puts round(40%) of tasks in dev, giving 12 dev and 18 held-out tasks. Repairs are
+  designed from dev boundaries only. Disclosure: `c1-01` (dev) and `c3-02` (held-out) ran in the
+  smoke and soak runs before the split existed. Those trajectories were read only to check the
+  harness, are never ingested, and are not used to design any repair.
+- Phase 1 runs arm G-plain only (G-contract is deferred): every task × both agent arms × 3
+  attempts = 180 trials, as Harbor jobs `phase1-weak` and `phase1-strong` with `-k 3 -n 6`, the
+  six-turn budget and no soak mode. The in-loop judge is each arm's `self` judge with the
+  production prompt and the `head4k` view. Errored trials are retried up to twice, then
+  excluded and listed. Boundaries go to `data/frozen/phase1-<arm>.jsonl` with `hjr ingest`, and
+  are committed before any Phase-2 judge cell runs.
+- Before Phase 1, one smoke job (`smoke-weak-2`: the weak arm, one attempt per task) checks the
+  new tasks under the harness. It is never ingested. Any harness or task defect it shows is
+  fixed and listed in a further amendment before Phase 1 starts.
+- For H2, tool friction is C3, multi-part is C2, long output is C6 and controls are C1.
