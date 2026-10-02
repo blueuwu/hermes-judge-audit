@@ -9,7 +9,7 @@ against deterministic state verifiers and human labels, then measures judge-side
 frozen held-out set. Hypotheses and analysis rules are fixed in
 [`configs/prereg.md`](configs/prereg.md).
 
-Status: offline pilot done; soak gate passed by both agent arms, GLM-5.3-Flash (weak) and DeepSeek V4.1 Flash (strong), after Qwen3-Coder failed it on two routes (`results/soak/`). Task suite (30 tasks) and dev/held-out split frozen; Phase 1 next.
+Status: offline pilot done; soak gate passed by both agent arms, GLM-5.3-Flash (weak) and DeepSeek V4.1 Flash (strong), after Qwen3-Coder failed it on two routes (`results/soak/`). Task suite (30 tasks) and split frozen; Phase 1 trajectories frozen (178 boundaries, `results/phase1/`); Phase 2 judge replays next.
 
 ## Pilot findings (M0.5, constructed items)
 

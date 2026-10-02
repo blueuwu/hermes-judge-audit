@@ -1,0 +1,10 @@
+[
+  {
+    "trial": "c4-04-regex-log__os32F65",
+    "reason": "no turns.jsonl (agent never finished a turn)"
+  },
+  {
+    "trial": "c4-04-regex-log__PaohXNZ",
+    "reason": "no turns.jsonl (agent never finished a turn)"
+  }
+]
