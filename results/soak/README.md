@@ -14,9 +14,10 @@ per-trial outcomes. Full job directories ship as release assets.
 | `soak-weak-2.json` | M1 tasks + `s0-01-incident-review` | **FAIL** | 13 unrecovered `tool_call_as_text` events. |
 | `soak-strong-2.json` | M1 tasks + `s0-01-incident-review` | **PASS** | |
 | `soak-weak-3.json` | M1 tasks + `s0-01-incident-review` | **FAIL** | Weak arm moved to SiliconFlow by amendment. 1 unrecovered `tool_call_as_text` event. |
+| `soak-weak-4.json` | M1 tasks + `s0-01-incident-review` | **PASS** | Weak arm replaced by GLM-5.3-Flash on Z.AI by amendment. |
 
-Runs 2 and 3 used the frozen workload (`b50a3e1`) with harness code at `00a6bf4`. Run 3 differs only in the weak
-arm's provider (`1eed5ed`). Other later commits change only reporting. All runs used the same settings: `-k 3 -n 6`, six turns, `soak=true`, request
+Runs 2–4 used the frozen workload (`b50a3e1`) with harness code at `00a6bf4`. Run 3 differs only in the weak
+arm's provider (`1eed5ed`), run 4 only in the weak arm's model and provider (`95bb700`). Other later commits change only reporting. All runs used the same settings: `-k 3 -n 6`, six turns, `soak=true`, request
 dumps on, and no per-arm tuning.
 
 ## Run 2 by arm and task
@@ -53,6 +54,7 @@ The check compared every request body Hermes dumped against the stored history.
 |---|---|---|---|---|---|
 | weak (run 2, Alibaba) | strip | 159 | 113 | 2087 | PASS: field never sent |
 | weak (run 3, SiliconFlow) | strip | 262 | 176 | 4735 | PASS: field never sent |
+| weak (run 4, GLM-5.3-Flash, Z.AI) | strip | 161 | 116 | 1840 | PASS: field never sent |
 | strong | replay | 179 | 127 | 2199 | PASS: 1989 identical, 210 padded |
 
 For DeepSeek, every assistant message in every resumed request carried its stored
@@ -137,12 +139,37 @@ Reading against run 2:
   the amendment fixed in advance, this residual is attributed to the model, not the route, and
   no third route is tried. The weak arm stays blocked from Phase 1 pending a further amendment.
 
+## Run 4: weak arm on GLM-5.3-Flash
+
+Qwen3-Coder was replaced as the weak arm by GLM-5.3-Flash, pinned to Z.AI's own endpoint (fp8),
+by the amendment of 2026-10-02 in `configs/prereg.md`, committed before the run. Gate, tasks,
+workload and settings were unchanged.
+
+| Task | Trials × turns | Tool calls | Events | Resumes | 429s | Infra failures | Context t5 | Context t6 |
+|---|---|---|---|---|---|---|---|---|
+| c1-01 (M1) | 3 × 6 | 13 | 0 | 15/15 | 0 | 0 | 16.2k, 16.3k, 16.4k | 16.5k, 16.5k, 16.7k |
+| c3-02 (M1) | 3 × 6 | 15 | 0 | 15/15 | 0 | 0 | 15.8k, 16.1k, 16.8k | 16.0k, 16.3k, 16.9k |
+| s0-01 (soak only) | 3 × 6 | 93 | 0 | 15/15 | 0 | 0 | 30.6k, 31.8k, 37.7k | 32.6k, 35.7k, 40.7k |
+
+**Gate: PASS.** 121 structured tool calls with no protocol events of any kind, 45/45 resumes,
+peak in-flight 6, no 429s, no failed turns, and no errored trials or retries in Harbor. The
+`reasoning_content` check passed: 161 requests (116 resumed) and 1840 assistant messages, none
+carrying the field. The run took 11 minutes.
+
+Coverage passes with less margin than the other arms. GLM reads more selectively than Qwen or
+DeepSeek: 93 workload calls against 144 and 118, and resumed context of 30.6–40.7k against a
+30k floor. The lowest turn-5 value, 30.6k, is 2% above it. As for the strong arm, the M1-only
+sub-report fails on coverage (28 calls, 16.9k context, 4 in flight), which is the gap the
+workload exists to fill; it is not a gate criterion.
+
+With both arms through the gate, Phase 1 can start on GLM-5.3-Flash and DeepSeek V4.1 Flash.
+
 ## Separation from the evaluation
 
-- **M1 behaviour:** unchanged by the amendments. All 18 M1 trials in runs 2 and 3 were free of
+- **M1 behaviour:** unchanged by the amendments. All 24 M1 trials in runs 2–4 were free of
   events and had every resume accepted. Their task scores are in the manifests, but soak scores
   are not results.
-- **Infrastructure soak coverage:** comes from `s0-01`, a soak-only task. It reached 41.9k–57.3k
+- **Infrastructure soak coverage:** comes from `s0-01`, a soak-only task. It reached 30.6k–57.3k
   resumed context with 6 requests in flight and no 429s.
 - **Model evaluation:** unaffected. `s0-01` is `soak_only`, `ingest` refuses it, and no soak
   trial or boundary enters any analysis.

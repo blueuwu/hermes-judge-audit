@@ -1,0 +1,33 @@
+{
+  "kind": "soak",
+  "git_sha": "95bb7000c75a955bb937e3a29ad59aa8eb0a5ca3",
+  "git_dirty": false,
+  "hermes_sha": "ffc74885c5f6eb75f6c134fb4eef86d734066623",
+  "uv_lock_sha256": "42e8c0f532edbdad795d459d5f933af34d4b7b6923f895a35ffc50040be73697",
+  "gate_sha256": "46e9bc7b37ee4dbd79022835d565441ba9df4803f9f5e1fb8f495510d9206e40",
+  "tasks": {
+    "hjr/c1-01-csv-to-json": "f30c39cc207364d5e68e973345c23f2dff60394ad5281534efbe6111d0c6b30d",
+    "hjr/c3-02-missing-sqlite": "83f32cff5a9158457af05426cd2225a6f921e0b3ce47a032103b5ef2a8878e64",
+    "hjr/s0-01-incident-review": "52489d0ecc624c2c3c19cb4fc7fc170bae577bcc8585454f7a79d557219e9238"
+  },
+  "jobs": {
+    "jobs/soak-weak-4": {
+      "config_sha256": "268bd64c5bfaf42b2abc5c227fccf7d210029657ccfae11612a119fc5bdfe7eb",
+      "completed_trials": 9,
+      "errored_trials": 0,
+      "retries": 0,
+      "rewards": {
+        "c1-01-csv-to-json__Bt7wXKh": 1,
+        "c1-01-csv-to-json__hBw6xSi": 1,
+        "c1-01-csv-to-json__Lavp3n8": 1,
+        "c3-02-missing-sqlite__2D7ZKSA": 1,
+        "c3-02-missing-sqlite__h9jJWE5": 1,
+        "c3-02-missing-sqlite__xjkMfBZ": 1,
+        "s0-01-incident-review__FuPASHQ": 1,
+        "s0-01-incident-review__NV84F3x": 0,
+        "s0-01-incident-review__wQQTLzA": 1
+      }
+    }
+  },
+  "written_at": "2026-10-02T11:58:59.531611+00:00"
+}
