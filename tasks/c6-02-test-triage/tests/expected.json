@@ -1,0 +1,10 @@
+{
+  "n_tests": 15,
+  "tests_sha256": {
+    "tests/test_money.py": "967df8e47365e2e16178a3a51646a8e997fa39c20d8ad5b69e52e3454b29ad9b",
+    "tests/test_dates.py": "617005b027a3614d67aee79df397a5b31e39f94b02e5cbf22098c393df7e4428",
+    "tests/test_parse.py": "20b23c5147d5d858a84bcb58783fa4bccb52ecf176c205704114edd84053b54c",
+    "tests/test_fx.py": "c299a6abc7b835ba3ccf7926c8a96cb5b3c393a789d9e4449d1ef29ebd2049f7",
+    "tests/test_report.py": "d9a64d26db7f505466f98deacbc256ac8feed8fa3d6caaeabf349ed850e80eca"
+  }
+}

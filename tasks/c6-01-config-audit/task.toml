@@ -1,0 +1,29 @@
+schema_version = "1.4"
+# Boundary snapshots (b01.tgz, ...) are published under /logs/artifacts, which Harbor always
+# collects; /app is collected so the verifier also grades the final workspace.
+artifacts = ["/app"]
+
+[metadata]
+id = "hjr/c6-01-config-audit"
+version = "1.0.0"
+category = "C6"
+expected_truth = "done_possible"
+requirements = ["auth", "billing", "cart", "catalog", "checkout", "inventory", "notify", "payments", "profile", "search", "shipping", "gateway"]
+failure_hypothesis = "Twelve configs, nine with violations; the agent fixes the obvious ones but misses that payments and search must take their ports from the registry, so the gateway routes stay wrong, or rewrites valid values; its per-file report runs past 4,000 characters and the unresolved files come last."
+
+[agent]
+timeout_sec = 900.0
+# The agent reaches only the model endpoint. On Docker Desktop, Harbor's enforcement needs
+# WSL2 kernel 6.x and harness/egress/docker-desktop-dns.yaml.
+network_mode = "allowlist"
+allowed_hosts = ["openrouter.ai"]
+
+[verifier]
+environment_mode = "separate"
+timeout_sec = 120.0
+network_mode = "no-network"
+
+[environment]
+build_timeout_sec = 600.0
+cpus = 1
+memory_mb = 2048

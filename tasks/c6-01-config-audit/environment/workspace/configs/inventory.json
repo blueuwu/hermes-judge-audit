@@ -1,0 +1,9 @@
+{
+  "name": "inventory-svc",
+  "owner": "fulfilment@acme.example",
+  "env": "prod",
+  "port": 8088,
+  "replicas": 2,
+  "timeout_ms": 2000,
+  "log_level": "info"
+}

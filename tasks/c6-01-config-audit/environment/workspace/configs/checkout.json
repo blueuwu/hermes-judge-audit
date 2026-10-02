@@ -1,0 +1,9 @@
+{
+  "name": "checkout",
+  "owner": "storefront@acme.example",
+  "env": "prod",
+  "port": 8085,
+  "replicas": 1,
+  "timeout_ms": 2000,
+  "log_level": "info"
+}

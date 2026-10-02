@@ -1,0 +1,147 @@
+{
+  "auth": {
+    "name": "auth",
+    "owner": "identity@acme.example",
+    "env": "prod",
+    "port": 8081,
+    "replicas": 3,
+    "timeout_ms": 2000,
+    "log_level": "warn"
+  },
+  "billing": {
+    "name": "billing",
+    "owner": "payments-team@acme.example",
+    "env": "prod",
+    "port": 8082,
+    "replicas": 3,
+    "timeout_ms": 5000,
+    "log_level": "info"
+  },
+  "cart": {
+    "name": "cart",
+    "owner": "storefront@acme.example",
+    "env": "prod",
+    "port": 8083,
+    "replicas": 3,
+    "timeout_ms": 4000,
+    "log_level": "info"
+  },
+  "catalog": {
+    "name": "catalog",
+    "owner": "storefront@acme.example",
+    "env": "staging",
+    "port": 8084,
+    "replicas": 1,
+    "timeout_ms": 2000,
+    "log_level": "info"
+  },
+  "checkout": {
+    "name": "checkout",
+    "owner": "storefront@acme.example",
+    "env": "prod",
+    "port": 8085,
+    "replicas": 2,
+    "timeout_ms": 2000,
+    "log_level": "info"
+  },
+  "inventory": {
+    "name": "inventory",
+    "owner": "fulfilment@acme.example",
+    "env": "prod",
+    "port": 8088,
+    "replicas": 2,
+    "timeout_ms": 2000,
+    "log_level": "info"
+  },
+  "notify": {
+    "name": "notify",
+    "owner": "platform@acme.example",
+    "env": "staging",
+    "port": 8089,
+    "replicas": 1,
+    "timeout_ms": 2000,
+    "log_level": "debug"
+  },
+  "payments": {
+    "name": "payments",
+    "owner": "payments-team@acme.example",
+    "env": "prod",
+    "port": 8087,
+    "replicas": 4,
+    "timeout_ms": 8000,
+    "log_level": "info"
+  },
+  "profile": {
+    "name": "profile",
+    "owner": "identity@acme.example",
+    "env": "prod",
+    "port": 8086,
+    "replicas": 3,
+    "timeout_ms": 2000,
+    "log_level": "info"
+  },
+  "search": {
+    "name": "search",
+    "owner": "discovery@acme.example",
+    "env": "prod",
+    "port": 9200,
+    "replicas": 2,
+    "timeout_ms": 1500,
+    "log_level": "error"
+  },
+  "shipping": {
+    "name": "shipping",
+    "owner": "fulfilment@acme.example",
+    "env": "prod",
+    "port": 8090,
+    "replicas": 2,
+    "timeout_ms": 2000,
+    "log_level": "info"
+  },
+  "gateway": {
+    "name": "gateway",
+    "owner": "platform@acme.example",
+    "env": "prod",
+    "port": 8443,
+    "replicas": 4,
+    "timeout_ms": 2000,
+    "log_level": "info",
+    "routes": [
+      {
+        "path": "/auth",
+        "service": "auth",
+        "port": 8081
+      },
+      {
+        "path": "/cart",
+        "service": "cart",
+        "port": 8083
+      },
+      {
+        "path": "/catalog",
+        "service": "catalog",
+        "port": 8084
+      },
+      {
+        "path": "/checkout",
+        "service": "checkout",
+        "port": 8085
+      },
+      {
+        "path": "/payments",
+        "service": "payments",
+        "port": 8087
+      },
+      {
+        "path": "/profile",
+        "service": "profile",
+        "port": 8086
+      },
+      {
+        "path": "/search",
+        "service": "search",
+        "port": 9200
+      }
+    ]
+  }
+}

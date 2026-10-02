@@ -1,0 +1,9 @@
+{
+  "name": "profile",
+  "owner": "identity@acme.example",
+  "env": "prod",
+  "port": 8086,
+  "replicas": 3,
+  "timeout_ms": 2000,
+  "log_level": "info"
+}

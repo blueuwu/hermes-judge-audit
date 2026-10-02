@@ -1,0 +1,86 @@
+[
+  {
+    "id": "GHSA-0001",
+    "package": "werkzeug",
+    "affected": "<3.0.3",
+    "fixed_in": "3.0.3",
+    "severity": "high"
+  },
+  {
+    "id": "GHSA-0002",
+    "package": "werkzeug",
+    "affected": "<3.0.6",
+    "fixed_in": "3.0.6",
+    "severity": "medium"
+  },
+  {
+    "id": "GHSA-0003",
+    "package": "jinja2",
+    "affected": "<3.1.4",
+    "fixed_in": "3.1.4",
+    "severity": "medium"
+  },
+  {
+    "id": "GHSA-0004",
+    "package": "requests",
+    "affected": "<2.32.0",
+    "fixed_in": "2.32.0",
+    "severity": "medium"
+  },
+  {
+    "id": "GHSA-0005",
+    "package": "urllib3",
+    "affected": ">=2.0.0,<2.0.7",
+    "fixed_in": "2.0.7",
+    "severity": "low"
+  },
+  {
+    "id": "GHSA-0006",
+    "package": "urllib3",
+    "affected": ">=2.0.0,<2.2.2",
+    "fixed_in": "2.2.2",
+    "severity": "medium"
+  },
+  {
+    "id": "GHSA-0007",
+    "package": "sqlalchemy",
+    "affected": ">=1.4.0,<1.4.49",
+    "fixed_in": "1.4.49",
+    "severity": "high"
+  },
+  {
+    "id": "GHSA-0008",
+    "package": "cryptography",
+    "affected": "<42.0.4",
+    "fixed_in": "42.0.4",
+    "severity": "high"
+  },
+  {
+    "id": "GHSA-0009",
+    "package": "pillow",
+    "affected": "<10.3.0",
+    "fixed_in": "10.3.0",
+    "severity": "high"
+  },
+  {
+    "id": "GHSA-0010",
+    "package": "gunicorn",
+    "affected": "<22.0.0",
+    "fixed_in": "22.0.0",
+    "severity": "high"
+  },
+  {
+    "id": "GHSA-0011",
+    "package": "certifi",
+    "affected": "<2024.7.4",
+    "fixed_in": "2024.7.4",
+    "severity": "medium"
+  },
+  {
+    "id": "GHSA-0012",
+    "package": "lxml",
+    "affected": ">=5.0.0,<5.1.1",
+    "fixed_in": "5.1.1",
+    "severity": "low"
+  }
+]

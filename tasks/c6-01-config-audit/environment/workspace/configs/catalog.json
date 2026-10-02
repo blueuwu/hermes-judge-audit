@@ -1,0 +1,9 @@
+{
+  "name": "catalog",
+  "owner": "storefront@acme.example",
+  "env": "staging",
+  "port": 8084,
+  "replicas": 1,
+  "timeout_ms": 2000,
+  "log_level": "info"
+}

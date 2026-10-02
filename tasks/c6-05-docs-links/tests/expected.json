@@ -1,0 +1,141 @@
+{
+  "fixed": {
+    "index": {
+      "path": "index.md",
+      "links": [
+        [
+          "installation",
+          "setup/install.md",
+          ""
+        ],
+        [
+          "TLS",
+          "guide/config.md",
+          "tls--certificates-v2"
+        ],
+        [
+          "Command reference",
+          "reference/cli.md",
+          ""
+        ],
+        [
+          "Why is my build slow?",
+          "faq.md",
+          "why-is-my-build-slow"
+        ],
+        [
+          "Deploying",
+          "guide/deploy.md",
+          ""
+        ]
+      ],
+      "masked": "# Acme CLI documentation\n\nStart with [installation](), then read about\n[TLS]() before your first deploy.\n\n- [Command reference]()\n- [Why is my build slow?]()\n- [Deploying]()\n"
+    },
+    "guide_config": {
+      "path": "guide/config.md",
+      "links": [
+        [
+          "installation",
+          "setup/install.md",
+          ""
+        ],
+        [
+          "variables",
+          "reference/environment.md",
+          ""
+        ],
+        [
+          "Logging",
+          "guide/config.md",
+          "logging"
+        ],
+        [
+          "environment variables",
+          "guide/config.md",
+          "environment-variables"
+        ]
+      ],
+      "masked": "# Configuration\n\nInstall first ([installation]()). Every setting can also come from the\nenvironment ([variables]()).\n\n## TLS & certificates (v2)\n\nCertificates are read from `~/.acme/certs`. Log TLS errors at debug level, see\n[Logging]().\n\n## Logging\n\n`log_level` is one of debug, info, warn, error. Variables override it, see\n[environment variables]().\n\n## Environment variables\n\n`ACME_LOG_LEVEL`, `ACME_PROXY`.\n"
+    },
+    "guide_deploy": {
+      "path": "guide/deploy.md",
+      "links": [
+        [
+          "install",
+          "setup/install.md",
+          ""
+        ],
+        [
+          "TLS set up",
+          "guide/config.md",
+          "tls--certificates-v2"
+        ],
+        [
+          "runbook",
+          "ops/runbook.md",
+          ""
+        ]
+      ],
+      "masked": "# Deploying\n\nYou need a working [install]() and [TLS set up]().\nThe on-call steps are in the [runbook]().\n\n## Rolling back\n\n`acme deploy --rollback` restores the previous release.\n"
+    },
+    "reference_cli": {
+      "path": "reference/cli.md",
+      "links": [
+        [
+          "log levels",
+          "guide/config.md",
+          "logging"
+        ],
+        [
+          "build command",
+          "reference/cli.md",
+          "build-command"
+        ]
+      ],
+      "masked": "# CLI reference\n\n## Global flags\n\n`--proxy URL`, `--verbose`. Verbosity maps to [log levels]().\n\n## `build` command\n\n`acme build [--release]`. See the [build command]() for caching.\n"
+    },
+    "ops_runbook": {
+      "path": "ops/runbook.md",
+      "links": [
+        [
+          "roll back",
+          "guide/deploy.md",
+          "rolling-back"
+        ],
+        [
+          "FAQ",
+          "faq.md",
+          ""
+        ],
+        [
+          "proxy settings",
+          "reference/environment.md",
+          "proxy"
+        ]
+      ],
+      "masked": "# On-call runbook\n\n1. If a deploy fails, [roll back]().\n2. Check the [FAQ]() for known issues.\n3. Behind a proxy? See [proxy settings]().\n"
+    },
+    "faq": {
+      "path": "faq.md",
+      "links": [
+        [
+          "prerequisites",
+          "setup/install.md",
+          "prerequisites"
+        ],
+        [
+          "runbook",
+          "ops/runbook.md",
+          ""
+        ]
+      ],
+      "masked": "# FAQ\n\n## Why is my build slow?\n\nThe first build fills the cache. Check the [prerequisites]()\nand the [runbook]().\n"
+    }
+  },
+  "unchanged": {
+    "setup/install.md": "# Installation\n\n## Prerequisites\n\nPython 3.11 or later. See the [global flags](../reference/cli.md#global-flags) for proxy\nsettings, and [configuration](../guide/config.md) once installed.\n",
+    "reference/environment.md": "# Environment\n\nVariables override the [config file](../guide/config.md#environment-variables).\n\n## Proxy\n\n`ACME_PROXY` sets the HTTP proxy for every command.\n",
+    "MOVED.md": "# Moved pages\n\n| Old path | New path |\n|---|---|\n| guide/install.md | setup/install.md |\n| reference/env.md | reference/environment.md |\n",
+    "changelog.md": "# Changelog\n\n## 2.4.0\n\nDocs reorganised: installation moved under setup/, the environment reference was renamed.\n"
+  }
+}

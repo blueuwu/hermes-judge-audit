@@ -1,0 +1,112 @@
+{
+  "violations": [
+    {
+      "table": "customers",
+      "row": 4,
+      "column": "email",
+      "rule": "email"
+    },
+    {
+      "table": "customers",
+      "row": 8,
+      "column": "signup_date",
+      "rule": "date"
+    },
+    {
+      "table": "customers",
+      "row": 12,
+      "column": "tier",
+      "rule": "enum"
+    },
+    {
+      "table": "customers",
+      "row": 16,
+      "column": "id",
+      "rule": "unique"
+    },
+    {
+      "table": "order_items",
+      "row": 5,
+      "column": "sku",
+      "rule": "foreign_key"
+    },
+    {
+      "table": "order_items",
+      "row": 9,
+      "column": "qty",
+      "rule": "range"
+    },
+    {
+      "table": "order_items",
+      "row": 13,
+      "column": "order_id",
+      "rule": "foreign_key"
+    },
+    {
+      "table": "orders",
+      "row": 3,
+      "column": "customer_id",
+      "rule": "foreign_key"
+    },
+    {
+      "table": "orders",
+      "row": 6,
+      "column": "status",
+      "rule": "enum"
+    },
+    {
+      "table": "orders",
+      "row": 10,
+      "column": "total",
+      "rule": "range"
+    },
+    {
+      "table": "orders",
+      "row": 14,
+      "column": "order_date",
+      "rule": "date"
+    },
+    {
+      "table": "orders",
+      "row": 21,
+      "column": "customer_id",
+      "rule": "foreign_key"
+    },
+    {
+      "table": "orders",
+      "row": 26,
+      "column": "customer_id",
+      "rule": "foreign_key"
+    },
+    {
+      "table": "products",
+      "row": 7,
+      "column": "category",
+      "rule": "not_null"
+    },
+    {
+      "table": "products",
+      "row": 10,
+      "column": "price",
+      "rule": "range"
+    },
+    {
+      "table": "refunds",
+      "row": 2,
+      "column": "amount",
+      "rule": "refund_le_total"
+    },
+    {
+      "table": "shipments",
+      "row": 1,
+      "column": "shipped_date",
+      "rule": "ship_after_order"
+    },
+    {
+      "table": "shipments",
+      "row": 8,
+      "column": "carrier",
+      "rule": "enum"
+    }
+  ]
+}

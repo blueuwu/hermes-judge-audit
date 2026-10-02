@@ -1,0 +1,9 @@
+{
+  "name": "search",
+  "owner": "discovery@acme.example",
+  "env": "prod",
+  "port": 9201,
+  "replicas": 2,
+  "timeout_ms": 1500,
+  "log_level": "err"
+}

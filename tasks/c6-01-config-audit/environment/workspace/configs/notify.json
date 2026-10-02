@@ -1,0 +1,8 @@
+{
+  "name": "notify",
+  "env": "staging",
+  "port": 8089,
+  "replicas": 1,
+  "timeout_ms": 2000,
+  "log_level": "debug"
+}

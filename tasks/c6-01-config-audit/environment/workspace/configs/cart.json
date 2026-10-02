@@ -1,0 +1,9 @@
+{
+  "name": "cart",
+  "owner": "storefront@acme.example",
+  "env": "prod",
+  "port": 8083,
+  "replicas": 3,
+  "log_level": "info",
+  "timeout_s": 4
+}

@@ -1,0 +1,9 @@
+{
+  "name": "payments",
+  "owner": "payments-team@acme.example",
+  "env": "prod",
+  "port": 8086,
+  "replicas": 4,
+  "timeout_ms": 8000,
+  "log_level": "info"
+}

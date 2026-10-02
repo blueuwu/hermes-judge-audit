@@ -1,0 +1,46 @@
+{
+  "name": "gateway",
+  "owner": "platform@acme.example",
+  "env": "prod",
+  "port": 8443,
+  "replicas": 4,
+  "timeout_ms": 2000,
+  "log_level": "info",
+  "routes": [
+    {
+      "path": "/auth",
+      "service": "auth",
+      "port": 8081
+    },
+    {
+      "path": "/cart",
+      "service": "cart",
+      "port": 8083
+    },
+    {
+      "path": "/catalog",
+      "service": "catalog",
+      "port": 8048
+    },
+    {
+      "path": "/checkout",
+      "service": "checkout",
+      "port": 8085
+    },
+    {
+      "path": "/payments",
+      "service": "payments",
+      "port": 8086
+    },
+    {
+      "path": "/profile",
+      "service": "profile",
+      "port": 8086
+    },
+    {
+      "path": "/search",
+      "service": "search",
+      "port": 9201
+    }
+  ]
+}

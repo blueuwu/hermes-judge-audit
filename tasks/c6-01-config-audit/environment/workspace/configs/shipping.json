@@ -1,0 +1,9 @@
+{
+  "name": "shipping",
+  "owner": "fulfilment@acme.example",
+  "env": "prod",
+  "port": 8090,
+  "replicas": 2,
+  "timeout_ms": 2000,
+  "log_level": "info"
+}
