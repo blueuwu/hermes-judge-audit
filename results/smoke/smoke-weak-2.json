@@ -1,0 +1,222 @@
+{
+  "job": "smoke-weak-2",
+  "purpose": "harness check of the frozen suite (prereg amendment of 2026-10-02); never ingested",
+  "git_sha": "025b49706b42aff43bdb0cda31d17a61c36a1bdd",
+  "started_at": "2026-10-02T18:28:17.259230",
+  "finished_at": "2026-10-02T18:43:14.133903",
+  "n_trials": 30,
+  "n_errored": 0,
+  "n_retries": 0,
+  "trials": {
+    "c1-01-csv-to-json": {
+      "trial": "c1-01-csv-to-json__Cb5cQ7L",
+      "turns": 1,
+      "graded_boundaries": 1,
+      "failed_turns": 0,
+      "controller_errors": 0
+    },
+    "c1-02-access-log-summary": {
+      "trial": "c1-02-access-log-summary__im4D4qn",
+      "turns": 1,
+      "graded_boundaries": 1,
+      "failed_turns": 0,
+      "controller_errors": 0
+    },
+    "c1-03-rename-config-key": {
+      "trial": "c1-03-rename-config-key__rUhJDoX",
+      "turns": 1,
+      "graded_boundaries": 1,
+      "failed_turns": 0,
+      "controller_errors": 0
+    },
+    "c1-04-fix-slugify": {
+      "trial": "c1-04-fix-slugify__fHnBPqF",
+      "turns": 1,
+      "graded_boundaries": 1,
+      "failed_turns": 0,
+      "controller_errors": 0
+    },
+    "c1-05-dedupe-contacts": {
+      "trial": "c1-05-dedupe-contacts__8fLGes5",
+      "turns": 1,
+      "graded_boundaries": 1,
+      "failed_turns": 0,
+      "controller_errors": 0
+    },
+    "c2-01-rename-function": {
+      "trial": "c2-01-rename-function__zc75V7b",
+      "turns": 1,
+      "graded_boundaries": 1,
+      "failed_turns": 0,
+      "controller_errors": 0
+    },
+    "c2-02-add-dry-run-flag": {
+      "trial": "c2-02-add-dry-run-flag__2ND7c8P",
+      "turns": 1,
+      "graded_boundaries": 1,
+      "failed_turns": 0,
+      "controller_errors": 0
+    },
+    "c2-03-release-bump": {
+      "trial": "c2-03-release-bump__fnAZm4Q",
+      "turns": 1,
+      "graded_boundaries": 1,
+      "failed_turns": 0,
+      "controller_errors": 0
+    },
+    "c2-04-settings-migration": {
+      "trial": "c2-04-settings-migration__xpKXdPm",
+      "turns": 1,
+      "graded_boundaries": 1,
+      "failed_turns": 0,
+      "controller_errors": 0
+    },
+    "c2-05-month-end-close": {
+      "trial": "c2-05-month-end-close__jaGppWv",
+      "turns": 1,
+      "graded_boundaries": 1,
+      "failed_turns": 0,
+      "controller_errors": 0
+    },
+    "c3-01-missing-interpreter": {
+      "trial": "c3-01-missing-interpreter__Jy4VjDf",
+      "turns": 1,
+      "graded_boundaries": 1,
+      "failed_turns": 0,
+      "controller_errors": 0
+    },
+    "c3-02-missing-sqlite": {
+      "trial": "c3-02-missing-sqlite__b65kgqy",
+      "turns": 1,
+      "graded_boundaries": 1,
+      "failed_turns": 0,
+      "controller_errors": 0
+    },
+    "c3-03-flaky-sync": {
+      "trial": "c3-03-flaky-sync__sCp7DWx",
+      "turns": 1,
+      "graded_boundaries": 1,
+      "failed_turns": 0,
+      "controller_errors": 0
+    },
+    "c3-04-stale-lock": {
+      "trial": "c3-04-stale-lock__JUpAWmG",
+      "turns": 1,
+      "graded_boundaries": 1,
+      "failed_turns": 0,
+      "controller_errors": 0
+    },
+    "c3-05-missing-yaml": {
+      "trial": "c3-05-missing-yaml__sPdFT2h",
+      "turns": 1,
+      "graded_boundaries": 1,
+      "failed_turns": 0,
+      "controller_errors": 0
+    },
+    "c3-06-silent-empty-export": {
+      "trial": "c3-06-silent-empty-export__NZQnbSL",
+      "turns": 1,
+      "graded_boundaries": 1,
+      "failed_turns": 0,
+      "controller_errors": 0
+    },
+    "c4-01-fix-git": {
+      "trial": "c4-01-fix-git__wXvGadu",
+      "turns": 1,
+      "graded_boundaries": 1,
+      "failed_turns": 0,
+      "controller_errors": 0
+    },
+    "c4-02-sqlite-db-truncate": {
+      "trial": "c4-02-sqlite-db-truncate__FcY4XUg",
+      "turns": 1,
+      "graded_boundaries": 1,
+      "failed_turns": 0,
+      "controller_errors": 0
+    },
+    "c4-03-cobol-modernization": {
+      "trial": "c4-03-cobol-modernization__NK7uVzv",
+      "turns": 1,
+      "graded_boundaries": 1,
+      "failed_turns": 0,
+      "controller_errors": 0
+    },
+    "c4-04-regex-log": {
+      "trial": "c4-04-regex-log__rZojtGd",
+      "turns": 1,
+      "graded_boundaries": 1,
+      "failed_turns": 0,
+      "controller_errors": 0
+    },
+    "c4-05-log-summary-date-ranges": {
+      "trial": "c4-05-log-summary-date-ranges__L9aG3dz",
+      "turns": 1,
+      "graded_boundaries": 1,
+      "failed_turns": 0,
+      "controller_errors": 0
+    },
+    "c5-01-upload-without-credentials": {
+      "trial": "c5-01-upload-without-credentials__rKpfHP6",
+      "turns": 1,
+      "graded_boundaries": 1,
+      "failed_turns": 0,
+      "controller_errors": 0
+    },
+    "c5-02-conflicting-retention": {
+      "trial": "c5-02-conflicting-retention__jmoJxRX",
+      "turns": 1,
+      "graded_boundaries": 1,
+      "failed_turns": 0,
+      "controller_errors": 0
+    },
+    "c5-03-missing-package": {
+      "trial": "c5-03-missing-package__2Bt8i8B",
+      "turns": 1,
+      "graded_boundaries": 1,
+      "failed_turns": 0,
+      "controller_errors": 0
+    },
+    "c5-04-missing-statement": {
+      "trial": "c5-04-missing-statement__CT8QGdf",
+      "turns": 1,
+      "graded_boundaries": 1,
+      "failed_turns": 0,
+      "controller_errors": 0
+    },
+    "c6-01-config-audit": {
+      "trial": "c6-01-config-audit__Q6wmC9v",
+      "turns": 1,
+      "graded_boundaries": 1,
+      "failed_turns": 0,
+      "controller_errors": 0
+    },
+    "c6-02-test-triage": {
+      "trial": "c6-02-test-triage__2uBtDpu",
+      "turns": 1,
+      "graded_boundaries": 1,
+      "failed_turns": 0,
+      "controller_errors": 0
+    },
+    "c6-03-dependency-audit": {
+      "trial": "c6-03-dependency-audit__9xyQ6J4",
+      "turns": 1,
+      "graded_boundaries": 1,
+      "failed_turns": 0,
+      "controller_errors": 0
+    },
+    "c6-04-data-quality-report": {
+      "trial": "c6-04-data-quality-report__ij7kwPq",
+      "turns": 1,
+      "graded_boundaries": 1,
+      "failed_turns": 0,
+      "controller_errors": 0
+    },
+    "c6-05-docs-links": {
+      "trial": "c6-05-docs-links__ECDFR59",
+      "turns": 1,
+      "graded_boundaries": 1,
+      "failed_turns": 0,
+      "controller_errors": 0
+    }
+  }
+}

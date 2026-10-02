@@ -366,3 +366,11 @@ passed the soak gate. This amendment freezes what Phase 1 runs on and how.
   new tasks under the harness. It is never ingested. Any harness or task defect it shows is
   fixed and listed in a further amendment before Phase 1 starts.
 - For H2, tool friction is C3, multi-part is C2, long output is C6 and controls are C1.
+
+**2026-10-02. Smoke result, before Phase 1.** `smoke-weak-2` (`results/smoke/smoke-weak-2.json`)
+showed no harness or task defect: 30 of 30 trials completed with no errored trials, retries,
+failed turns or judge failures, and every boundary was graded. Nothing is changed. Two
+observations are recorded, not acted on, because acting on them would mean tuning the tasks to
+the model: every trial ended after its first turn, so Phase 1 should yield about one boundary
+per trial; and no C6 reply exceeded 1,800 characters, so on the weak arm C6 may not reach the
+judge's 4,000-character view.
