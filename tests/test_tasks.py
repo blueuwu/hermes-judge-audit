@@ -19,7 +19,7 @@ from tests.taskutil import config as _config
 from tests.taskutil import workspace as _workspace
 
 # Reference solutions that read paths outside /app which only the task image provides.
-IMAGE_ONLY_SOLUTIONS = {"c3-03-flaky-sync"}
+IMAGE_ONLY_SOLUTIONS = {"c3-03-flaky-sync", "c4-05-log-summary-date-ranges"}
 
 
 @pytest.mark.parametrize("task_dir", TASK_DIRS, ids=lambda p: p.name)

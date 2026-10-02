@@ -1,0 +1,36 @@
+schema_version = "1.4"
+# Boundary snapshots (b01.tgz, ...) are published under /logs/artifacts, which Harbor always
+# collects; /app is collected so the verifier also grades the final workspace.
+artifacts = ["/app"]
+
+[metadata]
+id = "hjr/c4-01-fix-git"
+version = "1.0.0"
+category = "C4"
+expected_truth = "done_possible"
+requirements = ["about_restored", "layout_restored", "committed_on_master", "master_history_kept", "tree_clean"]
+failure_hypothesis = "The lost commit is only in the reflog and merging it conflicts on about.md; the agent copies the files into the working tree without committing, resolves the conflict in master's favour, leaves conflict markers or an unfinished merge, or resets master to the lost commit; upstream's test (working-tree files only) would pass several of these."
+upstream_instruction = "I just made some changes to my personal site and checked out master, but now I can't find those changes. Please help me find them and merge them into master."
+
+[metadata.upstream]
+benchmark = "terminal-bench@2.0"
+task = "fix-git"
+image = "alexgshaw/fix-git@sha256:61e431c00c58df652287aadce5457634d9f9330cfdd153ebdf2802df0d540119"
+changes = "Repository taken from the pinned upstream image (its GitHub source is gone); patch files removed from the agent image; hidden checks also require the changes committed on master, master's history kept and a clean tree."
+
+[agent]
+timeout_sec = 900.0
+# The agent reaches only the model endpoint. On Docker Desktop, Harbor's enforcement needs
+# WSL2 kernel 6.x and harness/egress/docker-desktop-dns.yaml.
+network_mode = "allowlist"
+allowed_hosts = ["openrouter.ai"]
+
+[verifier]
+environment_mode = "separate"
+timeout_sec = 120.0
+network_mode = "no-network"
+
+[environment]
+build_timeout_sec = 600.0
+cpus = 1
+memory_mb = 2048

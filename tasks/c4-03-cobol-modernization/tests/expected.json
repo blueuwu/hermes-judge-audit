@@ -1,0 +1,100 @@
+{
+  "example": {
+    "initial": {
+      "ACCOUNTS.DAT": "U001John Doe            0000001000U002Jane Smith          0000002000U003Bob Wilson          0000001500",
+      "BOOKS.DAT": "B001Python Basics       U001B002COBOL Guide         U002B003Java Tutorial       U003",
+      "TRANSACTIONS.DAT": ""
+    },
+    "inputs": [
+      "U001U003B0030000000020",
+      "U002U001B0030000000050",
+      "U002U001B0010000000150"
+    ],
+    "final": {
+      "ACCOUNTS.DAT": "U001John Doe            0000001180U002Jane Smith          0000001800U003Bob Wilson          0000001520",
+      "BOOKS.DAT": "B001Python Basics       U002B002COBOL Guide         U002B003Java Tutorial       U002",
+      "TRANSACTIONS.DAT": "B0030000000020U003U001B0030000000050U001U002B0010000000150U001U002"
+    }
+  },
+  "scenarios": {
+    "overdraft": {
+      "initial": {
+        "ACCOUNTS.DAT": "U001Ana Lima            0000000100U002Raj Rao             0000000050",
+        "BOOKS.DAT": "B001Dune                U002",
+        "TRANSACTIONS.DAT": ""
+      },
+      "inputs": [
+        "U001U002B0010000000150"
+      ],
+      "final": {
+        "ACCOUNTS.DAT": "U001Ana Lima            0000000050U002Raj Rao             0000000200",
+        "BOOKS.DAT": "B001Dune                U001",
+        "TRANSACTIONS.DAT": "B0010000000150U002U001"
+      }
+    },
+    "wrong_owner": {
+      "initial": {
+        "ACCOUNTS.DAT": "U001John Doe            0000001000U002Jane Smith          0000002000U003Bob Wilson          0000001500",
+        "BOOKS.DAT": "B001Python Basics       U001B002COBOL Guide         U002B003Java Tutorial       U003",
+        "TRANSACTIONS.DAT": ""
+      },
+      "inputs": [
+        "U001U002B0030000000030",
+        "U003U001B0010000000040"
+      ],
+      "final": {
+        "ACCOUNTS.DAT": "U001John Doe            0000001040U002Jane Smith          0000002000U003Bob Wilson          0000001460",
+        "BOOKS.DAT": "B001Python Basics       U003B002COBOL Guide         U002B003Java Tutorial       U003",
+        "TRANSACTIONS.DAT": "B0010000000040U001U003"
+      }
+    },
+    "unknown_parties": {
+      "initial": {
+        "ACCOUNTS.DAT": "U001John Doe            0000001000U002Jane Smith          0000002000U003Bob Wilson          0000001500",
+        "BOOKS.DAT": "B001Python Basics       U001B002COBOL Guide         U002B003Java Tutorial       U003",
+        "TRANSACTIONS.DAT": ""
+      },
+      "inputs": [
+        "U009U001B0010000000010",
+        "U002U001B0090000000010",
+        "U002U008B0020000000010"
+      ],
+      "final": {
+        "ACCOUNTS.DAT": "U001John Doe            0000001000U002Jane Smith          0000002000U003Bob Wilson          0000001500",
+        "BOOKS.DAT": "B001Python Basics       U001B002COBOL Guide         U002B003Java Tutorial       U003",
+        "TRANSACTIONS.DAT": ""
+      }
+    },
+    "existing_ledger": {
+      "initial": {
+        "ACCOUNTS.DAT": "U001John Doe            0000001000U002Jane Smith          0000002000U003Bob Wilson          0000001500",
+        "BOOKS.DAT": "B001Python Basics       U001B002COBOL Guide         U002B003Java Tutorial       U003",
+        "TRANSACTIONS.DAT": "B0020000000005U002U003"
+      },
+      "inputs": [
+        "U003U002B0020000000999",
+        "U001U003B0020000000001"
+      ],
+      "final": {
+        "ACCOUNTS.DAT": "U001John Doe            0000000999U002Jane Smith          0000002999U003Bob Wilson          0000000502",
+        "BOOKS.DAT": "B001Python Basics       U001B002COBOL Guide         U001B003Java Tutorial       U003",
+        "TRANSACTIONS.DAT": "B0020000000005U002U003B0020000000999U002U003B0020000000001U003U001"
+      }
+    },
+    "long_names": {
+      "initial": {
+        "ACCOUNTS.DAT": "U001Maximilian Alexander0000000007U002Bo                  9999999999",
+        "BOOKS.DAT": "B001A Very Long Book TitU001",
+        "TRANSACTIONS.DAT": ""
+      },
+      "inputs": [
+        "U002U001B0019999999990"
+      ],
+      "final": {
+        "ACCOUNTS.DAT": "U001Maximilian Alexander9999999997U002Bo                  0000000009",
+        "BOOKS.DAT": "B001A Very Long Book TitU002",
+        "TRANSACTIONS.DAT": "B0019999999990U001U002"
+      }
+    }
+  }
+}

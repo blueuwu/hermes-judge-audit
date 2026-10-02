@@ -1,0 +1,46 @@
+{
+  "upstream_rows": [
+    [
+      "testword02",
+      10.0
+    ],
+    [
+      "testword03",
+      25.0
+    ],
+    [
+      "testword04",
+      42.0
+    ],
+    [
+      "testword05",
+      50.0
+    ],
+    [
+      "testword06",
+      75.0
+    ],
+    [
+      "testword07",
+      99.0
+    ],
+    [
+      "testword08",
+      99.99
+    ],
+    [
+      "testword09",
+      0.5
+    ]
+  ],
+  "also_encoded": [
+    [
+      "testword01",
+      2
+    ],
+    [
+      "testword00",
+      1
+    ]
+  ]
+}

@@ -21,12 +21,16 @@ SHARED = ROOT / "harness" / "verifier"
 TASK_DIRS = sorted(p for p in TASKS.iterdir() if (p / "task.toml").is_file())
 
 
-def checker(task: str):
+def checker_module(task: str):
     path = TASKS / task / "tests" / "check_state.py"
     spec = importlib.util.spec_from_file_location(f"check_state_{task.replace('-', '_')}", path)
     module = importlib.util.module_from_spec(spec)
     spec.loader.exec_module(module)
-    return module.check
+    return module
+
+
+def checker(task: str):
+    return checker_module(task).check
 
 
 def config(task_dir: Path) -> TaskConfig:
@@ -34,8 +38,11 @@ def config(task_dir: Path) -> TaskConfig:
 
 
 def workspace(task: str, tmp_path: Path) -> Path:
+    seed_dir = TASKS / task / "environment" / "workspace"
+    if not seed_dir.is_dir():
+        pytest.skip("workspace is built in the task image; covered by the task's own tests")
     ws = tmp_path / "app"
-    shutil.copytree(TASKS / task / "environment" / "workspace", ws)
+    shutil.copytree(seed_dir, ws)
     seed = TASKS / task / "environment" / "seed.sql"
     if seed.is_file():
         (ws / "db").mkdir(exist_ok=True)  # created by the Dockerfile; git keeps no empty dirs
