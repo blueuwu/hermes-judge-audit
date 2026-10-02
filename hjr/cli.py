@@ -188,13 +188,19 @@ def cmd_ingest(args: argparse.Namespace) -> int:
     from importlib.metadata import version
 
     from hjr.ingest import ingest_job
-    from hjr.manifest import hermes_sha
+    from hjr.manifest import hermes_sha, ingest_manifest
     from hjr.schemas import write_jsonl
 
     result = ingest_job(args.job, args.tasks, hermes_sha=hermes_sha(), harbor=version("harbor"))
     n = write_jsonl(args.out, result.boundaries)
     excluded = args.out.with_name(args.out.stem + ".excluded.json")
     excluded.write_bytes((json.dumps(result.excluded, indent=2) + "\n").encode("utf-8"))
+    tasks = sorted({b.task_id for b in result.boundaries})
+    record = ingest_manifest(
+        args.job, args.tasks, tasks, boundaries=n, excluded=len(result.excluded)
+    )
+    manifest_path = args.out.with_name(args.out.stem + ".manifest.json")
+    manifest_path.write_bytes((json.dumps(record, indent=2) + "\n").encode("utf-8"))
     print(f"{n} boundaries -> {args.out}; {len(result.excluded)} exclusions -> {excluded}")
     return 0
 

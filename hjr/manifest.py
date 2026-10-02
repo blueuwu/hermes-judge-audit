@@ -138,9 +138,8 @@ def tree_sha256(root: Path) -> str:
     return h.hexdigest()
 
 
-def soak_manifest(job_dirs: list[Path], tasks_dir: Path, task_ids: list[str]) -> dict:
-    """Provenance of a soak report: code, Hermes, gate and task versions, Harbor outcomes."""
-    sha, dirty = git_state()
+def _jobs(job_dirs: list[Path]) -> dict:
+    """Harbor's outcome per job: config hash, trial counts and each trial's reward."""
     jobs = {}
     for job in job_dirs:
         stats = json.loads((job / "result.json").read_text(encoding="utf-8")).get("stats", {})
@@ -155,17 +154,36 @@ def soak_manifest(job_dirs: list[Path], tasks_dir: Path, task_ids: list[str]) ->
             "retries": stats.get("n_retries"),
             "rewards": rewards,
         }
+    return jobs
+
+
+def _provenance(tasks_dir: Path, task_ids: list[str]) -> dict:
+    sha, dirty = git_state()
     return {
-        "kind": "soak",
         "git_sha": sha,
         "git_dirty": dirty,
         "hermes_sha": hermes_sha(),
         "uv_lock_sha256": sha256_file(ROOT / "uv.lock"),
-        "gate_sha256": sha256_file(ROOT / "configs" / "soak_gate.toml"),
         "tasks": {t: tree_sha256(tasks_dir / t.removeprefix("hjr/")) for t in task_ids},
-        "jobs": jobs,
-        "written_at": datetime.now(UTC).isoformat(),
     }
+
+
+def soak_manifest(job_dirs: list[Path], tasks_dir: Path, task_ids: list[str]) -> dict:
+    """Provenance of a soak report: code, Hermes, gate and task versions, Harbor outcomes."""
+    record = {"kind": "soak", **_provenance(tasks_dir, task_ids)}
+    record["gate_sha256"] = sha256_file(ROOT / "configs" / "soak_gate.toml")
+    return record | {"jobs": _jobs(job_dirs), "written_at": datetime.now(UTC).isoformat()}
+
+
+def ingest_manifest(
+    job_dir: Path, tasks_dir: Path, task_ids: list[str], *, boundaries: int, excluded: int
+) -> dict:
+    """Provenance of a frozen boundary file: code, Hermes, arms, split and task versions."""
+    record = {"kind": "ingest", **_provenance(tasks_dir, task_ids)}
+    record["judge_config_sha256"] = sha256_file(ROOT / "configs" / "judge_variants.toml")
+    record["split_sha256"] = sha256_file(ROOT / "configs" / "split.toml")
+    record["counts"] = {"boundaries": boundaries, "excluded": excluded}
+    return record | {"jobs": _jobs([job_dir]), "written_at": datetime.now(UTC).isoformat()}
 
 
 def write_manifest(run_dir: Path, record: RunManifest) -> None:
