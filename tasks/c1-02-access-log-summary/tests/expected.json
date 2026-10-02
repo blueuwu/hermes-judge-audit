@@ -1,0 +1,18 @@
+{
+  "requests": 240,
+  "status": {
+    "200": 169,
+    "302": 11,
+    "304": 17,
+    "401": 16,
+    "404": 13,
+    "500": 14
+  },
+  "top_paths": [
+    "/api/orders",
+    "/static/app.css",
+    "/"
+  ],
+  "bytes": 5422825,
+  "access_log_sha256": "aacd5f9f3f36970966f0829ff210d6efeaf7f286c4660a2bcec7efc113262621"
+}

@@ -1,0 +1,69 @@
+{
+  "hidden_cases": [
+    [
+      "  Leading and trailing  ",
+      {},
+      "leading-and-trailing"
+    ],
+    [
+      "Ångström Units",
+      {},
+      "angstrom-units"
+    ],
+    [
+      "Smörgåsbord & Co.",
+      {},
+      "smorgasbord-co"
+    ],
+    [
+      "Über-Café — Menü (2026)",
+      {},
+      "uber-cafe-menu-2026"
+    ],
+    [
+      "100% Organic!!!",
+      {},
+      "100-organic"
+    ],
+    [
+      "---",
+      {},
+      ""
+    ],
+    [
+      "",
+      {},
+      ""
+    ],
+    [
+      "Señor Piñata",
+      {
+        "max_len": 8
+      },
+      "senor-pi"
+    ],
+    [
+      "one two three four",
+      {
+        "max_len": 9
+      },
+      "one-two-t"
+    ],
+    [
+      "Naïve façade",
+      {},
+      "naive-facade"
+    ],
+    [
+      "AAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAA",
+      {},
+      "aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa"
+    ],
+    [
+      "Mix_of_under_scores",
+      {},
+      "mix-of-under-scores"
+    ]
+  ],
+  "test_slug_sha256": "e6644f6898aa6b51487c88cc44dcb873e753d26643595283cf85ce59c82ff375"
+}

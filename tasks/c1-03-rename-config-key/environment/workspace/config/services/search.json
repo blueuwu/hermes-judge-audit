@@ -1,0 +1,23 @@
+{
+  "index": "products",
+  "retries_backoff": [
+    1,
+    2,
+    4
+  ],
+  "on_error": "retries",
+  "shards": [
+    {
+      "id": 1,
+      "retries": 2
+    },
+    {
+      "id": 2,
+      "retries": 2
+    },
+    {
+      "id": 3
+    }
+  ],
+  "notes": "set retries per shard"
+}

@@ -1,0 +1,73 @@
+{
+  "app.json": {
+    "name": "storefront",
+    "port": 8080,
+    "max_retries": 2,
+    "log_level": "info",
+    "features": {
+      "search": true,
+      "wishlist": false
+    }
+  },
+  "db.json": {
+    "primary": {
+      "host": "db-1.internal",
+      "port": 5432,
+      "pool": {
+        "size": 10,
+        "max_retries": 3
+      }
+    },
+    "replicas": [
+      {
+        "host": "db-2.internal",
+        "max_retries": 1
+      },
+      {
+        "host": "db-3.internal",
+        "max_retries": 1,
+        "lag_alert_s": 30
+      }
+    ],
+    "migrations": {
+      "dir": "migrations",
+      "lock_timeout_s": 15
+    }
+  },
+  "services/payments.json": {
+    "provider": "acme-pay",
+    "max_retries": 5,
+    "timeout_s": 12,
+    "webhooks": {
+      "endpoint": "/hooks/pay",
+      "max_retries": 8,
+      "signing": {
+        "algo": "hmac-sha256"
+      }
+    },
+    "fallback": null
+  },
+  "services/search.json": {
+    "index": "products",
+    "retries_backoff": [
+      1,
+      2,
+      4
+    ],
+    "on_error": "retries",
+    "shards": [
+      {
+        "id": 1,
+        "max_retries": 2
+      },
+      {
+        "id": 2,
+        "max_retries": 2
+      },
+      {
+        "id": 3
+      }
+    ],
+    "notes": "set retries per shard"
+  }
+}

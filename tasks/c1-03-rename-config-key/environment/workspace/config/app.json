@@ -1,0 +1,10 @@
+{
+  "name": "storefront",
+  "port": 8080,
+  "retries": 2,
+  "log_level": "info",
+  "features": {
+    "search": true,
+    "wishlist": false
+  }
+}

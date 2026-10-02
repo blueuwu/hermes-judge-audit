@@ -1,0 +1,13 @@
+{
+  "provider": "acme-pay",
+  "retries": 5,
+  "timeout_s": 12,
+  "webhooks": {
+    "endpoint": "/hooks/pay",
+    "retries": 8,
+    "signing": {
+      "algo": "hmac-sha256"
+    }
+  },
+  "fallback": null
+}

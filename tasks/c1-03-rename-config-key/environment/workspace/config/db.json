@@ -1,0 +1,25 @@
+{
+  "primary": {
+    "host": "db-1.internal",
+    "port": 5432,
+    "pool": {
+      "size": 10,
+      "retries": 3
+    }
+  },
+  "replicas": [
+    {
+      "host": "db-2.internal",
+      "retries": 1
+    },
+    {
+      "host": "db-3.internal",
+      "retries": 1,
+      "lag_alert_s": 30
+    }
+  ],
+  "migrations": {
+    "dir": "migrations",
+    "lock_timeout_s": 15
+  }
+}
