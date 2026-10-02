@@ -29,12 +29,12 @@ dev_only = true
 
 # Agent arms. A `self` judge takes its model and provider from one of these. The two arms come
 # from different vendors on different providers, and each passes its own soak gate.
-# Weak arm: moved from Alibaba after soak-weak-2 (prereg amendment "Weak-arm route"). fp8 is
-# the official Qwen checkpoint precision.
+# Weak arm: GLM-5.3-Flash on Z.AI's own endpoint, after Qwen3-Coder failed soak-weak-2 and
+# soak-weak-3 (prereg amendment "Weak-arm model"). fp8 is the vendor's serving precision.
 [agents.weak]
-id = "qwen/qwen3-coder-30b-a3b-instruct"
+id = "z-ai/glm-5.3-flash"
 endpoint = "openrouter"
-provider = "siliconflow"
+provider = "z-ai"
 
 # Strong arm: supplies the genuine DONE boundaries false-CONTINUE needs. Pinned to DeepSeek's
 # own endpoint rather than a third-party host with undisclosed quantization.

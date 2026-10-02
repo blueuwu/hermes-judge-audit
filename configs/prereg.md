@@ -311,3 +311,24 @@ whether the failure belongs to the model or to the provider's tool-call parsing.
   strong arm is unchanged and its pass stands.
 - If `soak-weak-3` fails the same way, the failure is attributed to the model, and the next
   step is a further amendment, not a third route.
+
+**2026-10-02. Weak-arm model, after `soak-weak-3`.** `soak-weak-3` failed the gate on one
+unrecovered `tool_call_as_text` event: on SiliconFlow, the Alibaba stalls did not recur, but
+Qwen3-Coder still once appended its native XML call syntax to a complete final answer
+(`results/soak/README.md`). By the rule of the previous amendment the failure is attributed to
+the model, and Qwen3-Coder is replaced as the weak arm.
+- The weak arm becomes `z-ai/glm-5.3-flash`, pinned to Z.AI's own endpoint on OpenRouter with
+  fallbacks disabled. The model's vendor serves it at fp8, so no third-party quantization is
+  involved. It keeps the weak arm's role: a small, cheap model from a different vendor and
+  provider than the strong arm.
+- Hermes at `ffc74885` strips its `reasoning_content` (`needs_reasoning_echo` is false for this
+  route), as it did for Qwen, so the dump check expects no replayed reasoning. The model
+  reasons by default; nothing is set, because Hermes sends no reasoning configuration.
+- Before the change, one toy request with a single tool (no task, no workload) confirmed the
+  route returns structured tool calls. Nothing else was run on it.
+- `self-weak` follows the arm, so the weak `self` judge becomes GLM-5.3-Flash on Z.AI. The arm
+  id changes, so records can never be pooled with the Qwen arms. `pilot-v1` and `probe-v1`
+  stay as recorded dev material; the pilot's `self-weak` column describes Qwen3-Coder.
+- The weak arm is soaked as `soak-weak-4`, with the frozen gate, tasks and workload and the
+  same settings as runs 2 and 3. `soak-weak-2` and `soak-weak-3` stay as the record of
+  Qwen3-Coder. The strong arm is unchanged and its pass stands.

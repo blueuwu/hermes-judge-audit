@@ -9,7 +9,7 @@ against deterministic state verifiers and human labels, then measures judge-side
 frozen held-out set. Hypotheses and analysis rules are fixed in
 [`configs/prereg.md`](configs/prereg.md).
 
-Status: offline pilot done; soak gate passed by the strong arm and failed by the weak arm on both Alibaba and SiliconFlow (`results/soak/`).
+Status: offline pilot done; soak gate passed by the strong arm. Qwen3-Coder failed it on two routes and is replaced as the weak arm by GLM-5.3-Flash, whose soak is next (`results/soak/`).
 
 ## Pilot findings (M0.5, constructed items)
 
