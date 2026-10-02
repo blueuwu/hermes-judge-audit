@@ -1,0 +1,11 @@
+region,sku,qty,unit_price
+apac,M-315,6,19.95
+latam,M-315,1,19.95
+latam,K-100,3,12.50
+latam,K-100,5,12.50
+apac,Z-900,5,149.00
+apac,K-100,5,12.50
+emea,K-100,3,12.50
+na,M-315,3,19.95
+emea,M-315,1,19.95
+na,K-100,-1,12.50

@@ -1,0 +1,28 @@
+{
+  "settings": {
+    "schema_version": 2,
+    "server": {
+      "host": "0.0.0.0",
+      "port": 8443,
+      "timeout_ms": 30000,
+      "tls": true
+    },
+    "database": {
+      "url": "postgres://app@db.internal:5432/app",
+      "pool_size": 12,
+      "timeout_ms": 5000,
+      "read_only": false
+    },
+    "cache": {
+      "backend": "redis",
+      "ttl": 300,
+      "timeout_ms": 500,
+      "compress": true
+    },
+    "features": {
+      "beta_search": true,
+      "dark_mode": false
+    }
+  },
+  "settings_ini_sha256": "a1ba8557a441670945855ec3bba0309982389cc659d8f5843f77086105611cec"
+}

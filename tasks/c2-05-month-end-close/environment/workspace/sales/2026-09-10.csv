@@ -1,0 +1,9 @@
+region,sku,qty,unit_price
+apac,M-315,3,19.95
+apac,Z-900,2,149.00
+emea,M-315,6,19.95
+apac,M-315,2,19.95
+latam,M-310,6,89.00
+apac,Z-900,6,149.00
+apac,M-310,6,89.00
+latam,Z-900,6,149.00

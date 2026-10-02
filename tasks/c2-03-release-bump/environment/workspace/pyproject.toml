@@ -1,0 +1,13 @@
+[project]
+name = "fluxq"
+version = "1.4.2"
+description = "A small job-queue client"
+requires-python = ">=3.11"
+dependencies = [
+    "retrylib==1.4.2",
+    "msgpack>=1.1",
+]
+
+[build-system]
+requires = ["hatchling"]
+build-backend = "hatchling.build"
