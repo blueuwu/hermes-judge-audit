@@ -9,41 +9,14 @@ import json
 import shutil
 import sqlite3
 import sys
-import tomllib
 from pathlib import Path
 
 import pytest
-from harbor.models.task.config import TaskConfig
 
-ROOT = Path(__file__).resolve().parents[1]
-TASKS = ROOT / "tasks"
-SHARED = ROOT / "harness" / "verifier"
-TASK_DIRS = sorted(p for p in TASKS.iterdir() if (p / "task.toml").is_file())
-
-
-def _checker(task: str):
-    path = TASKS / task / "tests" / "check_state.py"
-    spec = importlib.util.spec_from_file_location(f"check_state_{task.replace('-', '_')}", path)
-    module = importlib.util.module_from_spec(spec)
-    spec.loader.exec_module(module)
-    return module.check
-
-
-def _config(task_dir: Path) -> TaskConfig:
-    return TaskConfig.model_validate(tomllib.loads((task_dir / "task.toml").read_text()))
-
-
-def _workspace(task: str, tmp_path: Path) -> Path:
-    ws = tmp_path / "app"
-    shutil.copytree(TASKS / task / "environment" / "workspace", ws)
-    seed = TASKS / task / "environment" / "seed.sql"
-    if seed.is_file():
-        (ws / "db").mkdir(exist_ok=True)  # created by the Dockerfile; git keeps no empty dirs
-        con = sqlite3.connect(ws / "db" / "app.db")
-        con.executescript(seed.read_text())
-        con.commit()
-        con.close()
-    return ws
+from tests.taskutil import SHARED, TASK_DIRS, TASKS, solve
+from tests.taskutil import checker as _checker
+from tests.taskutil import config as _config
+from tests.taskutil import workspace as _workspace
 
 
 @pytest.mark.parametrize("task_dir", TASK_DIRS, ids=lambda p: p.name)
@@ -67,6 +40,16 @@ def test_seed_workspace_is_not_done_and_names_every_requirement(task_dir: Path, 
     result = _checker(task_dir.name)(_workspace(task_dir.name, tmp_path))
     assert list(result) == _config(task_dir).metadata["requirements"]
     assert not all(result.values())
+
+
+@pytest.mark.parametrize("task_dir", TASK_DIRS, ids=lambda p: p.name)
+def test_reference_solution_is_done(task_dir: Path, tmp_path):
+    if (task_dir / "stages").is_dir() or _config(task_dir).metadata["expected_truth"] == "blocked":
+        pytest.skip("staged or infeasible task; covered by its own tests")
+    ws = _workspace(task_dir.name, tmp_path)
+    solve(task_dir.name, ws, tmp_path)
+    result = _checker(task_dir.name)(ws)
+    assert [k for k, v in result.items() if not v] == []
 
 
 # ---- c1-01-csv-to-json ----------------------------------------------------------------------
