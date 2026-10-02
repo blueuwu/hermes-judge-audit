@@ -88,7 +88,7 @@ def test_ingest_joins_turns_with_verifier_truth(tmp_path):
     )
     (job / "config.json").write_text("{}")
 
-    result = ingest_job(job, TASKS, split="dev", hermes_sha="ffc", harbor="0.23.0")
+    result = ingest_job(job, TASKS, hermes_sha="ffc", harbor="0.23.0")
 
     assert [b.boundary_id for b in result.boundaries] == [
         "job/c3-02-missing-sqlite__a1/b01",
@@ -110,7 +110,7 @@ def test_ungraded_snapshot_is_excluded_with_reason(tmp_path):
     trial = "c3-02-missing-sqlite__a1"
     turns = [_turn(trial, 1, "continue", "continue"), _turn(trial, 2, "done", "done")]
     _trial(job, trial, turns, _graded("not_done"))
-    result = ingest_job(job, TASKS, split="dev", hermes_sha="ffc", harbor="0.23.0")
+    result = ingest_job(job, TASKS, hermes_sha="ffc", harbor="0.23.0")
     assert len(result.boundaries) == 1
     assert result.excluded == [{"trial": trial, "reason": "snapshot b02.tgz not graded"}]
 
@@ -121,6 +121,17 @@ def test_soak_only_task_is_refused_whole(tmp_path):
     soak = {"task_id": "hjr/s0-01-incident-review", "trial": trial}
     turns = [_turn(trial, n, "continue", "continue").model_copy(update=soak) for n in (1, 2)]
     _trial(job, trial, turns, _graded("not_done", "not_done"))
-    result = ingest_job(job, TASKS, split="dev", hermes_sha="ffc", harbor="0.23.0")
+    result = ingest_job(job, TASKS, hermes_sha="ffc", harbor="0.23.0")
     assert result.boundaries == []
     assert result.excluded == [{"trial": trial, "reason": "soak-only task (never analysed)"}]
+
+
+def test_split_comes_from_the_frozen_config(tmp_path):
+    job = tmp_path / "job"
+    trial = "c3-02-missing-sqlite__a1"
+    _trial(job, trial, [_turn(trial, 1, "done", "done")], _graded("not_done"))
+    result = ingest_job(job, TASKS, hermes_sha="ffc", harbor="0.23.0")
+    assert [b.split for b in result.boundaries] == ["heldout"]
+    result = ingest_job(job, TASKS, hermes_sha="ffc", harbor="0.23.0", splits={})
+    assert result.boundaries == []
+    assert result.excluded == [{"trial": trial, "reason": "task not in configs/split.toml"}]

@@ -3,7 +3,8 @@
 Each trial dir holds the harness's ``agent/turns.jsonl`` (what the judge saw, what it said) and
 the verifier's ``verifier/boundaries.json`` (the truth for the same workspace snapshots). A
 boundary is kept only when both sides exist; every trial or boundary that is dropped is listed
-with its reason, as the analysis rules require. Trials of soak-only tasks are refused whole.
+with its reason, as the analysis rules require. Trials of soak-only tasks are refused whole, and
+each boundary's split comes from the frozen configs/split.toml, never from the job.
 """
 
 from __future__ import annotations
@@ -11,6 +12,7 @@ from __future__ import annotations
 import json
 import re
 import tomllib
+from collections.abc import Mapping
 from dataclasses import dataclass, field
 from pathlib import Path
 
@@ -23,6 +25,7 @@ from hjr.schemas import (
     VerifierResult,
     read_jsonl,
 )
+from hjr.split import load_split
 
 # Tool use that reaches past the model endpoint. Local runs cannot enforce the allowlist, so
 # these boundaries are tagged rather than trusted silently.
@@ -94,7 +97,12 @@ def _boundary(
 
 
 def ingest_trial(
-    trial_dir: Path, tasks_dir: Path, *, split: Split, hermes_sha: str, harbor: str
+    trial_dir: Path,
+    tasks_dir: Path,
+    *,
+    splits: Mapping[str, Split],
+    hermes_sha: str,
+    harbor: str,
 ) -> IngestResult:
     out = IngestResult()
     name = trial_dir.name
@@ -111,6 +119,9 @@ def ingest_trial(
     turns = list(read_jsonl(turns_path, TurnRecord))
     if turns and _task_meta(tasks_dir, turns[0].task_id).get("soak_only"):
         out.excluded.append({"trial": name, "reason": "soak-only task (never analysed)"})
+        return out
+    if turns and turns[0].task_id not in splits:
+        out.excluded.append({"trial": name, "reason": "task not in configs/split.toml"})
         return out
     graded = {
         b["snapshot"]: b for b in json.loads(graded_path.read_text(encoding="utf-8"))["boundaries"]
@@ -130,17 +141,32 @@ def ingest_trial(
             continue
         meta = _task_meta(tasks_dir, turn.task_id)
         out.boundaries.append(
-            _boundary(turn, truth, meta, split=split, hermes_sha=hermes_sha, harbor=harbor)
+            _boundary(
+                turn,
+                truth,
+                meta,
+                split=splits[turn.task_id],
+                hermes_sha=hermes_sha,
+                harbor=harbor,
+            )
         )
     return out
 
 
 def ingest_job(
-    job_dir: Path, tasks_dir: Path, *, split: Split, hermes_sha: str, harbor: str
+    job_dir: Path,
+    tasks_dir: Path,
+    *,
+    hermes_sha: str,
+    harbor: str,
+    splits: Mapping[str, Split] | None = None,
 ) -> IngestResult:
+    splits = load_split() if splits is None else splits
     total = IngestResult()
     for trial_dir in sorted(p for p in job_dir.iterdir() if p.is_dir() and "__" in p.name):
-        part = ingest_trial(trial_dir, tasks_dir, split=split, hermes_sha=hermes_sha, harbor=harbor)
+        part = ingest_trial(
+            trial_dir, tasks_dir, splits=splits, hermes_sha=hermes_sha, harbor=harbor
+        )
         total.boundaries += part.boundaries
         total.excluded += part.excluded
     return total
