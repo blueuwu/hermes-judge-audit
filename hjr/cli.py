@@ -366,6 +366,50 @@ def cmd_phase2_summary(args: argparse.Namespace) -> int:
     return 0
 
 
+def cmd_label(args: argparse.Namespace) -> int:
+    import json
+    import os
+
+    from hjr import label
+    from hjr.phase2 import load_boundaries, load_plan
+
+    plan = load_plan()
+    rows = [b for arm in plan.arms for b in load_boundaries(plan, arm)]
+    boundaries = {b.boundary_id: b for b in rows}
+    labels_dir = plan.labels_path.parent
+    order = label.load_or_write_order(labels_dir / "order.json", rows, plan.seed("label_order"))
+    annotator = args.annotator or manifest._git("config", "user.name")
+    session = label.Session(plan, boundaries, order, plan.labels_path, annotator)
+    start = getattr(os, "startfile", None)  # Windows; elsewhere, open the printed paths
+    opener = (lambda p: None) if args.no_open or start is None else start
+    console = label.Console(open=opener)
+    if args.report:
+        ids = label.draw_relabel(plan, order)
+        text = label.report(boundaries, label.load_labels(plan.labels_path), ids)
+        (labels_dir / "report.md").write_text(text, encoding="utf-8", newline="\n")
+        print(text)
+        return 0
+    if args.relabel:
+        blind = label.first_blind(label.load_labels(plan.labels_path))
+        missing = [b for b in order if b not in blind]
+        if missing:
+            raise SystemExit(f"relabelling starts after the first pass; {len(missing)} unlabelled")
+        ids = label.draw_relabel(plan, order)
+        path = labels_dir / "relabel.json"
+        record = {"seed": plan.seed("relabel"), "ids": ids}
+        if path.exists():
+            saved = json.loads(path.read_text(encoding="utf-8"))
+            if {k: saved[k] for k in record} != record:
+                raise SystemExit(f"{path} does not match the draw regenerated from its seed")
+        else:
+            record["drawn_at"] = datetime.now(UTC).isoformat()
+            path.write_text(json.dumps(record, indent=2) + "\n", encoding="utf-8", newline="\n")
+        label.run_relabel(session, console, ids, datetime.now(UTC))
+        return 0
+    label.run_first_pass(session, console, label.heldout_unlocked(plan.heldout_after_tag))
+    return 0
+
+
 def main(argv: list[str] | None = None) -> int:
     parser = argparse.ArgumentParser(prog="hjr", description=__doc__)
     parser.add_argument("-v", "--verbose", action="store_true")
@@ -440,6 +484,14 @@ def main(argv: list[str] | None = None) -> int:
     )
     p.add_argument("--model", action="append", help="model key (default: all non-dev arms)")
     p.set_defaults(func=cmd_check_route)
+
+    p = sub.add_parser("label", help="blind human truth labels for Phase-1 boundaries")
+    mode = p.add_mutually_exclusive_group()
+    mode.add_argument("--relabel", action="store_true", help="intra-rater relabel pass")
+    mode.add_argument("--report", action="store_true", help="write data/labels/report.md")
+    p.add_argument("--annotator", help="default: git user.name")
+    p.add_argument("--no-open", action="store_true", help="do not open views automatically")
+    p.set_defaults(func=cmd_label)
 
     p = sub.add_parser("phase2-estimate", help="estimated cost per Phase 2 cell (no model calls)")
     p.set_defaults(func=cmd_phase2_estimate)
