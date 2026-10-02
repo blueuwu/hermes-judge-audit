@@ -1,0 +1,105 @@
+{
+  "catalog": {
+    "synced_as_of": "2026-10-02",
+    "items": [
+      {
+        "sku": "KT-100",
+        "name": "Kettle",
+        "price": "38.24",
+        "discontinued": false
+      },
+      {
+        "sku": "KT-107",
+        "name": "Toaster",
+        "price": "110.74",
+        "discontinued": false
+      },
+      {
+        "sku": "KT-114",
+        "name": "Blender",
+        "price": "137.15",
+        "discontinued": false
+      },
+      {
+        "sku": "KT-121",
+        "name": "Grinder",
+        "price": "82.69",
+        "discontinued": true
+      },
+      {
+        "sku": "KT-128",
+        "name": "Scale",
+        "price": "69.84",
+        "discontinued": false
+      },
+      {
+        "sku": "KT-135",
+        "name": "Press",
+        "price": "89.84",
+        "discontinued": false
+      },
+      {
+        "sku": "KT-142",
+        "name": "Mixer",
+        "price": "118.36",
+        "discontinued": false
+      },
+      {
+        "sku": "KT-149",
+        "name": "Steamer",
+        "price": "15.13",
+        "discontinued": false
+      },
+      {
+        "sku": "KT-156",
+        "name": "Juicer",
+        "price": "135.76",
+        "discontinued": false
+      },
+      {
+        "sku": "KT-163",
+        "name": "Roaster",
+        "price": "75.09",
+        "discontinued": false
+      },
+      {
+        "sku": "KT-170",
+        "name": "Fryer",
+        "price": "115.99",
+        "discontinued": false
+      },
+      {
+        "sku": "KT-177",
+        "name": "Slicer",
+        "price": "80.30",
+        "discontinued": true
+      },
+      {
+        "sku": "KT-184",
+        "name": "Whisk set",
+        "price": "127.05",
+        "discontinued": false
+      },
+      {
+        "sku": "KT-191",
+        "name": "Tray",
+        "price": "144.04",
+        "discontinued": false
+      },
+      {
+        "sku": "KT-198",
+        "name": "Mill",
+        "price": "99.56",
+        "discontinued": false
+      },
+      {
+        "sku": "KT-205",
+        "name": "Sieve",
+        "price": "110.37",
+        "discontinued": false
+      }
+    ]
+  },
+  "fresh_sha256": "94bc891f9cbc8212f0ed6a70fa92da48d18fe99a2d934196bd5b8301767a9a75",
+  "apply_sha256": "4ff7d50b65956d0188a4df045f60d62f9fbabe02f18949fb11ae80d82d2762d8"
+}

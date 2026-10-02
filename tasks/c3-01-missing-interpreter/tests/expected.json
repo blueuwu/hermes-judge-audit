@@ -1,0 +1,49 @@
+{
+  "report": {
+    "sensors": {
+      "boiler-1": {
+        "n": 48,
+        "median": 70.72,
+        "min": 69.56,
+        "max": 73.15
+      },
+      "boiler-2": {
+        "n": 48,
+        "median": 71.25,
+        "min": 68.13,
+        "max": 85.04
+      },
+      "chiller-a": {
+        "n": 48,
+        "median": 6.6,
+        "min": 4.39,
+        "max": 9.62
+      },
+      "chiller-b": {
+        "n": 48,
+        "median": 6.04,
+        "min": 3.65,
+        "max": 8.82
+      },
+      "pump-3": {
+        "n": 48,
+        "median": 38.09,
+        "min": 33.5,
+        "max": 50.79
+      }
+    },
+    "anomalies": [
+      {
+        "sensor": "boiler-2",
+        "ts": "2026-09-30T14:00:00Z",
+        "celsius": 85.04
+      },
+      {
+        "sensor": "pump-3",
+        "ts": "2026-09-30T21:30:00Z",
+        "celsius": 50.79
+      }
+    ]
+  },
+  "readings_sha256": "1d8710eef149e049bfe254ef130db97137aef010ed54ee0925c00eac44d1e9b7"
+}

@@ -1,0 +1,101 @@
+{
+  "synced_as_of": "2026-09-25",
+  "items": [
+    {
+      "sku": "KT-100",
+      "name": "Kettle",
+      "price": "38.71",
+      "discontinued": false
+    },
+    {
+      "sku": "KT-107",
+      "name": "Toaster",
+      "price": "103.51",
+      "discontinued": false
+    },
+    {
+      "sku": "KT-114",
+      "name": "Blender",
+      "price": "129.73",
+      "discontinued": false
+    },
+    {
+      "sku": "KT-121",
+      "name": "Grinder",
+      "price": "82.69",
+      "discontinued": true
+    },
+    {
+      "sku": "KT-128",
+      "name": "Scale",
+      "price": "71.65",
+      "discontinued": false
+    },
+    {
+      "sku": "KT-135",
+      "name": "Press",
+      "price": "87.32",
+      "discontinued": false
+    },
+    {
+      "sku": "KT-142",
+      "name": "Mixer",
+      "price": "121.36",
+      "discontinued": false
+    },
+    {
+      "sku": "KT-149",
+      "name": "Steamer",
+      "price": "15.87",
+      "discontinued": false
+    },
+    {
+      "sku": "KT-156",
+      "name": "Juicer",
+      "price": "145.75",
+      "discontinued": false
+    },
+    {
+      "sku": "KT-163",
+      "name": "Roaster",
+      "price": "73.98",
+      "discontinued": false
+    },
+    {
+      "sku": "KT-170",
+      "name": "Fryer",
+      "price": "113.87",
+      "discontinued": false
+    },
+    {
+      "sku": "KT-177",
+      "name": "Slicer",
+      "price": "80.30",
+      "discontinued": true
+    },
+    {
+      "sku": "KT-184",
+      "name": "Whisk set",
+      "price": "128.12",
+      "discontinued": false
+    },
+    {
+      "sku": "KT-191",
+      "name": "Tray",
+      "price": "145.57",
+      "discontinued": false
+    },
+    {
+      "sku": "KT-198",
+      "name": "Mill",
+      "price": "98.35",
+      "discontinued": false
+    },
+    {
+      "sku": "KT-205",
+      "name": "Sieve",
+      "price": "112.17",
+      "discontinued": false
+    }
+  ]
+}

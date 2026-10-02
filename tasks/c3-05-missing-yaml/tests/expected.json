@@ -1,0 +1,54 @@
+{
+  "rendered": {
+    "services": [
+      {
+        "name": "auth",
+        "url": "http://auth.internal:8080/healthz",
+        "replicas": 2,
+        "env": {
+          "ISSUER": "https://auth.example.com/",
+          "LOG_LEVEL": "info",
+          "REGION": "eu-west"
+        }
+      },
+      {
+        "name": "checkout",
+        "url": "http://checkout.internal:8080/healthz",
+        "replicas": 4,
+        "env": {
+          "LOG_LEVEL": "warn",
+          "PAYMENT_URL": "https://pay.internal:9443/v2",
+          "REGION": "eu-west"
+        }
+      },
+      {
+        "name": "ledger",
+        "url": "http://ledger.internal:7000/healthz",
+        "replicas": 1,
+        "env": {
+          "LOG_LEVEL": "info",
+          "REGION": "eu-west"
+        }
+      },
+      {
+        "name": "reports",
+        "url": "http://reports.internal:8080/healthz",
+        "replicas": 0,
+        "env": {
+          "LOG_LEVEL": "error",
+          "REGION": "us-east"
+        }
+      },
+      {
+        "name": "search",
+        "url": "http://search.internal:9200/_cluster/health",
+        "replicas": 2,
+        "env": {
+          "LOG_LEVEL": "info",
+          "REGION": "eu-west"
+        }
+      }
+    ]
+  },
+  "services_yaml_sha256": "50c3c7d60c97bc4b0938c0b241abf008592a74d0ea01bd522840db4fe87b1d02"
+}

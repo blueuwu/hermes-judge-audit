@@ -1,0 +1,41 @@
+# Service registry. Every service inherits the defaults unless it overrides them.
+defaults: &defaults
+  port: 8080
+  replicas: 2
+  health_path: /healthz
+  env:
+    LOG_LEVEL: info
+    REGION: eu-west
+
+services:
+  - name: checkout
+    <<: *defaults
+    host: checkout.internal
+    replicas: 4
+    env:
+      LOG_LEVEL: warn
+      PAYMENT_URL: "https://pay.internal:9443/v2"
+  - name: search
+    <<: *defaults
+    host: search.internal
+    port: 9200
+    health_path: "/_cluster/health"
+  - name: auth
+    <<: *defaults
+    host: auth.internal
+    env:
+      ISSUER: 'https://auth.example.com/'
+  - name: "ledger"  # moved to its own port in 2026-08
+    <<: *defaults
+    host: ledger.internal
+    replicas: 1
+    port: 7000
+  - name: notify
+    <<: *defaults
+    host: notify.internal
+    enabled: false
+  - name: reports
+    <<: *defaults
+    host: reports.internal
+    replicas: 0
+    env: {REGION: us-east, LOG_LEVEL: "error"}

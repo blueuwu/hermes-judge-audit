@@ -18,6 +18,9 @@ from tests.taskutil import checker as _checker
 from tests.taskutil import config as _config
 from tests.taskutil import workspace as _workspace
 
+# Reference solutions that read paths outside /app which only the task image provides.
+IMAGE_ONLY_SOLUTIONS = {"c3-03-flaky-sync"}
+
 
 @pytest.mark.parametrize("task_dir", TASK_DIRS, ids=lambda p: p.name)
 def test_task_layout(task_dir: Path):
@@ -46,6 +49,8 @@ def test_seed_workspace_is_not_done_and_names_every_requirement(task_dir: Path, 
 def test_reference_solution_is_done(task_dir: Path, tmp_path):
     if (task_dir / "stages").is_dir() or _config(task_dir).metadata["expected_truth"] == "blocked":
         pytest.skip("staged or infeasible task; covered by its own tests")
+    if task_dir.name in IMAGE_ONLY_SOLUTIONS:
+        pytest.skip("solution needs files only the task image has; the oracle run covers it")
     ws = _workspace(task_dir.name, tmp_path)
     solve(task_dir.name, ws, tmp_path)
     result = _checker(task_dir.name)(ws)
