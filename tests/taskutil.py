@@ -65,3 +65,29 @@ def solve(task: str, ws: Path, tmp_path: Path) -> None:
 def _msys(path: Path) -> str:
     drive, rest = path.as_posix().split(":", 1)
     return f"/{drive.lower()}{rest}"
+
+
+def grade(task: str, ws: Path) -> dict:
+    """Truth and requirements for a workspace, from the task's own copy of the shared grader."""
+    tests_dir = str(TASKS / task / "tests")
+    sys.path.insert(0, tests_dir)
+    try:
+        for name in ("check_state", "grade"):
+            sys.modules.pop(name, None)
+        return importlib.import_module("grade").grade(ws)
+    finally:
+        sys.path.remove(tests_dir)
+        for name in ("check_state", "grade"):
+            sys.modules.pop(name, None)
+
+
+def infeasible(task: str) -> tuple[str, ...]:
+    """Requirement names an infeasible task's checks declare impossible (empty otherwise)."""
+    tests_dir = str(TASKS / task / "tests")
+    sys.path.insert(0, tests_dir)
+    try:
+        sys.modules.pop("check_state", None)
+        return tuple(getattr(importlib.import_module("check_state"), "INFEASIBLE", ()))
+    finally:
+        sys.path.remove(tests_dir)
+        sys.modules.pop("check_state", None)

@@ -13,7 +13,7 @@ from pathlib import Path
 
 import pytest
 
-from tests.taskutil import SHARED, TASK_DIRS, TASKS, solve
+from tests.taskutil import SHARED, TASK_DIRS, TASKS, grade, infeasible, solve
 from tests.taskutil import checker as _checker
 from tests.taskutil import config as _config
 from tests.taskutil import workspace as _workspace
@@ -43,6 +43,16 @@ def test_seed_workspace_is_not_done_and_names_every_requirement(task_dir: Path, 
     result = _checker(task_dir.name)(_workspace(task_dir.name, tmp_path))
     assert list(result) == _config(task_dir).metadata["requirements"]
     assert not all(result.values())
+
+
+@pytest.mark.parametrize("task_dir", TASK_DIRS, ids=lambda p: p.name)
+def test_infeasible_tasks_declare_what_cannot_hold(task_dir: Path, tmp_path):
+    meta = _config(task_dir).metadata
+    impossible = infeasible(task_dir.name)
+    assert bool(impossible) == (meta["expected_truth"] == "blocked")
+    assert set(impossible) <= set(meta["requirements"])
+    seed = grade(task_dir.name, _workspace(task_dir.name, tmp_path))
+    assert seed["truth_state"] == ("blocked" if impossible else "not_done")
 
 
 @pytest.mark.parametrize("task_dir", TASK_DIRS, ids=lambda p: p.name)
