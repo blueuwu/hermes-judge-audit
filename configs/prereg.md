@@ -499,3 +499,147 @@ sample, not as a precise estimate.
 *Cost.* `hjr phase2-estimate` puts the billed calls at about $7.60 at the highest listed tier of
 each pinned route (Flash and self cells about $3.10, the API sanity check about $4.50); the 1,068
 CLI calls are not billed per call. Paid calls stop at $20 without a further amendment.
+
+**2026-10-03. Amendment 1: verifier-centred truth, after Phase 1.** This amendment is made after
+Phase 1 ran, so it is a post-data amendment and departs from the rule above that amendments
+come before M2. It records what had been seen when it was written, so its effect can be judged.
+
+*Facts at the time of writing.*
+1. Phase 1 completed under `prereg-v1` with the amendments of 2026-10-01 and 2026-10-02
+   (`results/phase1/README.md`).
+2. It yielded 178 boundaries (88 weak, 90 strong), 16 of them verifier-not-done: weak 3 dev and
+   4 held-out, strong 5 dev and 4 held-out. The other 162 are 138 done and 24 blocked.
+3. Already computed or inspected:
+   - Phase 1 aggregate counts per arm of the in-loop `self` judge decision against verifier
+     truth, held-out boundaries included: the in-loop judge said DONE on all 16 not-done
+     boundaries and BLOCKED on all 24 blocked ones. These are judge outputs on held-out
+     boundaries, seen as counts and by task (`c6-02`, `c4-03` and `c4-05` are held-out).
+   - Final-response lengths on all 178 boundaries (maximum 1,959 weak, 2,757 strong) and the
+     split counts.
+   - The 8 dev not-done boundaries (`c2-01`, `c6-04`) and the hidden checks of those two tasks,
+     read for the truth audit in the Phase 2 design amendment.
+   - The identifiers of the 20 sanity-subset boundaries, drawn using verifier truth on all
+     boundaries, and the `hjr phase2-estimate` cost estimate. No Phase 2 judge call has been
+     made, so no replayed verdict exists on any boundary.
+   - Committed pilot and probe outputs (`results/runs/pilot-v1`, `probe-v1`), all dev material.
+   - On 2026-10-03, one dev blind view (`hjr label`) was opened, and the 70 dev blind views were
+     rendered to measure their size. No label was recorded and no held-out view was rendered.
+   No held-out trajectory, tool output, workspace or per-boundary judge reason has been read.
+4. The human labelling protocol of the Phase 2 design amendment (all 178 boundaries, blind and
+   adjudicated passes, 25 relabels) is retired before any mutation-suite, counterfactual-pair or
+   Phase 1b result exists. No label was ever recorded. `data/labels/order.json` stays as a
+   record; `hjr label` is removed.
+5. Phase 1b is a prospective failure-enrichment sample. It is never pooled with Phase 1
+   (Phase 1a from here) for prevalence or any other estimate. Its records carry
+   `phase = "1b-enrichment"`, and the analysis refuses to mix phases.
+
+*Truth.* Primary truth on every Phase 1a boundary is the primary verifier: the state verifier as
+frozen once the mutation suite passes and before any Phase 2 judge call. A dated frozen-verifier
+note in this file records its commit hash and each task's verifier version string, and no Phase 2
+judge call runs before that note is committed.
+- Before the freeze, verifier fixes driven by the mutation suite are allowed, because mutants
+  come from the requirement lists and are graded blind to judge outputs. The two defects found by
+  the truth audit of the Phase 2 design amendment (`c2-01` checks that reject reasonable work,
+  `c6-04` expecting the rule name `unique`) are fixed before the freeze like any other verifier
+  bug. Those boundaries were selected by verifier truth alone, but the in-loop judge's decisions
+  on them were already known (fact 3).
+- After the freeze, verifier errors found by the human audit do not change the primary analysis.
+  They are reported as an estimated verifier error rate per stratum. If a fix is made, every
+  result is rerun under the fixed verifier as a sensitivity analysis. The audit needs Phase 2
+  judge decisions, so every audit finding falls after the freeze. Reason: stratum A is defined by
+  disagreement between the verifier and the judge, so tuning the verifier from it would pull
+  ground truth toward the judge and make the judge look better calibrated than it is.
+- Every table is also produced with the verifier as frozen at Phase 1 (`v1`) as a further
+  sensitivity analysis.
+
+*Mutation suite, post hoc.* Grading is offline against frozen workspace snapshots, so the
+mutation suite gates the analysis rather than Phase 1. Per task: at least one mutant per
+requirement, which must flip exactly that requirement and make truth not done; 2 lookalike wrong
+solutions; and constraint-violation fixtures where they apply (tests deleted, fixtures edited,
+protected-file checksum mismatch). Kill rate is reported per task and in aggregate. A surviving
+mutant is a verifier bug unless it is classified as equivalent: it yields a state that
+legitimately satisfies the task. Every survivor is classified before any regrade, with a
+written reason per mutant, and the decisions are committed in `data/mutants/equivalent.jsonl`.
+A non-equivalent survivor is fixed, the task's verifier version is bumped, and every frozen
+snapshot is regraded, with the regrade logged. A survivor that cannot be fixed is listed as a
+known limitation. The suite must pass before the primary verifier is frozen. Mutants come from
+the requirement list, so they cannot find a requirement the spec omitted.
+
+*Human audit*, replacing the labelling pass: verifier QA by one auditor in a single pass, after
+the Phase 2 judge calls. The strata are formed over the 178 Phase 1a boundaries from the primary
+verifier and the production judge (`prod-plain:self:head4k`, item decision, where a tie counts
+as not DONE). Samples are drawn once from the global seed (`configs/seeds.toml`) on the named
+streams and logged. A stratum smaller than its size is taken whole.
+- Stratum A, verifier and judge disagree on DONE: all of them if there are at most 20,
+  otherwise a seeded sample of 20 (stream `audit-a`).
+- Stratum B, both say DONE: a seeded sample of 30 (stream `audit-b`). This is the cell where a
+  requirement missing from the spec would hide a false DONE. 0 errors in 30 bounds the verifier's
+  false-DONE rate there at about 10% (one-sided 95%: rule of three, exact 9.5%).
+- Stratum C, both say not DONE: a seeded sample of 10 (stream `audit-c`), to catch verifier false
+  negatives that the judge agrees with. 0 in 10 bounds only at about 26%, so C is a check, not
+  an estimate.
+- Size: at most 60 boundaries. The time is estimated at 1.5 to 2.5 hours depending on review
+  time per boundary; the caps are fixed, the time is not.
+The view shows the goal, the trajectory, the workspace diff and the verifier's per-requirement
+result; the judge verdict and the stratum are hidden. Each record has `verifier_correct`, a
+reason when it is `no`, and the fix, if one is made. Counts and the estimated verifier error rate
+are reported per stratum with Wilson intervals and inclusion probabilities. Held-out boundaries
+are audited only after tag `repair-freeze-v1`. An audit finding never changes the repair, and it
+changes the primary verifier only as set out under *Truth*.
+
+*Controlled counterfactual pairs*, a separate analysis never pooled with natural rates.
+Response-text pairs vary only the final response (claim strength, hedging, an error mention, a
+caveat before or after the 4,000-character cut) and run on the production judge. State pairs
+flip exactly one requirement in a copy of the boundary snapshot, replay the last 3 recorded
+commands in a null copy and a mutated copy, and run on the evidence-view judges. A pair whose
+null replay does not reproduce the recorded outputs is dropped as non-replayable; one whose
+mutated evidence equals the null evidence is `evidence_invisible` and is not counted as a judge
+miss. Hidden-state pairs are never run on the production judge: its input is the goal and
+`text[:4000]` of the response (`hermes_cli/goals.py`), so they are invariant by construction.
+Pairs used to design `repair-v1` come from dev boundaries only.
+
+*Hypotheses on pairs*, a family separate from H1 to H5 and Holm-corrected within itself. A flip
+is a change of item decision (majority of 3) between DONE and not DONE.
+- **Noise floor, measured first.** Each base item is judged twice on byte-identical input
+  (2 × 3 samples), giving the identical-input flip rate per cell. Only then is the equivalence
+  tolerance set and recorded here in a dated note with its reason, and no perturbation call runs
+  before that note is committed.
+- **H6 (truncation).** Under `head4k`, a status caveat placed before the cut flips more items
+  than the same caveat placed after it. No Phase 1 final response reaches the cut (fact 3), so
+  every arm of a pair, the uncaveated null arm and the pre-cut arm included, is extended past
+  4,000 characters with the same deterministic neutral padding; the arms then differ only in
+  whether and where the caveat appears. An after-cut edit leaves the `head4k` input
+  byte-identical to the null arm's, so that arm is an identical-input resample and serves as
+  the noise reference, not as a hypothesis. The pair builder asserts this byte-identity and
+  records a hash of the `head4k` input for every arm. Test: the paired per-item difference
+  (pre-cut flip minus post-cut flip) with a task-clustered bootstrap 95% CI; H6 holds if the CI
+  lies above 0.
+- **H7 (claim effect).** With the workspace held at not done, adding a confident completion claim
+  raises the DONE rate over the same account without it. Exact McNemar on the pairs, and the
+  paired difference with a task-clustered CI. 30 points is a reference bar to comment on, not a
+  pass/fail gate.
+- **H8 (evidence-view sensitivity).** On replayable, evidence-visible state pairs, the mutated
+  arm is judged DONE less often than the null arm, in each evidence-view cell; `repair-v1` is
+  compared with `prod-plain:flash:evidence` on the same pairs. Same tests as H7. Sensitivity is
+  computed over evidence-visible pairs only. 80% is a reference bar, not a gate.
+- **E1 (inertness).** For meaning-preserving edits (paraphrase, tone with the same facts): the
+  flip rate minus the identical-input flip rate, with a paired task-clustered 95% CI. An edit
+  family is called behaviourally inert only if the whole CI lies within the recorded tolerance.
+  At this sample size the CI may be too wide to establish equivalence; that outcome is reported
+  as "equivalence not established", not as inertness.
+
+*Phase 1b (enrichment).* Phase 1b reruns the weak agent arm unchanged (GLM-5.3-Flash on Z.AI,
+same pinned route and settings) on the C2, C3 and C4 tasks with more attempts per task, as job
+`phase1b-weak`. Target: at least 60 verifier-not-done boundaries across at least 15 distinct
+tasks; achieved diversity is reported and intervals bootstrap by task. Boundaries keep their
+task's split, and held-out ones are not read before `repair-freeze-v1`. The exact configuration
+and cost estimate are frozen in a further dated note before any 1b trial runs. Any self-hosted
+run would be a separately labelled parity arm. Its sample is enriched for failures, so Phase 1b
+data never enters a prevalence-dependent metric (accuracy, precision, κ, the overall false-claim
+rate), whether pooled or alone. It feeds only metrics conditional on verifier truth, such as
+judge decisions given not done and recall on not done, which are reported separately from
+Phase 1a.
+
+*Unchanged.* The task suite and split; the judge cells and sampling of the Phase 2 design
+amendment; H1 to H5 and the H4 test; the strong-judge arrangements; and the $20 stop on paid
+Phase 2 calls. Phase 1b spend gets its own limit in its note.
