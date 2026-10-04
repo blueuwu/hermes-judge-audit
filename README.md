@@ -144,24 +144,6 @@ uv run harbor run -p tasks/ -e docker --ek "$EK" -x "s0-*" -k 3 -n 6 -o jobs --j
 uv run hjr ingest --job jobs/phase1-<arm> --out data/frozen/phase1-<arm>.jsonl
 ```
 
-## Truth labels (Phase 2)
-
-Every Phase-1 boundary gets a human truth label before any judge cell is analysed
-(prereg amendment "Phase 2 design"). `hjr label` serves boundaries in a seeded order
-(`data/labels/order.json`), dev first. The blind view shows the goal, the agent's tool calls with
-their outputs, and the workspace against the task's seed; the agent's own messages, the verifier,
-the judge and the task name stay hidden until the blind label is committed. Labels are `done`,
-`not_done`, `blocked` or `ambiguous`, appended to `data/labels/phase1-labels.jsonl`; quitting
-at any prompt loses nothing. Held-out boundaries open only once tag `repair-freeze-v1` exists.
-
-```bash
-uv run hjr label             # first pass: blind label, then adjudication against the verifier
-uv run hjr label --relabel   # after the first pass: 25 seeded repeats, each 24 h+ later, blind
-uv run hjr label --report    # data/labels/report.md: label vs verifier, intra-rater agreement
-```
-
-Views and extracted workspaces go to `private/labelling/` (not committed).
-
 ## Layout
 
 | Path | Contents |
@@ -173,7 +155,6 @@ Views and extracted workspaces go to `private/labelling/` (not committed).
 | `hjr/drift.py` | Judge-model drift on frozen items |
 | `hjr/phase2.py`, `hjr/analysis.py`, `hjr/stats.py` | Phase 2 plan, per-arm analysis, intervals and paired tests |
 | `hjr/codex.py` | The `strong` judge through the Codex CLI: isolated calls, pinned model and version |
-| `hjr/label.py` | Blind truth labelling: seeded order, hidden claims, append-only labels, relabel pass |
 | `hjr/estimate.py` | Cost estimate per Phase 2 cell from measured token ratios and live prices |
 | `hjr/soak.py`, `hjr/soakreport.py` | Soak gate evaluation, and soak reports built from Harbor trials |
 | `hjr/goalloop.py`, `hjr/harness/` | The `/goal` loop as Hermes runs it, and the Harbor agent that drives it |
