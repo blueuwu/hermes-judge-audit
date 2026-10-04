@@ -34,10 +34,6 @@ class Plan:
     cells: list[str]
     identical: dict[str, str]
     seeds: dict[str, str]
-    labels_path: Path
-    heldout_after_tag: str
-    relabel_n: int
-    relabel_min_hours: float
     sanity: dict
 
     def seed(self, stream: str) -> str:
@@ -66,10 +62,6 @@ def load_plan(path: Path = PLAN_CONFIG) -> Plan:
         cells=list(doc["cells"]["run"]),
         identical=dict(doc["cells"].get("identical", {})),
         seeds=dict(doc["seeds"]),
-        labels_path=ROOT / doc["labels"]["path"],
-        heldout_after_tag=doc["labels"]["heldout_after_tag"],
-        relabel_n=int(doc["relabel"]["n"]),
-        relabel_min_hours=float(doc["relabel"]["min_hours"]),
         sanity=dict(doc["sanity"]),
     )
     for cell in plan.cells + list(plan.identical) + list(plan.identical.values()):

@@ -329,18 +329,11 @@ def cmd_phase2_summary(args: argparse.Namespace) -> int:
     from hjr import analysis
     from hjr.phase2 import load_boundaries, load_plan
     from hjr.replay import load_verdicts
-    from hjr.schemas import AttemptRecord, LabelRecord
+    from hjr.schemas import AttemptRecord
 
     plan = load_plan()
     boundaries = {arm: load_boundaries(plan, arm) for arm in plan.arms}
-    if args.truth == "labels":
-        labels = list(read_jsonl(plan.labels_path, LabelRecord))
-        truth = {a: analysis.truth_from_labels(labels, boundaries[a]) for a in plan.arms}
-        unlabelled = sum(len(t.unlabelled) for t in truth.values())
-        if unlabelled and not args.allow_unlabelled:
-            raise SystemExit(f"{unlabelled} boundaries have no adjudicated label")
-    else:
-        truth = {a: analysis.truth_from_verifier(boundaries[a]) for a in plan.arms}
+    truth = {a: analysis.truth_from_verifier(boundaries[a]) for a in plan.arms}
 
     def attempts(run_dir: Path) -> list:
         path = run_dir / "attempts.jsonl"
@@ -359,7 +352,7 @@ def cmd_phase2_summary(args: argparse.Namespace) -> int:
         {a: attempts(d) for a, d in runs.items()},
         sanity,
     )
-    out = RUNS / "phase2" / f"summary-{args.truth}.md"
+    out = RUNS / "phase2" / "summary.md"
     out.parent.mkdir(parents=True, exist_ok=True)
     out.write_text(analysis.render(report), encoding="utf-8", newline="\n")
     print(out.read_text(encoding="utf-8"))
@@ -445,10 +438,6 @@ def main(argv: list[str] | None = None) -> int:
     p.set_defaults(func=cmd_phase2_estimate)
 
     p = sub.add_parser("phase2-summary", help="Phase 2 analysis tables (no model calls)")
-    p.add_argument("--truth", choices=["labels", "verifier"], default="labels")
-    p.add_argument(
-        "--allow-unlabelled", action="store_true", help="report before labelling is complete"
-    )
     p.set_defaults(func=cmd_phase2_summary)
 
     args = parser.parse_args(argv)

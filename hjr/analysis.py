@@ -2,8 +2,7 @@
 
 Rules (prereg "Analysis rules" and the amendment "Phase 2 design"):
 
-* Truth is the adjudicated human label (primary) or the verifier (sensitivity). Boundaries
-  labelled ``ambiguous`` leave the primary analysis and are listed.
+* Truth is the state verifier (prereg Amendment 1, "verifier-centred truth").
 * Each boundary is judged 3 times. Its item decision is the decision at least 2 of 3 samples
   share, and ``tie`` when all three differ; a tie is not DONE, and it is never correct. Decisions
   are production (effective) decisions: parse failures and format violations count as the
@@ -24,7 +23,7 @@ from dataclasses import dataclass, field
 
 from hjr import metrics, stats
 from hjr.phase2 import Plan, resolve
-from hjr.schemas import AttemptRecord, BoundaryRecord, JudgeVerdict, LabelRecord
+from hjr.schemas import AttemptRecord, BoundaryRecord, JudgeVerdict
 
 DECISIONS = ("done", "continue", "blocked")
 EXPECTED = metrics.EXPECTED_DECISION
@@ -37,34 +36,12 @@ H4_MAX_FC_RISE = 0.05  # false-CONTINUE may rise by at most 5 points
 
 @dataclass(frozen=True)
 class Truth:
-    source: str  # "labels" | "verifier"
+    source: str  # "verifier"
     states: dict[str, str]  # boundary id -> done | not_done | blocked
-    ambiguous: list[str] = field(default_factory=list)
-    unlabelled: list[str] = field(default_factory=list)
 
 
 def truth_from_verifier(boundaries: Iterable[BoundaryRecord]) -> Truth:
     return Truth("verifier", metrics.truth_map(boundaries))
-
-
-def truth_from_labels(labels: Iterable[LabelRecord], boundaries: Iterable[BoundaryRecord]) -> Truth:
-    """The latest adjudicated label per boundary. Ambiguous and unlabelled ones are listed."""
-    latest: dict[str, LabelRecord] = {}
-    for rec in labels:
-        if rec.stage == "adjudicated":
-            prev = latest.get(rec.boundary_id)
-            if prev is None or rec.ts >= prev.ts:
-                latest[rec.boundary_id] = rec
-    states, ambiguous, unlabelled = {}, [], []
-    for b in boundaries:
-        rec = latest.get(b.boundary_id)
-        if rec is None:
-            unlabelled.append(b.boundary_id)
-        elif rec.label == "ambiguous":
-            ambiguous.append(b.boundary_id)
-        else:
-            states[b.boundary_id] = rec.label
-    return Truth("labels", states, sorted(ambiguous), sorted(unlabelled))
 
 
 # ── Items ─────────────────────────────────────────────────────────────
@@ -596,10 +573,7 @@ def render(report: Report) -> str:
         "",
     ]
     for arm, t in report.truth.items():
-        lines.append(
-            f"- {arm}: {len(t.states)} boundaries with truth; {len(t.ambiguous)} ambiguous "
-            f"(excluded); {len(t.unlabelled)} unlabelled."
-        )
+        lines.append(f"- {arm}: {len(t.states)} boundaries with truth.")
     for arm in report.plan.arms:
         lines += _arm_section(report, arm)
     lines += [
@@ -633,7 +607,4 @@ def render(report: Report) -> str:
         ]
         for (arm, name), (k, n) in sorted(report.sanity.items()):
             lines.append(f"| {arm} | `{name}` | {k}/{n} |")
-    for arm, t in report.truth.items():
-        if t.ambiguous:
-            lines += ["", f"Ambiguous ({arm}): " + ", ".join(f"`{b}`" for b in t.ambiguous)]
     return "\n".join(lines) + "\n"

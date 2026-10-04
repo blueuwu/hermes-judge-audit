@@ -2,6 +2,7 @@
 
 from __future__ import annotations
 
+import random
 from datetime import UTC, datetime
 
 import pytest
@@ -10,7 +11,7 @@ from hjr import analysis, judge
 from hjr.arms import MixedArmError
 from hjr.config import load_judge_config
 from hjr.phase2 import cell_of, draw_sanity, load_boundaries, load_plan, resolve
-from hjr.schemas import JudgeVerdict, LabelRecord, VerifierResult
+from hjr.schemas import JudgeVerdict, VerifierResult
 from tests.factories import make_boundary
 
 PLAN = load_plan()
@@ -54,6 +55,21 @@ def test_headtail_cell_is_identical_to_head4k_on_every_phase1_boundary():
             ) == judge.build_messages(boundary, prompt=b.prompt, view=b.view)
 
 
+# Derived seed and first draw of every stream still in use, recorded before the label streams
+# were retired (prereg Amendment 1). Removing a stream must not shift any of these.
+STREAMS = {
+    "sanity": ("20261001:harness-sanity", 0.730665052162665),
+    "bootstrap": ("20261001:bootstrap", 0.4382615191779776),
+}
+
+
+@pytest.mark.parametrize("stream", sorted(STREAMS))
+def test_remaining_seed_streams_are_unchanged(stream):
+    seed, first = STREAMS[stream]
+    assert PLAN.seed(stream) == seed
+    assert random.Random(PLAN.seed(stream)).random() == first
+
+
 def test_sanity_subset_regenerates_from_its_seed():
     drawn = draw_sanity(PLAN, {arm: load_boundaries(PLAN, arm) for arm in PLAN.arms})
     for arm in PLAN.arms:
@@ -66,38 +82,6 @@ def test_sanity_subset_regenerates_from_its_seed():
 def test_repair_prompt_cannot_be_built_before_it_is_designed():
     with pytest.raises(NotImplementedError):
         judge.build_messages(make_boundary(), prompt="repair-v1", view="evidence")
-
-
-# ── Truth ─────────────────────────────────────────────────────────────
-
-
-def _label(bid, stage, label, minute=0):
-    return LabelRecord(
-        boundary_id=bid,
-        stage=stage,
-        label=label,
-        confidence="sure",
-        order_index=0,
-        view_sha256="x",
-        annotator="a",
-        ts=datetime(2026, 10, 3, 12, minute, tzinfo=UTC),
-    )
-
-
-def test_truth_from_labels_uses_latest_adjudication_and_lists_the_rest():
-    bs = [make_boundary(boundary_id=f"b{i}") for i in range(4)]
-    labels = [
-        _label("b0", "blind", "done"),
-        _label("b0", "adjudicated", "not_done", 1),
-        _label("b0", "adjudicated", "done", 2),
-        _label("b1", "adjudicated", "ambiguous"),
-        _label("b2", "blind", "blocked"),
-        _label("b3", "adjudicated", "blocked"),
-        _label("b3", "relabel", "done", 5),
-    ]
-    t = analysis.truth_from_labels(labels, bs)
-    assert t.states == {"b0": "done", "b3": "blocked"}
-    assert t.ambiguous == ["b1"] and t.unlabelled == ["b2"]
 
 
 # ── Items ─────────────────────────────────────────────────────────────

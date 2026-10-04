@@ -1,5 +1,6 @@
 # Phase 2 judge replay plan, frozen by the prereg amendment of 2026-10-02 ("Phase 2 design")
-# before any truth label or Phase-2 judge call exists. Read by hjr/phase2.py.
+# before any truth label or Phase-2 judge call exists. Read by hjr/phase2.py. The label-order
+# and relabel streams and the label settings were retired by Amendment 1 (2026-10-03).
 
 samples = 3
 
@@ -31,19 +32,8 @@ identical = { "prod-plain:flash:headtail4k" = "prod-plain:flash:head4k" }
 # Named streams under the global seed (configs/seeds.toml); each draws from
 # random.Random("<global>:<stream>").
 [seeds]
-label_order = "label-order"
-relabel = "relabel"
 sanity = "harness-sanity"
 bootstrap = "bootstrap"
-
-[labels]
-path = "data/labels/phase1-labels.jsonl"
-# Dev boundaries are served first; held-out ones only once this tag exists.
-heldout_after_tag = "repair-freeze-v1"
-
-[relabel]
-n = 25
-min_hours = 24
 
 # Harness sanity check for the strong judge: the same prompts through the paid API
 # (`strong-api`), 3 samples each, compared with the Codex CLI arm on the same boundaries. Runs
