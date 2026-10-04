@@ -166,15 +166,24 @@ def attribute(m: Mutant, row: dict, inf: tuple[str, ...]) -> dict:
     return out
 
 
+def grade_bases(tasks: list[str] | None = None, workers: int = 4) -> list[BaseResult]:
+    """The base precondition alone, at the current verifier versions."""
+    bases = load_bases()
+    names = sorted(tasks or bases)
+    check_versions(names)
+    with ThreadPoolExecutor(workers) as pool:
+        return list(pool.map(lambda t: grade_base(t, bases), names))
+
+
 def run(
-    tasks: list[str] | None = None, workers: int = 4
+    tasks: list[str] | None = None, workers: int = 4, kinds: list[str] | None = None
 ) -> tuple[Path, list[BaseResult], list[dict]]:
     suite = require_frozen()
     registry = load_all()
     gone = retired()
     by_task: dict[str, list[Mutant]] = defaultdict(list)
     for key, m in sorted(registry.items()):
-        if key not in gone:
+        if key not in gone and (not kinds or m.kind in kinds):
             by_task[m.task].append(m)
     bases = load_bases()
     names = sorted(tasks or bases)
@@ -187,7 +196,8 @@ def run(
         rows = [r for chunk in chunks for r in chunk]
     RESULTS.mkdir(parents=True, exist_ok=True)
     stamp = datetime.now(UTC).strftime("%Y%m%dT%H%M%SZ")
-    out = RESULTS / f"{suite[:12]}-{stamp}.jsonl"
+    tag = "-" + "-".join(sorted(kinds)) if kinds else ""
+    out = RESULTS / f"{suite[:12]}-{stamp}{tag}.jsonl"
     with out.open("w", encoding="utf-8", newline="\n") as f:
         for r in rows:
             f.write(json.dumps(r, sort_keys=True) + "\n")

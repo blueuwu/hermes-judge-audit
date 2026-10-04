@@ -378,7 +378,15 @@ def cmd_mutants(args: argparse.Namespace) -> int:
             raise SystemExit("attribute needs --record results/mutants/<run>.jsonl")
         print(f"attribution in {run.reattribute(args.record.resolve()).relative_to(ROOT)}")
         return 0
-    out, bases, rows = run.run(args.task or None, workers=args.workers)
+    if args.action == "bases":
+        results = run.grade_bases(args.task or None, workers=args.workers)
+        versions = run.check_versions(b.task for b in results)
+        for b in results:
+            state = "ok" if b.ok else f"FAIL truth {b.truth}, failing {b.failing} {b.error[:300]}"
+            print(f"{b.task} {versions[b.task][0]}: {state}")
+        print(f"{sum(b.ok for b in results)}/{len(results)} bases grade as expected")
+        return 0 if all(b.ok for b in results) else 1
+    out, bases, rows = run.run(args.task or None, workers=args.workers, kinds=args.kind)
     bad = [b.task for b in bases if not b.ok]
     killed = sum(r["outcome"] == "killed_targeted" for r in rows)
     gated = sum(r["kind"] != "benign" for r in rows)
@@ -465,8 +473,9 @@ def main(argv: list[str] | None = None) -> int:
     p = sub.add_parser("phase2-estimate", help="estimated cost per Phase 2 cell (no model calls)")
     p.set_defaults(func=cmd_phase2_estimate)
 
-    p = sub.add_parser("mutants", help="verifier mutation suite: check, freeze, run, attribute")
-    p.add_argument("action", choices=["check", "freeze", "run", "attribute"])
+    p = sub.add_parser("mutants", help="verifier mutation suite: check, freeze, bases, run, ...")
+    p.add_argument("action", choices=["check", "freeze", "bases", "run", "attribute"])
+    p.add_argument("--kind", action="append", choices=["req", "look", "con", "benign"])
     p.add_argument("--record", type=Path, help="attribute: a recorded run (.jsonl)")
     p.add_argument("--task", action="append", help="limit a run to these tasks")
     p.add_argument("--workers", type=int, default=4)
