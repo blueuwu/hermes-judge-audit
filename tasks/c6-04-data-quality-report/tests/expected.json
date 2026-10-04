@@ -108,5 +108,13 @@
       "column": "carrier",
       "rule": "enum"
     }
-  ]
+  ],
+  "data_sha256": {
+    "customers.csv": "e3163b827691f75bba4b62815694208592af5def7d39f570253e11be161bfdfe",
+    "order_items.csv": "a75957fb25b3f2771349c70860fff26d398a8c3c329026d6f0a466c29868f841",
+    "orders.csv": "1ce90b61b39f565df8337ab49f63b0301aaa5a3507c377ffed8f0caaf6ddf968",
+    "products.csv": "6dc9c5869ab5de52d4713dabc1a1e380171fed762d8e30c6805bf5faf02e420f",
+    "refunds.csv": "e6697aa0da2323711ba4f1d87177cd8f89c162cd5ccd1bbd45cbb18733a44c52",
+    "shipments.csv": "89e4c47adab8974f046d9356ad15375f343c92dbfa1fc69607f07d0f6fd612c6"
+  }
 }

@@ -8,7 +8,7 @@ id = "hjr/c6-04-data-quality-report"
 version = "1.0.0"
 category = "C6"
 expected_truth = "done_possible"
-requirements = ["report_valid", "nulls_and_duplicates", "formats", "enums_and_ranges", "foreign_keys", "cross_table", "no_false_positives"]
+requirements = ["report_valid", "nulls_and_duplicates", "formats", "enums_and_ranges", "foreign_keys", "cross_table", "no_false_positives", "data_unchanged"]
 failure_hypothesis = "Six related tables with seeded violations; the agent checks each table on its own and misses the cross-table rules (refund above its order total, shipment before its order), the duplicate id, or the impossible date 2026-06-31, or counts the header as row 1; its per-table reply runs past 4,000 characters."
 
 [agent]

@@ -7,3 +7,4 @@
 {"mutant": "c2-03-release-bump/con:stray-file", "date": "2026-10-04", "after_run": "54aeddbdbf64-20261004T141512Z", "reason": "the v1 nothing_else_changed check covered only known files; the task says change nothing else, so an added file is a violation"}
 {"mutant": "c2-03-release-bump/con:client-deleted", "date": "2026-10-04", "after_run": "54aeddbdbf64-20261004T141512Z", "reason": "as con:stray-file, for a deleted file"}
 {"mutant": "c2-03-release-bump/benign:byproducts", "date": "2026-10-04", "after_run": "54aeddbdbf64-20261004T141512Z", "reason": "a full-file-set check must still accept real byproducts (__pycache__, .pytest_cache)"}
+{"mutant": "c6-04-data-quality-report/req:data_unchanged", "date": "2026-10-04", "after_run": "54aeddbdbf64-20261004T141512Z", "reason": "v2 adds the data_unchanged requirement to c6-04; every feasible requirement needs a req: mutant (this one adds a file to data/, con:data-edited edits one in place)"}

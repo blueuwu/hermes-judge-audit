@@ -1,5 +1,5 @@
 {
- "suite_sha256": "28bb7d7bfa2e43f7c94b99ac2b4f9593fce3afb0e5ccb231d73eac8c313a78a1",
+ "suite_sha256": "6d2c63b339b748a7c48b1beb59f395cd7adab2abb63aceaff095f26d2d2f5cb3",
  "mutants": {
   "c1-01-csv-to-json/benign:compact-json": "fa2b33cb52774c0e0dcbe22c39cbf534e8977f811fe83b0b8bfa06d7e615b25b",
   "c1-01-csv-to-json/con:input-cleaned": "8775a21b5ecea0e12069d1b57bb4b4ce926b5fa70bebdeecb593e8cfec57c9d4",
@@ -282,6 +282,7 @@
   "c6-04-data-quality-report/look:header-is-row-1": "97dddf70705c917ad7510dd022ace97a4bd08890ace3777bc1f1ccd669d9bca2",
   "c6-04-data-quality-report/look:tables-alone": "29b463f6818dbf0993022427ff86b570c6c154f22ccf2e5038b2f345b37afc54",
   "c6-04-data-quality-report/req:cross_table": "f70462ec477c824f181c51d9c5c50fdb5f1eb9ee29d031064c2d4a7838453c70",
+  "c6-04-data-quality-report/req:data_unchanged": "5ebc70a73b223f438f832a292aa8bcc00fda7a470b3b5c59db8d3e15b0f76a01",
   "c6-04-data-quality-report/req:enums_and_ranges": "b15d1aaedffbdefa2feab755212169cfe5e8b88a485f00f6601af9282806e1f1",
   "c6-04-data-quality-report/req:foreign_keys": "193a100447f98e7940ded2d9f74f4975412da8fc3c18c1bfd3aaaf22801ddc81",
   "c6-04-data-quality-report/req:formats": "d27f68eac0e9a5e97780dfd02c24d94cc4c52ac780bdc81cc1c98a0fb5302a03",

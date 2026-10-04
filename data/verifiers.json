@@ -1,5 +1,5 @@
 {
- "note": "Verifier version per task: the sha256 of its tests/ directory (hjr.verifier.tests_sha). v1 is the verifier Phase 1 was graded with. Any change to tests/ needs a version bump here.",
+ "note": "Verifier version per task: the sha256 of its tests/ directory (hjr.verifier.tests_sha). v1 is the verifier Phase 1 was graded with. Any change to tests/ needs a version bump here. `history` keeps earlier versions (tests_sha256 and a commit whose tests/ has it); `changes` says what each version changed.",
  "tasks": {
   "c1-01-csv-to-json": {
    "version": "v1",
@@ -22,16 +22,36 @@
    "tests_sha256": "971ff6d7fa794522625798a95f9d47e60670fd6ada18738ae0070b1ee84eba07"
   },
   "c2-01-rename-function": {
-   "version": "v1",
-   "tests_sha256": "2a249593b714c5c121e45ad3152f3671b707f8ea54a63e687bde8e0685e17061"
+   "version": "v2",
+   "tests_sha256": "7a4cca87777ebe0eae22ddfed3524519c5d8fa8ef82253b674ac9a2bf66f8fe5",
+   "history": [
+    {
+     "version": "v1",
+     "tests_sha256": "2a249593b714c5c121e45ad3152f3671b707f8ea54a63e687bde8e0685e17061",
+     "commit": "7e01f44d13f1631846503bdd117578fc37385104"
+    }
+   ],
+   "changes": {
+    "v2": "callers_updated reads call sites in billing/invoice.py, billing/cli.py and the three original tests (AST names, not text), so a new test of the deprecated alias is allowed; docs_updated asks that compute_total is documented and calc_total appears only in a section on the deprecated alias, not that calc_total is absent; tests_pass asks for success and at least 3 tests, not the exact 'Ran 3 tests'. Requirement list unchanged. Prompted by benign variants alias-test-added and api-documents-alias (mutation run 54aeddbdbf64-20261004T141512Z)."
+   }
   },
   "c2-02-add-dry-run-flag": {
    "version": "v1",
    "tests_sha256": "51aff9cb6098c35fe735aa69f92422b8276402ff62b98a5b64a7d77d3e03007e"
   },
   "c2-03-release-bump": {
-   "version": "v1",
-   "tests_sha256": "f11b034869517e08ad58f2ef0cf2e20f8c3beabfc821396310764906f86c257e"
+   "version": "v2",
+   "tests_sha256": "d985c40b856458b8d33bf1702e9004cb1765d71c869751668c5dd17202e8891d",
+   "history": [
+    {
+     "version": "v1",
+     "tests_sha256": "f11b034869517e08ad58f2ef0cf2e20f8c3beabfc821396310764906f86c257e",
+     "commit": "7e01f44d13f1631846503bdd117578fc37385104"
+    }
+   ],
+   "changes": {
+    "v2": "nothing_else_changed compares the whole file set with the starting workspace: no file added or deleted (byproducts __pycache__, .pytest_cache, .mypy_cache, .ruff_cache and *.pyc aside); src/fluxq/client.py byte-identical; the release targets equal to the start outside the masked version fields and badge; CHANGELOG.md title, history headings and history fixed. Requirement list unchanged. Prompted by survivors con:client-code-edited and con:readme-prose-edited."
+   }
   },
   "c2-04-settings-migration": {
    "version": "v1",
@@ -114,8 +134,18 @@
    "tests_sha256": "4a16a5a17b26c3360013d778d1b57d1fc51af11b8369084fac6527666782936c"
   },
   "c6-04-data-quality-report": {
-   "version": "v1",
-   "tests_sha256": "88aad3136485b40ff87030a5df637c9b72deda16c3d4c396ab3db82509843dee"
+   "version": "v2",
+   "tests_sha256": "a89d88bbb1a608b1a0af110003ed98e432b9e8f25078949f06763a9d1e3924f0",
+   "history": [
+    {
+     "version": "v1",
+     "tests_sha256": "88aad3136485b40ff87030a5df637c9b72deda16c3d4c396ab3db82509843dee",
+     "commit": "7e01f44d13f1631846503bdd117578fc37385104"
+    }
+   ],
+   "changes": {
+    "v2": "Requirement list changed: data_unchanged added (every file under data/ byte-identical to the start, none added or removed; the task says 'Do not modify the data'). A duplicate id is graded on table, row and column whatever its rule label, unless the label is another rule SCHEMA.md names, because SCHEMA.md gives no name for uniqueness. Prompted by survivor con:data-edited and benign variant duplicate-rule-name."
+   }
   },
   "c6-05-docs-links": {
    "version": "v1",

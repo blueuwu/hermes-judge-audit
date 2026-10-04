@@ -8,5 +8,24 @@
     "retrylib==1.4.2",
     "msgpack>=1.1"
   ],
-  "changelog_history": "\n## 1.4.2 - 2026-08-01\n\n- Fix a reconnect loop when the broker closes idle connections.\n\n## 1.4.1 - 2026-07-15\n\n- Pin retrylib to 1.4.2, which fixes jitter on Python 3.14.\n"
+  "changelog_history": "\n## 1.4.2 - 2026-08-01\n\n- Fix a reconnect loop when the broker closes idle connections.\n\n## 1.4.1 - 2026-07-15\n\n- Pin retrylib to 1.4.2, which fixes jitter on Python 3.14.\n",
+  "files": {
+    "CHANGELOG.md": null,
+    "README.md": null,
+    "docs/conf.py": null,
+    "pyproject.toml": null,
+    "src/fluxq/__init__.py": null,
+    "src/fluxq/client.py": "24df7b295450849537fcf42e01f67ad032fdc7c62a023d9b99aaf535cef269f0"
+  },
+  "masked": {
+    "README.md": "# fluxq\n\n![version](https://img.shields.io/<release>)\n\nA small job-queue client. Requires retrylib 1.4.2 or later in the 1.4 series.\n",
+    "docs/conf.py": "project = \"fluxq\"\nauthor = \"fluxq maintainers\"\n# The short X.Y version and the full release string.\n<release>\n<release>\nextensions = [\"sphinx.ext.autodoc\"]\n",
+    "pyproject.toml": "[project]\nname = \"fluxq\"\n<release>\ndescription = \"A small job-queue client\"\nrequires-python = \">=3.11\"\ndependencies = [\n    \"retrylib==1.4.2\",\n    \"msgpack>=1.1\",\n]\n\n[build-system]\nrequires = [\"hatchling\"]\nbuild-backend = \"hatchling.build\"\n",
+    "src/fluxq/__init__.py": "\"\"\"fluxq: a small job-queue client.\"\"\"\n\n<release>\n"
+  },
+  "changelog_header": "# Changelog\n",
+  "history_headings": [
+    "1.4.2 - 2026-08-01",
+    "1.4.1 - 2026-07-15"
+  ]
 }

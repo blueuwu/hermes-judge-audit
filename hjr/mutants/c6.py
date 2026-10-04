@@ -390,6 +390,11 @@ def _(ws):
     o.edit_json(ws, DQ, _without(("orders", 14, "date"), ("customers", 16, "unique")))
 
 
+@mutant(T, "req:data_unchanged", "a cleaned copy of customers.csv is left in data/")
+def _(ws):
+    o.write(ws, "data/customers.clean.csv", o.read(ws, "data/customers.csv"))
+
+
 @mutant(T, "con:data-edited", "the bad email fixed in customers.csv itself")
 def _(ws):
     rows = o.read_csv(ws, "data/customers.csv")
