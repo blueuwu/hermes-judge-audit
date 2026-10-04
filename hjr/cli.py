@@ -359,6 +359,29 @@ def cmd_phase2_summary(args: argparse.Namespace) -> int:
     return 0
 
 
+def cmd_mutants(args: argparse.Namespace) -> int:
+    from hjr import mutants
+    from hjr.mutants import run
+
+    if args.action == "check":
+        problems = run.apply_check()
+        n = len(mutants.load_all())
+        print("\n".join(problems) or f"all {n} mutants apply and change their base")
+        return 1 if problems else 0
+    if args.action == "freeze":
+        suite, added = mutants.freeze()
+        print(f"suite {suite}: {len(added)} added")
+        print("\n".join(f"  {a}" for a in added))
+        return 0
+    out, bases, rows = run.run(args.task or None, workers=args.workers)
+    bad = [b.task for b in bases if not b.ok]
+    killed = sum(r["outcome"] == "killed" for r in rows)
+    gated = sum(r["kind"] != "benign" for r in rows)
+    print(f"bases: {len(bases) - len(bad)}/{len(bases)} as expected; failing: {bad or 'none'}")
+    print(f"killed {killed}/{gated}; results in {out.relative_to(ROOT)}")
+    return 0
+
+
 def main(argv: list[str] | None = None) -> int:
     parser = argparse.ArgumentParser(prog="hjr", description=__doc__)
     parser.add_argument("-v", "--verbose", action="store_true")
@@ -436,6 +459,12 @@ def main(argv: list[str] | None = None) -> int:
 
     p = sub.add_parser("phase2-estimate", help="estimated cost per Phase 2 cell (no model calls)")
     p.set_defaults(func=cmd_phase2_estimate)
+
+    p = sub.add_parser("mutants", help="verifier mutation suite: check, freeze, run")
+    p.add_argument("action", choices=["check", "freeze", "run"])
+    p.add_argument("--task", action="append", help="limit a run to these tasks")
+    p.add_argument("--workers", type=int, default=4)
+    p.set_defaults(func=cmd_mutants)
 
     p = sub.add_parser("phase2-summary", help="Phase 2 analysis tables (no model calls)")
     p.set_defaults(func=cmd_phase2_summary)

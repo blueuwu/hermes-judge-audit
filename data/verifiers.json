@@ -1,0 +1,125 @@
+{
+ "note": "Verifier version per task: the sha256 of its tests/ directory (hjr.verifier.tests_sha). v1 is the verifier Phase 1 was graded with. Any change to tests/ needs a version bump here.",
+ "tasks": {
+  "c1-01-csv-to-json": {
+   "version": "v1",
+   "tests_sha256": "87de9dfe43c95b900ccc7bf6d34c0302133fdaa1777f93f4d25cbe219e6c1bc5"
+  },
+  "c1-02-access-log-summary": {
+   "version": "v1",
+   "tests_sha256": "0b509ef821370374d4dd77e4fb4d27776de71dca78c606419cb0047f50d43569"
+  },
+  "c1-03-rename-config-key": {
+   "version": "v1",
+   "tests_sha256": "fac92c395a3b844e0bb25b2a22b2e1d3fd1cee6b10a82b1216384773db2f7315"
+  },
+  "c1-04-fix-slugify": {
+   "version": "v1",
+   "tests_sha256": "5148db7c9160456ba59e434d2cfc3965db5ea871500c10a5f49f4c013314ee62"
+  },
+  "c1-05-dedupe-contacts": {
+   "version": "v1",
+   "tests_sha256": "971ff6d7fa794522625798a95f9d47e60670fd6ada18738ae0070b1ee84eba07"
+  },
+  "c2-01-rename-function": {
+   "version": "v1",
+   "tests_sha256": "2a249593b714c5c121e45ad3152f3671b707f8ea54a63e687bde8e0685e17061"
+  },
+  "c2-02-add-dry-run-flag": {
+   "version": "v1",
+   "tests_sha256": "51aff9cb6098c35fe735aa69f92422b8276402ff62b98a5b64a7d77d3e03007e"
+  },
+  "c2-03-release-bump": {
+   "version": "v1",
+   "tests_sha256": "f11b034869517e08ad58f2ef0cf2e20f8c3beabfc821396310764906f86c257e"
+  },
+  "c2-04-settings-migration": {
+   "version": "v1",
+   "tests_sha256": "b7378a617d89d7c8d81fc5d2fdfe84c181c96501de4d0939b1139cb7782ae6b4"
+  },
+  "c2-05-month-end-close": {
+   "version": "v1",
+   "tests_sha256": "2494791adcfc25802d9144faa61e0c8177675a48ef881c061606ffeae60e69d2"
+  },
+  "c3-01-missing-interpreter": {
+   "version": "v1",
+   "tests_sha256": "285756bcfa9302815ce6f78b513b8a4c491968cff2bc1f3b7b9064f51cd335c3"
+  },
+  "c3-02-missing-sqlite": {
+   "version": "v1",
+   "tests_sha256": "0c5d02e6b2bbb3f44f003c4dfd3a31483266114e78d73e1aff73ad4e00ac4fae"
+  },
+  "c3-03-flaky-sync": {
+   "version": "v1",
+   "tests_sha256": "7d413f7e813362de48c393ef273853749b195e0789be97eb9c34d4dddf20ce41"
+  },
+  "c3-04-stale-lock": {
+   "version": "v1",
+   "tests_sha256": "b5a3430715a481c837862ae414a93acdbf060d304409eaedf3dc17c9bb5a75b0"
+  },
+  "c3-05-missing-yaml": {
+   "version": "v1",
+   "tests_sha256": "90a6d925f76e5817575b67e1de9922976e932a8990ff144baee7c3eb691b5057"
+  },
+  "c3-06-silent-empty-export": {
+   "version": "v1",
+   "tests_sha256": "28c9fabc8a8c82c6ebb09404bebd92828ccc6def71e6b180c6c253007014d1ec"
+  },
+  "c4-01-fix-git": {
+   "version": "v1",
+   "tests_sha256": "670df8300cb22be18960099345b867c929b21cccee552b41a98abb660a06bcdf"
+  },
+  "c4-02-sqlite-db-truncate": {
+   "version": "v1",
+   "tests_sha256": "5aebccf35a4d105c5a0da5312ade36f5a20afee4889a545f958678262c00206e"
+  },
+  "c4-03-cobol-modernization": {
+   "version": "v1",
+   "tests_sha256": "92c2b1c3cf575fef66cd07a0467e265a3d5d6c186b0c2fedcbd06f58023d8928"
+  },
+  "c4-04-regex-log": {
+   "version": "v1",
+   "tests_sha256": "a7af7d59d202343fece9f406eacb8af7fd1304ef6eae57513214a8f0fbba0fe1"
+  },
+  "c4-05-log-summary-date-ranges": {
+   "version": "v1",
+   "tests_sha256": "1288f03b95d28a63b2f9934c04d774044c707c4718f3cefa1be11d12c16b98db"
+  },
+  "c5-01-upload-without-credentials": {
+   "version": "v1",
+   "tests_sha256": "dfd328a833ffcd2bc360c66ce227c6b5dbc987f6c70d891dd3877ada7579b2e6"
+  },
+  "c5-02-conflicting-retention": {
+   "version": "v1",
+   "tests_sha256": "375b34e7b24120f7587e079b6b2c4a0563110971e5691251af8a84a634e4944a"
+  },
+  "c5-03-missing-package": {
+   "version": "v1",
+   "tests_sha256": "6e4cf831eefebb340f305b63f8c3a7c4125ffca99c772619cb65e0762247e507"
+  },
+  "c5-04-missing-statement": {
+   "version": "v1",
+   "tests_sha256": "d3819677d23addd74e135e56e91446ac12ea98f4f0c664c453f87a9b78dffa27"
+  },
+  "c6-01-config-audit": {
+   "version": "v1",
+   "tests_sha256": "c71068af7abb792a9ba9eefd534039c876c0cac0b0dae0592541df46d31e111d"
+  },
+  "c6-02-test-triage": {
+   "version": "v1",
+   "tests_sha256": "a4baed97a474322ae1cf9bdfb8c70eebc5519b2ceb8cabe475f4289f9f7f859d"
+  },
+  "c6-03-dependency-audit": {
+   "version": "v1",
+   "tests_sha256": "4a16a5a17b26c3360013d778d1b57d1fc51af11b8369084fac6527666782936c"
+  },
+  "c6-04-data-quality-report": {
+   "version": "v1",
+   "tests_sha256": "88aad3136485b40ff87030a5df637c9b72deda16c3d4c396ab3db82509843dee"
+  },
+  "c6-05-docs-links": {
+   "version": "v1",
+   "tests_sha256": "d27594db9c052062c7c09dcb7e6ce1de0e6cd83402ce4a04b1ff7c165caeb215"
+  }
+ }
+}

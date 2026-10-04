@@ -155,6 +155,8 @@ uv run hjr ingest --job jobs/phase1-<arm> --out data/frozen/phase1-<arm>.jsonl
 | `hjr/drift.py` | Judge-model drift on frozen items |
 | `hjr/phase2.py`, `hjr/analysis.py`, `hjr/stats.py` | Phase 2 plan, per-arm analysis, intervals and paired tests |
 | `hjr/codex.py` | The `strong` judge through the Codex CLI: isolated calls, pinned model and version |
+| `hjr/verifier.py` | Verifier versions (`data/verifiers.json`) and offline grading in each task's verifier image |
+| `hjr/mutants/` | Verifier mutation suite (prereg Amendment 1): mutants per family, frozen in `data/mutants/suite.json` |
 | `hjr/estimate.py` | Cost estimate per Phase 2 cell from measured token ratios and live prices |
 | `hjr/soak.py`, `hjr/soakreport.py` | Soak gate evaluation, and soak reports built from Harbor trials |
 | `hjr/goalloop.py`, `hjr/harness/` | The `/goal` loop as Hermes runs it, and the Harbor agent that drives it |

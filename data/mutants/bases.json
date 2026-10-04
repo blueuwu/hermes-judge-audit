@@ -1,0 +1,125 @@
+{
+ "note": "Oracle bases: each task's /app after Harbor's oracle agent ran its reference solution (job jobs/oracle-suite, run 2026-10-02 18:27 +0530, after the last change to tasks/ at 18:23). jobs/ is not committed; tree_sha256 (hjr.verifier.tree_sha) pins each base.",
+ "tasks": {
+  "c1-01-csv-to-json": {
+   "source": "jobs/oracle-suite/c1-01-csv-to-json__pcMQSPR/artifacts/app",
+   "tree_sha256": "c7338c08adb54781acec7193f3de86018ddca3877a71c96b23f9204e46e61b8a"
+  },
+  "c1-02-access-log-summary": {
+   "source": "jobs/oracle-suite/c1-02-access-log-summary__nmFwX2h/artifacts/app",
+   "tree_sha256": "70ecb9fe2efcb1f2ab0792657e284fa9276f529f71a579e30fee5bf49b0b3eeb"
+  },
+  "c1-03-rename-config-key": {
+   "source": "jobs/oracle-suite/c1-03-rename-config-key__NfJPi2A/artifacts/app",
+   "tree_sha256": "41a8c8529e07233e11449dff32189e16165d53ed8eed0c39618a97db63452057"
+  },
+  "c1-04-fix-slugify": {
+   "source": "jobs/oracle-suite/c1-04-fix-slugify__MeU83HU/artifacts/app",
+   "tree_sha256": "911eac5935f828d48150f174633dbc8dbca5d9c1cc1bbb5c7ff651563d36ed20"
+  },
+  "c1-05-dedupe-contacts": {
+   "source": "jobs/oracle-suite/c1-05-dedupe-contacts__hknhthC/artifacts/app",
+   "tree_sha256": "c8a9721ee1abab6b38103559f67ceda3f2fb6f1e6e5871adacec3265386a2316"
+  },
+  "c2-01-rename-function": {
+   "source": "jobs/oracle-suite/c2-01-rename-function__4XuHGbe/artifacts/app",
+   "tree_sha256": "7081ae4cc85352d80129a4ca456bac6b4f440e0edaec9117845ae7a192f1369c"
+  },
+  "c2-02-add-dry-run-flag": {
+   "source": "jobs/oracle-suite/c2-02-add-dry-run-flag__d8pyBWK/artifacts/app",
+   "tree_sha256": "cc8172644fd3b72f1f9fadf3199a2b8015b384fd4c6171c642b069dacbe4df19"
+  },
+  "c2-03-release-bump": {
+   "source": "jobs/oracle-suite/c2-03-release-bump__Da9eJmW/artifacts/app",
+   "tree_sha256": "01ebb820ff35d6abf920f4ca86cfb41a0dbf2f5b5ea7ddb1dbe13baa30057df8"
+  },
+  "c2-04-settings-migration": {
+   "source": "jobs/oracle-suite/c2-04-settings-migration__DSyxWLH/artifacts/app",
+   "tree_sha256": "63fc3346d0a69261f49882606c3531a636b8e6489a371f32775496f8edb2d33d"
+  },
+  "c2-05-month-end-close": {
+   "source": "jobs/oracle-suite/c2-05-month-end-close__z9o5BHG/artifacts/app",
+   "tree_sha256": "60ebd1265eb2435564cd76f22ae35b7d3a8d714604d99e2f54aec69407ae2a7b"
+  },
+  "c3-01-missing-interpreter": {
+   "source": "jobs/oracle-suite/c3-01-missing-interpreter__hYUJmPQ/artifacts/app",
+   "tree_sha256": "00435984b7c9d325bfc77798bdd27e6f0c2d4ab717e8ee8857377e186df1bc7a"
+  },
+  "c3-02-missing-sqlite": {
+   "source": "jobs/oracle-suite/c3-02-missing-sqlite__nZXvvUr/artifacts/app",
+   "tree_sha256": "b01e7532ba0089b1a774a1b173117a5eb0a7822bcb142fc66876d5795c3c0b82"
+  },
+  "c3-03-flaky-sync": {
+   "source": "jobs/oracle-suite/c3-03-flaky-sync__QQUP9nN/artifacts/app",
+   "tree_sha256": "e07365d9d3aafce4f75de4753e93e1531cc16b02f4aa91dd24de48697c327cf1"
+  },
+  "c3-04-stale-lock": {
+   "source": "jobs/oracle-suite/c3-04-stale-lock__QWxpWCW/artifacts/app",
+   "tree_sha256": "b7e3391af0ed7d070be131bcda21e2a9e7ac820b6ac950bfce49162bde090e12"
+  },
+  "c3-05-missing-yaml": {
+   "source": "jobs/oracle-suite/c3-05-missing-yaml__8fZ8yDB/artifacts/app",
+   "tree_sha256": "5f19961252ed2110dba5af424b105e55ad5f7737c8093dd30616e77a02ec5da0"
+  },
+  "c3-06-silent-empty-export": {
+   "source": "jobs/oracle-suite/c3-06-silent-empty-export__DBSXY2j/artifacts/app",
+   "tree_sha256": "db33853d1f112b5897e10111c40fb0216221bffdde729c6d5cb370ae02478024"
+  },
+  "c4-01-fix-git": {
+   "source": "jobs/oracle-suite/c4-01-fix-git__hSmanhm/artifacts/app",
+   "tree_sha256": "9ac6f6dc7d7e42a561e6e1e379f4c5d2b426d0355edb6d6fb7f7e65c94dc0d6a"
+  },
+  "c4-02-sqlite-db-truncate": {
+   "source": "jobs/oracle-suite/c4-02-sqlite-db-truncate__LfcJbKJ/artifacts/app",
+   "tree_sha256": "26ad3307dccfa9854d4d4b4a38e4c585b1c4196cfab7f732e7f36bc50366ca9d"
+  },
+  "c4-03-cobol-modernization": {
+   "source": "jobs/oracle-suite/c4-03-cobol-modernization__gpHuv7Y/artifacts/app",
+   "tree_sha256": "1f36e47b815a2196f7c71ebe3ae34411df834141fa93083223ecc97636376a8f"
+  },
+  "c4-04-regex-log": {
+   "source": "jobs/oracle-suite/c4-04-regex-log__bEDaGQA/artifacts/app",
+   "tree_sha256": "47b5f9bc9af38c1588a85e97f7b536e0f8d01a49f9898d688c1ec64a2c7096ba"
+  },
+  "c4-05-log-summary-date-ranges": {
+   "source": "jobs/oracle-suite/c4-05-log-summary-date-ranges__aFtkEBw/artifacts/app",
+   "tree_sha256": "efd414afda145b286591ea6c15b5fb6c663ed9093299f5c4e6d84678b38f54ba"
+  },
+  "c5-01-upload-without-credentials": {
+   "source": "jobs/oracle-suite/c5-01-upload-without-credentials__HsLVMBZ/artifacts/app",
+   "tree_sha256": "26df8080deb24cc492afd397fc577695b8a4ba2709e7aee8afc471e43092589c"
+  },
+  "c5-02-conflicting-retention": {
+   "source": "jobs/oracle-suite/c5-02-conflicting-retention__HiqYF5C/artifacts/app",
+   "tree_sha256": "4af1f5f5a15ac8fd1ba28cc7a02a28d82a07dcbc686d5c662799fe0a0afe58e0"
+  },
+  "c5-03-missing-package": {
+   "source": "jobs/oracle-suite/c5-03-missing-package__c78VNZP/artifacts/app",
+   "tree_sha256": "310443cdaaa219a3bd9aad5bae9d3df6c4f2695f89dfbe72af6f87973c3f5bd8"
+  },
+  "c5-04-missing-statement": {
+   "source": "jobs/oracle-suite/c5-04-missing-statement__qf3Fk58/artifacts/app",
+   "tree_sha256": "11c288f9919d11cf9ed63aa954a67f8d1b2247e2e8b29adf0639979358db4ce1"
+  },
+  "c6-01-config-audit": {
+   "source": "jobs/oracle-suite/c6-01-config-audit__FUVprXW/artifacts/app",
+   "tree_sha256": "bcef35a6df813f4f1ed2ee478d22654dad046626fd46d3cc537c3c2e96fd315d"
+  },
+  "c6-02-test-triage": {
+   "source": "jobs/oracle-suite/c6-02-test-triage__KKPV3qn/artifacts/app",
+   "tree_sha256": "d8ad76f08286b0462b31160263a0b00ff9a551e77d984f433ed6de0d522ea3c7"
+  },
+  "c6-03-dependency-audit": {
+   "source": "jobs/oracle-suite/c6-03-dependency-audit__68AXLt5/artifacts/app",
+   "tree_sha256": "4b0bf06a709316081824e2c94bf800eb624489cc4e022819eb5ce184b53d8740"
+  },
+  "c6-04-data-quality-report": {
+   "source": "jobs/oracle-suite/c6-04-data-quality-report__9D7kG3Y/artifacts/app",
+   "tree_sha256": "accf8e43d7ca1521b78cc3ee1ef1faa26fbaedbe2770a5888064c9e83035cf11"
+  },
+  "c6-05-docs-links": {
+   "source": "jobs/oracle-suite/c6-05-docs-links__xmKFtfD/artifacts/app",
+   "tree_sha256": "7edfea19e41d02867302f483bc29cc9a53a74e786fd7a65935b22884e95a7c05"
+  }
+ }
+}
