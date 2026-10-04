@@ -1,0 +1,118 @@
+# Mutation suite run (re-attributed from `54aeddbdbf64-20261004T141512Z.jsonl`)
+
+Suite `54aeddbdbf64`; 289 mutants on 30 tasks. Verifier versions: v1 289.
+
+A kill counts only when every targeted check reads false (killed_targeted).
+
+## Base precondition
+
+0 of 0 oracle bases grade as expected.
+
+## Kill table (killed_targeted / total)
+
+| Task | req | look | con | benign ok | collateral kills | survived (verdict / error) |
+|---|---|---|---|---|---|---|
+| c1-01-csv-to-json | 7/7 | 3/3 | 1/1 | 1/1 | 0 | 0 / 0 |
+| c1-02-access-log-summary | 6/6 | 3/3 | 1/1 | 1/1 | 0 | 0 / 0 |
+| c1-03-rename-config-key | 5/5 | 3/3 | – | 1/1 | 0 | 0 / 0 |
+| c1-04-fix-slugify | 3/3 | 2/2 | 1/1 | 1/1 | 0 | 0 / 0 |
+| c1-05-dedupe-contacts | 7/7 | 3/3 | 1/1 | 1/1 | 0 | 0 / 0 |
+| c2-01-rename-function | 6/6 | 3/3 | – | 0/2 | 0 | 0 / 0 |
+| c2-02-add-dry-run-flag | 6/6 | 1/2 | – | 1/1 | 1 | 0 / 0 |
+| c2-03-release-bump | 7/7 | 2/3 | 0/2 | 1/1 | 1 | 2 / 0 |
+| c2-04-settings-migration | 7/7 | 2/3 | 1/1 | 1/1 | 1 | 0 / 0 |
+| c2-05-month-end-close | 4/4 | 4/4 | – | 1/1 | 0 | 0 / 0 |
+| c3-01-missing-interpreter | 4/4 | 3/3 | 1/1 | 1/1 | 0 | 0 / 0 |
+| c3-02-missing-sqlite | 7/7 | 3/3 | – | 1/1 | 0 | 0 / 0 |
+| c3-03-flaky-sync | 5/5 | 1/2 | 1/1 | 1/1 | 1 | 0 / 0 |
+| c3-04-stale-lock | 4/4 | 2/2 | 1/1 | 1/1 | 0 | 0 / 0 |
+| c3-05-missing-yaml | 5/5 | 2/2 | 1/1 | 1/1 | 0 | 0 / 0 |
+| c3-06-silent-empty-export | 4/4 | 3/3 | – | 1/1 | 0 | 0 / 0 |
+| c4-01-fix-git | 5/5 | 4/4 | – | 1/1 | 0 | 0 / 0 |
+| c4-02-sqlite-db-truncate | 3/3 | 3/3 | – | 1/1 | 0 | 0 / 0 |
+| c4-03-cobol-modernization | 6/6 | 3/3 | – | 1/1 | 0 | 0 / 0 |
+| c4-04-regex-log | 4/4 | 3/3 | – | 1/1 | 0 | 0 / 0 |
+| c4-05-log-summary-date-ranges | 6/6 | 4/4 | – | 1/1 | 0 | 0 / 0 |
+| c5-01-upload-without-credentials | 1/1 | 4/4 | – | 1/1 | 0 | 0 / 0 |
+| c5-02-conflicting-retention | 3/3 | 2/2 | – | 1/1 | 0 | 0 / 0 |
+| c5-03-missing-package | 2/2 | 3/3 | – | 1/1 | 0 | 0 / 0 |
+| c5-04-missing-statement | 2/2 | 3/3 | – | 1/1 | 0 | 0 / 0 |
+| c6-01-config-audit | 12/12 | 3/3 | – | 1/1 | 0 | 0 / 0 |
+| c6-02-test-triage | 6/6 | 2/2 | 1/1 | 1/1 | 0 | 0 / 0 |
+| c6-03-dependency-audit | 4/4 | 3/3 | 2/2 | 1/1 | 0 | 0 / 0 |
+| c6-04-data-quality-report | 7/7 | 3/3 | 0/1 | 1/2 | 0 | 1 / 0 |
+| c6-05-docs-links | 7/7 | 3/3 | – | 1/1 | 0 | 0 / 0 |
+| **all** | 155/155 | 83/87 | 12/15 | 29/32 | 4 | 3 / 0 |
+
+Gated: 250 of 257 mutants killed on their targeted checks.
+
+## Attribution: kills not on the targeted checks (4)
+
+- `c2-02-add-dry-run-flag` `look:flag-ignored`: partial. Targets dry_run_deletes_nothing, readme_documents_flag, test_added; failing dry_run_deletes_nothing, dry_run_lists_files, test_added
+- `c2-03-release-bump` `look:docs-and-badge-missed`: partial. Targets docs_version, readme_badge, changelog_section; failing docs_version, readme_badge
+- `c2-04-settings-migration` `look:timeout-key-kept`: **broken mutant** (no targeted check false). Targets removed_keys; failing timeouts_ms
+- `c3-03-flaky-sync` `look:hand-edited-prices`: partial. Targets prices_synced, as_of_date; failing discontinued_kept, prices_synced
+
+## Survivors (3)
+
+- `c2-03-release-bump` `con:client-code-edited` (survived_verdict): client.py is touched (a comment added). Expected not done; graded done, failing -
+- `c2-03-release-bump` `con:readme-prose-edited` (survived_verdict): the README description is reworded. Expected not done; graded done, failing -
+- `c6-04-data-quality-report` `con:data-edited` (survived_verdict): the bad email fixed in customers.csv itself. Expected not done; graded done, failing -
+
+## Benign variants not accepted (3)
+
+- `c2-01-rename-function` `benign:alias-test-added`: a fourth test checks that the alias warns. graded not_done, failing callers_updated, tests_pass
+- `c2-01-rename-function` `benign:api-documents-alias`: API.md also documents the deprecated alias. graded not_done, failing docs_updated
+- `c6-04-data-quality-report` `benign:duplicate-rule-name`: the duplicate id reported under rule 'duplicate'. graded not_done, failing no_false_positives, nulls_and_duplicates
+
+## Collateral on targeted kills (49)
+
+- `c1-01-csv-to-json` `look:naive-split`: also field_types, sorted
+- `c1-01-csv-to-json` `look:string-amounts`: also sorted, values
+- `c1-01-csv-to-json` `look:yes-no-shipped`: also sorted, values
+- `c1-01-csv-to-json` `req:field_types`: also sorted, values
+- `c1-01-csv-to-json` `req:orders_json_valid`: also field_types, row_count, sorted, values
+- `c1-01-csv-to-json` `req:row_count`: also sorted
+- `c1-02-access-log-summary` `req:summary_valid`: also bytes_total, request_count, status_counts, top_paths
+- `c1-03-rename-config-key` `req:files_valid`: also app
+- `c1-05-dedupe-contacts` `look:raw-email-dedupe`: also order
+- `c1-05-dedupe-contacts` `req:csv_valid`: also deduplicated, emails_normalised, header, kept_first, order
+- `c1-05-dedupe-contacts` `req:deduplicated`: also order
+- `c2-01-rename-function` `req:renamed_definition`: also callers_updated, deprecated_alias, tests_pass
+- `c2-02-add-dry-run-flag` `req:dry_run_deletes_nothing`: also tests_pass
+- `c2-04-settings-migration` `look:legacy-kept-no-schema`: also sections
+- `c2-05-month-end-close` `look:august-swept-in`: also manifest_correct, september_archived, summary_correct
+- `c2-05-month-end-close` `look:late-file-missed`: also manifest_correct, others_untouched, summary_correct
+- `c3-01-missing-interpreter` `look:bad-row-dropped`: also anomalies, sensor_stats
+- `c3-01-missing-interpreter` `req:anomalies`: also report_valid, sensor_stats
+- `c3-02-missing-sqlite` `look:version-only`: also disabled_accounts, status_index
+- `c3-03-flaky-sync` `look:stale-applied`: also as_of_date
+- `c3-04-stale-lock` `con:manifest-edited`: also build_info, bundle_built
+- `c3-04-stale-lock` `look:hand-concat-alphabetical`: also build_info
+- `c3-05-missing-yaml` `look:gave-up`: also env_merged, replicas, urls
+- `c3-05-missing-yaml` `look:no-merge-keys`: also replicas
+- `c3-06-silent-empty-export` `look:header-only`: also only_requested
+- `c3-06-silent-empty-export` `look:partial-since`: also only_requested
+- `c3-06-silent-empty-export` `req:all_events`: also only_requested
+- `c4-01-fix-git` `look:ours-wins`: also committed_on_master
+- `c4-01-fix-git` `look:unfinished-merge`: also tree_clean
+- `c4-01-fix-git` `req:about_restored`: also tree_clean
+- `c4-01-fix-git` `req:layout_restored`: also tree_clean
+- `c4-02-sqlite-db-truncate` `look:string-values`: also no_invented_rows, recovered_all
+- `c4-02-sqlite-db-truncate` `req:format_valid`: also no_invented_rows, recovered_all
+- `c4-03-cobol-modernization` `look:ledger-rewritten`: also example_matches
+- `c4-03-cobol-modernization` `look:stripped-names`: also example_matches, ledger_append, overdraft_quirk, validation_rules
+- `c4-03-cobol-modernization` `req:ledger_append`: also example_matches
+- `c4-03-cobol-modernization` `req:program_exists`: also example_matches, field_widths, ledger_append, overdraft_quirk, validation_rules
+- `c4-04-regex-log` `look:first-date`: also boundary_rules
+- `c4-04-regex-log` `look:no-boundaries`: also upstream_cases
+- `c4-04-regex-log` `req:regex_valid`: also boundary_rules, calendar_rules, upstream_cases
+- `c4-05-log-summary-date-ranges` `look:debug-as-info`: also last_30_days, last_7_days, month_to_date, today
+- `c4-05-log-summary-date-ranges` `look:error-anywhere`: also last_30_days, last_7_days, month_to_date, today
+- `c4-05-log-summary-date-ranges` `req:layout`: also last_30_days, last_7_days, month_to_date, today, total
+- `c6-03-dependency-audit` `look:first-advisory-only`: also audit_written, file_preserved
+- `c6-03-dependency-audit` `look:mirror-unchecked`: also audit_written, file_preserved
+- `c6-03-dependency-audit` `look:unaffected-upgraded`: also audit_written, file_preserved
+- `c6-03-dependency-audit` `req:affected_upgraded`: also file_preserved
+- `c6-03-dependency-audit` `req:unaffected_unchanged`: also file_preserved
+- `c6-04-data-quality-report` `look:header-is-row-1`: also cross_table, enums_and_ranges, foreign_keys, formats, nulls_and_duplicates

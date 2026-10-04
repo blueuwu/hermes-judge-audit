@@ -12,6 +12,11 @@ end state) in place. Kinds, by id prefix:
 * ``benign:<name>``: an alternative correct solution. Expected done (on an infeasible task:
   blocked with exactly the infeasible requirements false). Reported, never gated.
 
+Kill attribution: every non-benign mutant has targeted checks (``breaks``, or for mutants
+frozen without them, ``data/mutants/targets.json``). A kill counts (``killed_targeted``) only
+when every targeted check reads false; a not-done verdict reached through other checks is
+``killed_collateral``, and one with no targeted check false marks a broken mutant.
+
 Mutants are frozen before their first run: ``data/mutants/suite.json`` records a sha256 of each
 mutant's and each helper's source. After that, mutants may be added (and frozen in turn) but
 never edited or deleted; a wrong one is retired in ``data/mutants/retired.jsonl`` with a reason.
@@ -31,6 +36,7 @@ from hjr.config import ROOT
 
 DATA = ROOT / "data" / "mutants"
 SUITE = DATA / "suite.json"
+TARGETS = DATA / "targets.json"
 FAMILIES = ("c1", "c2", "c3", "c4", "c5", "c6")
 KINDS = ("req", "look", "con", "benign")
 
@@ -50,6 +56,11 @@ class Mutant:
     @property
     def kind(self) -> str:
         return self.id.split(":", 1)[0]
+
+    @property
+    def targets(self) -> tuple[str, ...]:
+        """The checks this mutant is meant to break (none for a benign variant)."""
+        return self.breaks or tuple(load_targets().get(self.key, ()))
 
     def source_sha(self) -> str:
         """sha256 of the metadata, the source, and every module-level helper or constant the
@@ -130,10 +141,20 @@ def helper_shas() -> dict[str, str]:
     return out
 
 
+def load_targets(path: Path = TARGETS) -> dict[str, list[str]]:
+    if not path.exists():
+        return {}
+    return json.loads(path.read_text(encoding="utf-8"))["targets"]
+
+
+SECTIONS = ("mutants", "helpers", "targets")
+
+
 def current() -> dict[str, dict[str, str]]:
     return {
         "mutants": {k: m.source_sha() for k, m in sorted(load_all().items())},
         "helpers": dict(sorted(helper_shas().items())),
+        "targets": {k: json.dumps(v) for k, v in sorted(load_targets().items())},
     }
 
 
@@ -150,7 +171,7 @@ def load_frozen(path: Path = SUITE) -> dict:
 def drift(frozen: dict, now: dict) -> list[str]:
     """Frozen entries that were edited or deleted (never allowed), as messages."""
     out = []
-    for section in ("mutants", "helpers"):
+    for section in SECTIONS:
         for key, sha in frozen.get(section, {}).items():
             if key not in now[section]:
                 out.append(f"{section[:-1]} {key} was deleted")
@@ -162,7 +183,7 @@ def drift(frozen: dict, now: dict) -> list[str]:
 def unfrozen(frozen: dict, now: dict) -> list[str]:
     return [
         f"{section[:-1]} {key}"
-        for section in ("mutants", "helpers")
+        for section in SECTIONS
         for key in now[section]
         if key not in frozen.get(section, {})
     ]
@@ -175,7 +196,7 @@ def freeze(path: Path = SUITE) -> tuple[str, list[str]]:
     if bad:
         raise SystemExit("frozen mutants changed:\n  " + "\n  ".join(bad))
     added = unfrozen(frozen, now)
-    entries = {"mutants": now["mutants"], "helpers": now["helpers"]}
+    entries = {section: now[section] for section in SECTIONS}
     record = {"suite_sha256": suite_hash(entries), **entries}
     path.parent.mkdir(parents=True, exist_ok=True)
     path.write_text(json.dumps(record, indent=1) + "\n", encoding="utf-8", newline="\n")
@@ -214,8 +235,9 @@ def outcome(
 ) -> tuple[str, list[str]]:
     """(outcome, collateral) for a graded mutant.
 
-    Mutants: killed | survived_verdict. Benign variants: accepted | rejected. Collateral lists
-    other requirements a ``req`` mutant also turned false (excluding infeasible ones).
+    Mutants: killed_targeted | killed_collateral | survived_verdict. Benign variants:
+    accepted | rejected. Collateral lists the other requirements that read false (excluding
+    infeasible ones).
     """
     assert truth is not None and reqs is not None
     failing = {k for k, v in reqs.items() if not v}
@@ -223,13 +245,20 @@ def outcome(
     if m.kind == "benign":
         ok = failing == set(infeasible) and truth == ("blocked" if blocked_task else "done")
         return ("accepted" if ok else "rejected"), []
-    if m.kind == "req":
-        expected = "blocked" if blocked_task else "not_done"
-        killed = truth == expected and set(m.breaks) <= failing
-        collateral = sorted(failing - set(m.breaks) - set(infeasible))
-        return ("killed" if killed else "survived_verdict"), collateral
-    if blocked_task:
-        killed = truth == "blocked" and bool(m.breaks) and set(m.breaks) <= failing
-    else:
-        killed = truth != "done"
-    return ("killed" if killed else "survived_verdict"), []
+    targets = set(m.targets)
+    hit = bool(targets) and targets <= failing
+    collateral = sorted(failing - targets - set(infeasible))
+    if blocked_task:  # truth is always blocked; only the targeted checks can kill
+        return ("killed_targeted" if truth == "blocked" and hit else "survived_verdict"), collateral
+    wrong = truth == "not_done" if m.kind == "req" else truth != "done"
+    if not wrong:
+        return "survived_verdict", collateral
+    return ("killed_targeted" if hit else "killed_collateral"), collateral
+
+
+def broken(m: Mutant, reqs: dict[str, bool]) -> bool:
+    """A kill with no targeted check false: the mutant does not do what it says."""
+    return not any(reqs.get(t) is False for t in m.targets)
+
+
+NOT_KILLED = ("killed_collateral", "survived_verdict", "survived_error")

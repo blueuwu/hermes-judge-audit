@@ -23,7 +23,17 @@ from pathlib import Path
 
 from hjr import verifier
 from hjr.config import ROOT
-from hjr.mutants import DATA, Mutant, load_all, outcome, require_frozen, retired
+from hjr.mutants import (
+    DATA,
+    NOT_KILLED,
+    Mutant,
+    broken,
+    load_all,
+    outcome,
+    read_jsonl,
+    require_frozen,
+    retired,
+)
 
 BASES = DATA / "bases.json"
 RESULTS = ROOT / "results" / "mutants"
@@ -117,6 +127,7 @@ def run_task(
                 "kind": m.kind,
                 "doc": m.doc,
                 "breaks": list(m.breaks),
+                "targets": list(m.targets),
                 "expected": _expected(m, inf),
                 "verifier_version": version[0],
                 "verifier_sha256": version[1],
@@ -139,14 +150,20 @@ def run_task(
             row |= {"outcome": "error" if m.kind == "benign" else "survived_error"}
             row |= {"error": f"grade: {g.error}"}
             continue
-        result, collateral = outcome(m, g.truth_state, g.requirements, inf)
-        row |= {
-            "actual": g.truth_state,
-            "actual_requirements": g.requirements,
-            "outcome": result,
-            "collateral": collateral,
-        }
+        row |= {"actual": g.truth_state, "actual_requirements": g.requirements}
+        row |= attribute(m, row, inf)
     return rows
+
+
+def attribute(m: Mutant, row: dict, inf: tuple[str, ...]) -> dict:
+    """Outcome, collateral and attribution for a graded row."""
+    reqs = row["actual_requirements"]
+    result, collateral = outcome(m, row["actual"], reqs, inf)
+    out = {"outcome": result, "collateral": collateral, "targets": list(m.targets)}
+    if m.kind != "benign":
+        out["targets_failed"] = sorted(t for t in m.targets if reqs.get(t) is False)
+        out["broken"] = result == "killed_collateral" and broken(m, reqs)
+    return out
 
 
 def run(
@@ -184,11 +201,18 @@ def _failing(row: dict) -> str:
     return ", ".join(sorted(k for k, v in row["actual_requirements"].items() if not v)) or "-"
 
 
-def render(suite: str, bases: list[BaseResult], rows: list[dict]) -> str:
+def render(suite: str, bases: list[BaseResult], rows: list[dict], title: str = "") -> str:
     lines = [
-        "# Mutation suite run",
+        f"# Mutation suite run{title}",
         "",
-        f"Suite `{suite[:12]}`; {len(rows)} mutants on {len({r['task'] for r in rows})} tasks.",
+        f"Suite `{suite[:12]}`; {len(rows)} mutants on {len({r['task'] for r in rows})} tasks. "
+        "Verifier versions: "
+        + ", ".join(
+            f"{v} {n}" for v, n in sorted(Counter(r["verifier_version"] for r in rows).items())
+        )
+        + ".",
+        "",
+        "A kill counts only when every targeted check reads false (killed_targeted).",
         "",
         "## Base precondition",
         "",
@@ -199,10 +223,10 @@ def render(suite: str, bases: list[BaseResult], rows: list[dict]) -> str:
         lines.append(f"- **{b.task}**: truth {b.truth}, failing {b.failing or '-'} {b.error[:300]}")
     lines += [
         "",
-        "## Kill table",
+        "## Kill table (killed_targeted / total)",
         "",
-        "| Task | req | look | con | benign accepted | survived (verdict / error) |",
-        "|---|---|---|---|---|---|",
+        "| Task | req | look | con | benign ok | collateral kills | survived (verdict / error) |",
+        "|---|---|---|---|---|---|---|",
     ]
     by_task: dict[str, list[dict]] = defaultdict(list)
     for r in rows:
@@ -213,7 +237,7 @@ def render(suite: str, bases: list[BaseResult], rows: list[dict]) -> str:
         cells = []
         for kind in ("req", "look", "con"):
             ks = [r for r in rs if r["kind"] == kind]
-            killed = sum(r["outcome"] == "killed" for r in ks)
+            killed = sum(r["outcome"] == "killed_targeted" for r in ks)
             total[kind, "killed"] += killed
             total[kind, "n"] += len(ks)
             cells.append(f"{killed}/{len(ks)}" if ks else "–")
@@ -221,13 +245,29 @@ def render(suite: str, bases: list[BaseResult], rows: list[dict]) -> str:
         acc = sum(r["outcome"] == "accepted" for r in bs)
         total["benign", "killed"] += acc
         total["benign", "n"] += len(bs)
+        kc = sum(r["outcome"] == "killed_collateral" for r in rs)
         sv = sum(r["outcome"] == "survived_verdict" for r in rs)
         se = sum(r["outcome"] == "survived_error" for r in rs)
+        total["kc"] += kc
         total["sv"] += sv
         total["se"] += se
-        lines.append(f"| {task} | {' | '.join(cells)} | {acc}/{len(bs)} | {sv} / {se} |")
+        lines.append(f"| {task} | {' | '.join(cells)} | {acc}/{len(bs)} | {kc} | {sv} / {se} |")
     agg = [f"{total[k, 'killed']}/{total[k, 'n']}" for k in ("req", "look", "con", "benign")]
-    lines.append(f"| **all** | {' | '.join(agg)} | {total['sv']} / {total['se']} |")
+    lines.append(f"| **all** | {' | '.join(agg)} | {total['kc']} | {total['sv']} / {total['se']} |")
+    gated = [r for r in rows if r["kind"] != "benign"]
+    lines += [
+        "",
+        f"Gated: {sum(r['outcome'] == 'killed_targeted' for r in gated)} of {len(gated)} "
+        "mutants killed on their targeted checks.",
+    ]
+    coll = [r for r in rows if r["outcome"] == "killed_collateral"]
+    lines += ["", f"## Attribution: kills not on the targeted checks ({len(coll)})", ""]
+    for r in coll:
+        tag = "**broken mutant** (no targeted check false)" if r.get("broken") else "partial"
+        lines.append(
+            f"- `{r['task']}` `{r['mutant']}`: {tag}. Targets {', '.join(r['targets'])}; "
+            f"failing {_failing(r)}"
+        )
     survivors = [r for r in rows if r["outcome"] in ("survived_verdict", "survived_error")]
     lines += ["", f"## Survivors ({len(survivors)})", ""]
     for r in survivors:
@@ -245,11 +285,32 @@ def render(suite: str, bases: list[BaseResult], rows: list[dict]) -> str:
     for r in rejected:
         detail = r.get("error", "")[:200] or f"graded {r['actual']}, failing {_failing(r)}"
         lines.append(f"- `{r['task']}` `{r['mutant']}`: {r['doc']}. {detail}")
-    coll = [r for r in rows if r.get("collateral")]
-    lines += ["", f"## Collateral ({len(coll)} req mutants also failed other requirements)", ""]
-    for r in coll:
+    side = [r for r in rows if r["outcome"] == "killed_targeted" and r.get("collateral")]
+    lines += ["", f"## Collateral on targeted kills ({len(side)})", ""]
+    for r in side:
         lines.append(f"- `{r['task']}` `{r['mutant']}`: also {', '.join(r['collateral'])}")
     return "\n".join(lines) + "\n"
+
+
+def reattribute(path: Path) -> Path:
+    """Re-score a recorded run with the current targets; writes ``<stem>-attribution.md``.
+    Grades are taken from the record as they are; nothing is regraded."""
+    registry = load_all()
+    rows = read_jsonl(path)
+    for r in rows:
+        if "actual_requirements" in r:
+            m = registry[f"{r['task']}/{r['mutant']}"]
+            r |= attribute(m, r, infeasible(r["task"]))
+    suite = rows[0]["suite_sha256"]
+    out = path.with_name(path.stem + "-attribution.md")
+    title = f" (re-attributed from `{path.name}`)"
+    out.write_text(render(suite, [], rows, title), encoding="utf-8", newline="\n")
+    return out
+
+
+def gate_failures(rows: list[dict]) -> list[dict]:
+    """Non-benign mutants that were not killed on their targeted checks."""
+    return [r for r in rows if r["kind"] != "benign" and r["outcome"] in NOT_KILLED]
 
 
 # ── Apply-only check (no grading) ─────────────────────────────────────

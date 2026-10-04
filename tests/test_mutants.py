@@ -75,18 +75,24 @@ def _m(kind_id: str, breaks=()) -> Mutant:
     return Mutant("t", kind_id, "", lambda ws: None, breaks)
 
 
+K, C, S = "killed_targeted", "killed_collateral", "survived_verdict"
+
+
 @pytest.mark.parametrize(
     "mutant, truth, failing, inf, want",
     [
-        (_m("req:a", ("a",)), "not_done", {"a"}, (), ("killed", [])),
-        (_m("req:a", ("a",)), "not_done", {"a", "b"}, (), ("killed", ["b"])),
-        (_m("req:a", ("a",)), "not_done", {"b"}, (), ("survived_verdict", ["b"])),
-        (_m("req:a", ("a",)), "done", set(), (), ("survived_verdict", [])),
-        (_m("look:x"), "not_done", {"b"}, (), ("killed", [])),
-        (_m("look:x"), "done", set(), (), ("survived_verdict", [])),
-        (_m("look:x", ("up",)), "blocked", {"up"}, ("up",), ("killed", [])),
-        (_m("look:x", ("up", "a")), "blocked", {"up"}, ("up",), ("survived_verdict", [])),
-        (_m("req:a", ("a",)), "blocked", {"a", "up"}, ("up",), ("killed", [])),
+        (_m("req:a", ("a",)), "not_done", {"a"}, (), (K, [])),
+        (_m("req:a", ("a",)), "not_done", {"a", "b"}, (), (K, ["b"])),
+        (_m("req:a", ("a",)), "not_done", {"b"}, (), (C, ["b"])),
+        (_m("req:a", ("a",)), "done", set(), (), (S, [])),
+        (_m("look:x", ("a",)), "not_done", {"b"}, (), (C, ["b"])),
+        (_m("look:x", ("a", "b")), "not_done", {"a"}, (), (C, [])),
+        (_m("look:x", ("a", "b")), "not_done", {"a", "b"}, (), (K, [])),
+        (_m("look:x"), "not_done", {"b"}, (), (C, ["b"])),  # no targets: never targeted
+        (_m("look:x", ("a",)), "done", set(), (), (S, [])),
+        (_m("look:x", ("up",)), "blocked", {"up"}, ("up",), (K, [])),
+        (_m("look:x", ("up", "a")), "blocked", {"up"}, ("up",), (S, [])),
+        (_m("req:a", ("a",)), "blocked", {"a", "up"}, ("up",), (K, [])),
         (_m("benign:x"), "done", set(), (), ("accepted", [])),
         (_m("benign:x"), "not_done", {"a"}, (), ("rejected", [])),
         (_m("benign:x"), "blocked", {"up"}, ("up",), ("accepted", [])),
@@ -96,6 +102,18 @@ def _m(kind_id: str, breaks=()) -> Mutant:
 def test_kill_rule(mutant, truth, failing, inf, want):
     reqs = {k: k not in failing for k in ("a", "b", "up")}
     assert outcome(mutant, truth, reqs, inf) == want
+
+
+def test_broken_means_no_targeted_check_failed():
+    m = _m("look:x", ("a", "b"))
+    assert mutants.broken(m, {"a": True, "b": True, "up": False})
+    assert not mutants.broken(m, {"a": False, "b": True})
+
+
+def test_every_mutant_has_targets():
+    for m in REGISTRY.values():
+        assert bool(m.targets) == (m.kind != "benign"), m.key
+    assert set(mutants.load_targets()) <= set(REGISTRY)
 
 
 def test_snapshots_are_packed_like_the_harness(tmp_path):

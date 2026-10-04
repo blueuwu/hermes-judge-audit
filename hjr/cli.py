@@ -373,12 +373,17 @@ def cmd_mutants(args: argparse.Namespace) -> int:
         print(f"suite {suite}: {len(added)} added")
         print("\n".join(f"  {a}" for a in added))
         return 0
+    if args.action == "attribute":
+        if not args.record:
+            raise SystemExit("attribute needs --record results/mutants/<run>.jsonl")
+        print(f"attribution in {run.reattribute(args.record.resolve()).relative_to(ROOT)}")
+        return 0
     out, bases, rows = run.run(args.task or None, workers=args.workers)
     bad = [b.task for b in bases if not b.ok]
-    killed = sum(r["outcome"] == "killed" for r in rows)
+    killed = sum(r["outcome"] == "killed_targeted" for r in rows)
     gated = sum(r["kind"] != "benign" for r in rows)
     print(f"bases: {len(bases) - len(bad)}/{len(bases)} as expected; failing: {bad or 'none'}")
-    print(f"killed {killed}/{gated}; results in {out.relative_to(ROOT)}")
+    print(f"killed on target {killed}/{gated}; results in {out.relative_to(ROOT)}")
     return 0
 
 
@@ -460,8 +465,9 @@ def main(argv: list[str] | None = None) -> int:
     p = sub.add_parser("phase2-estimate", help="estimated cost per Phase 2 cell (no model calls)")
     p.set_defaults(func=cmd_phase2_estimate)
 
-    p = sub.add_parser("mutants", help="verifier mutation suite: check, freeze, run")
-    p.add_argument("action", choices=["check", "freeze", "run"])
+    p = sub.add_parser("mutants", help="verifier mutation suite: check, freeze, run, attribute")
+    p.add_argument("action", choices=["check", "freeze", "run", "attribute"])
+    p.add_argument("--record", type=Path, help="attribute: a recorded run (.jsonl)")
     p.add_argument("--task", action="append", help="limit a run to these tasks")
     p.add_argument("--workers", type=int, default=4)
     p.set_defaults(func=cmd_mutants)
