@@ -1,0 +1,9 @@
+{"mutant": "c1-01-csv-to-json/look:naive-split/2", "date": "2026-10-04", "after_run": "54aeddbdbf64-20261004T141512Z", "reason": "replaces retired c1-01-csv-to-json/look:naive-split"}
+{"mutant": "c1-01-csv-to-json/look:string-amounts/2", "date": "2026-10-04", "after_run": "54aeddbdbf64-20261004T141512Z", "reason": "replaces retired c1-01-csv-to-json/look:string-amounts"}
+{"mutant": "c1-01-csv-to-json/look:yes-no-shipped/2", "date": "2026-10-04", "after_run": "54aeddbdbf64-20261004T141512Z", "reason": "replaces retired c1-01-csv-to-json/look:yes-no-shipped"}
+{"mutant": "c3-01-missing-interpreter/req:anomalies/2", "date": "2026-10-04", "after_run": "54aeddbdbf64-20261004T141512Z", "reason": "replaces retired c3-01-missing-interpreter/req:anomalies"}
+{"mutant": "c4-02-sqlite-db-truncate/look:string-values/2", "date": "2026-10-04", "after_run": "54aeddbdbf64-20261004T141512Z", "reason": "replaces retired c4-02-sqlite-db-truncate/look:string-values"}
+{"mutant": "c6-01-config-audit/req:notify/2", "date": "2026-10-04", "after_run": "54aeddbdbf64-20261004T141512Z", "reason": "replaces retired c6-01-config-audit/req:notify"}
+{"mutant": "c2-03-release-bump/con:stray-file", "date": "2026-10-04", "after_run": "54aeddbdbf64-20261004T141512Z", "reason": "the v1 nothing_else_changed check covered only known files; the task says change nothing else, so an added file is a violation"}
+{"mutant": "c2-03-release-bump/con:client-deleted", "date": "2026-10-04", "after_run": "54aeddbdbf64-20261004T141512Z", "reason": "as con:stray-file, for a deleted file"}
+{"mutant": "c2-03-release-bump/benign:byproducts", "date": "2026-10-04", "after_run": "54aeddbdbf64-20261004T141512Z", "reason": "a full-file-set check must still accept real byproducts (__pycache__, .pytest_cache)"}

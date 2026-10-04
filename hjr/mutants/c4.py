@@ -158,6 +158,16 @@ def _(ws):
     o.edit_json(ws, REC, lambda rows: [r.update(value=str(r["value"])) for r in rows])
 
 
+def _str_values(rows) -> None:
+    for r in rows:
+        r["value"] = str(r["value"])
+
+
+@mutant(T, "look:string-values/2", "values written as strings", breaks=("format_valid",))
+def _(ws):
+    o.mutate_json(ws, REC, _str_values)
+
+
 @mutant(T, "benign:upstream-rows-as-floats", "only the eight upstream rows, values as floats")
 def _(ws):
     o.edit_json(

@@ -39,6 +39,11 @@ def _(ws):
     o.edit_json(ws, REPORT, lambda r: r["anomalies"].pop())
 
 
+@mutant(T, "req:anomalies/2", "the last anomaly is missing")
+def _(ws):
+    o.mutate_json(ws, REPORT, lambda r: r["anomalies"].pop())
+
+
 @mutant(T, "req:readings_unchanged", "a trailing newline is added to the readings")
 def _(ws):
     o.append(ws, READINGS, "\n")

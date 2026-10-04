@@ -79,3 +79,15 @@ def sql(ws: Path, rel: str, script: str) -> None:
         con.commit()
     finally:
         con.close()
+
+
+def mutate_json(ws: Path, rel: str, fn: Callable[[object], object]) -> None:
+    """Load, let ``fn`` edit the object in place, and write it back. ``fn``'s return value is
+    ignored, so an expression that happens to return something cannot replace the file; the
+    file must change."""
+    obj = load_json(ws, rel)
+    before = json.dumps(obj, sort_keys=True)
+    fn(obj)
+    if json.dumps(obj, sort_keys=True) == before:
+        raise AssertionError(f"{rel}: the edit changed nothing")
+    dump_json(ws, rel, obj)

@@ -69,6 +69,11 @@ def _(ws):
     o.edit_json(ws, _cfg("notify"), lambda c: c.pop("owner"))
 
 
+@mutant(T, "req:notify/2", "notify still has no owner")
+def _(ws):
+    o.mutate_json(ws, _cfg("notify"), lambda c: c.pop("owner"))
+
+
 @mutant(T, "req:payments", "payments keeps the stale port")
 def _(ws):
     _set("payments", port=8086)(ws)

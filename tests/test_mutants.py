@@ -14,6 +14,7 @@ from tests.taskutil import TASK_DIRS
 
 TASKS = [p.name for p in TASK_DIRS if not p.name.startswith("s0-")]
 REGISTRY = mutants.load_all()
+RETIRED = mutants.retired()
 
 
 def _requirements(task: str) -> list[str]:
@@ -22,7 +23,9 @@ def _requirements(task: str) -> list[str]:
 
 
 def _of(task: str, kind: str) -> list[Mutant]:
-    return [m for m in REGISTRY.values() if m.task == task and m.kind == kind]
+    return [
+        m for m in REGISTRY.values() if m.task == task and m.kind == kind and m.key not in RETIRED
+    ]
 
 
 @pytest.mark.parametrize("task", TASKS)
@@ -41,7 +44,12 @@ def test_frozen_mutants_are_never_edited_or_deleted():
 
 
 def test_retired_mutants_still_exist():
-    assert set(mutants.retired()) <= set(REGISTRY)
+    assert set(RETIRED) <= set(REGISTRY)
+
+
+def test_mutants_added_after_a_run_are_logged_with_a_reason():
+    added = mutants.read_jsonl(mutants.DATA / "added.jsonl")
+    assert all(r["reason"] and r["mutant"] in REGISTRY for r in added)
 
 
 @pytest.mark.parametrize("task", TASKS)

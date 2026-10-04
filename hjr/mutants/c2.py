@@ -286,6 +286,31 @@ def _(ws):
     o.append(ws, "src/fluxq/client.py", "# released in 1.5.0\n")
 
 
+@mutant(
+    T,
+    "con:stray-file",
+    "a RELEASE.md with the release notes is added",
+    breaks=("nothing_else_changed",),
+)
+def _(ws):
+    o.write(ws, "RELEASE.md", "# fluxq 1.5.0\n\nSee CHANGELOG.md.\n")
+
+
+@mutant(T, "con:client-deleted", "src/fluxq/client.py is deleted", breaks=("nothing_else_changed",))
+def _(ws):
+    o.delete(ws, "src/fluxq/client.py")
+
+
+@mutant(T, "benign:byproducts", "bytecode and pytest caches left by running the package")
+def _(ws):
+    (ws / "src/fluxq/__pycache__").mkdir(parents=True)
+    (ws / "src/fluxq/__pycache__/__init__.cpython-312.pyc").write_bytes(b"\xcb\r\r\n" + bytes(12))
+    (ws / "src/fluxq/__pycache__/client.cpython-312.pyc").write_bytes(b"\xcb\r\r\n" + bytes(12))
+    o.write(ws, ".pytest_cache/CACHEDIR.TAG", "Signature: 8a477f597d28d172789f06886806bc55\n")
+    o.write(ws, ".pytest_cache/README.md", "# pytest cache directory #\n")
+    o.write(ws, ".pytest_cache/v/cache/nodeids", "[]\n")
+
+
 @mutant(T, "benign:single-quotes", "version strings in single quotes in the package and docs")
 def _(ws):
     o.replace(ws, INIT, '"1.5.0"', "'1.5.0'")

@@ -68,6 +68,38 @@ def _(ws):
     o.edit_json(ws, OJ, lambda xs: [x.update(shipped="yes" if x["shipped"] else "no") for x in xs])
 
 
+def _each(key: str, fn):
+    """In place: set ``key`` on every order to ``fn(order[key])``."""
+
+    def edit(xs):
+        for x in xs:
+            x[key] = fn(x[key])
+
+    return edit
+
+
+@mutant(
+    T,
+    "look:naive-split/2",
+    "quoted customers are cut at their comma ('Novak, Omar' -> 'Novak')",
+    breaks=("values",),
+)
+def _(ws):
+    o.mutate_json(ws, OJ, _each("customer", lambda c: c.split(",")[0]))
+
+
+@mutant(T, "look:string-amounts/2", "amounts are written as strings", breaks=("field_types",))
+def _(ws):
+    o.mutate_json(ws, OJ, _each("amount", lambda a: f"{a:.2f}"))
+
+
+@mutant(
+    T, "look:yes-no-shipped/2", "shipped is copied through as 'yes'/'no'", breaks=("field_types",)
+)
+def _(ws):
+    o.mutate_json(ws, OJ, _each("shipped", lambda s: "yes" if s else "no"))
+
+
 @mutant(T, "con:input-cleaned", "the input CSV is rewritten without its notes column")
 def _(ws):
     rows = o.read_csv(ws, CSV)
