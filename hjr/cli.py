@@ -411,10 +411,84 @@ def cmd_mutants(args: argparse.Namespace) -> int:
     return 0
 
 
+def cmd_audit(args: argparse.Namespace) -> int:
+    import json
+    import os
+
+    from hjr import audit
+
+    if args.action == "draw":
+        items = audit.load_metadata(args.boundaries)
+        if len(items) != 178:
+            raise ValueError("audit requires the complete 178-item Phase 1a population")
+        log = audit.draw(
+            items, args.verdicts, seed=global_seed(), primary_verifier=args.primary_verifier
+        )
+        audit.load_or_write_draw(args.draw, log)
+        print(f"audit draw logged to {args.draw}; commit this file with the coordinator")
+    else:
+        log = json.loads(args.draw.read_text(encoding="utf-8"))
+        if args.action == "report":
+            print(audit.report(log, audit.load_records(args.records)), end="")
+        else:
+            if audit.load_metadata(args.boundaries) != {
+                bid: audit.AuditItem.model_validate(item) for bid, item in log["items"].items()
+            }:
+                raise ValueError("boundary inputs differ from the audit draw")
+            session = audit.Session(
+                log,
+                args.boundaries,
+                args.records,
+                args.annotator,
+                workdir=args.workdir,
+                jobs=args.jobs,
+                tasks=args.tasks,
+            )
+            audit.run_pass(session, audit.Console(open=lambda p: os.startfile(p)))
+    return 0
+
+
 def main(argv: list[str] | None = None) -> int:
     parser = argparse.ArgumentParser(prog="hjr", description=__doc__)
     parser.add_argument("-v", "--verbose", action="store_true")
     sub = parser.add_subparsers(dest="command", required=True)
+
+    from hjr import audit
+
+    p = sub.add_parser("audit", help="human verifier QA: draw, run, report (no model calls)")
+    actions = p.add_subparsers(dest="action", required=True)
+    for action in ("draw", "run", "report"):
+        a = actions.add_parser(action)
+        a.add_argument("--draw", type=Path, default=audit.DRAW)
+        a.set_defaults(func=cmd_audit)
+        if action in {"draw", "run"}:
+            a.add_argument(
+                "--boundaries",
+                type=Path,
+                action="append",
+                required=True,
+                help="primary-verifier Phase 1a JSONL (repeat for both arms)",
+            )
+        if action == "draw":
+            a.add_argument(
+                "--verdicts",
+                type=Path,
+                action="append",
+                required=True,
+                help="Phase 2 production-cell JSONL (repeat for both arms)",
+            )
+            a.add_argument(
+                "--primary-verifier",
+                required=True,
+                help="frozen-primary verifier commit/note identifier",
+            )
+        else:
+            a.add_argument("--records", type=Path, default=audit.RECORDS)
+        if action == "run":
+            a.add_argument("--annotator", required=True)
+            a.add_argument("--workdir", type=Path, default=audit.WORKDIR)
+            a.add_argument("--jobs", type=Path, default=audit.JOBS)
+            a.add_argument("--tasks", type=Path, default=audit.TASKS)
 
     p = sub.add_parser("replay", help="replay judge variants over a boundaries file")
     p.add_argument("--boundaries", type=Path, required=True)
