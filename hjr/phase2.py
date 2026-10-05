@@ -14,7 +14,7 @@ from pathlib import Path
 
 from hjr.config import CONFIGS, ROOT, global_seed
 from hjr.judge import Variant
-from hjr.schemas import BoundaryRecord, read_jsonl
+from hjr.schemas import BoundaryRecord, read_jsonl, require_single_phase
 
 PLAN_CONFIG = CONFIGS / "phase2.toml"
 SELF = "self"
@@ -85,11 +85,15 @@ def cell_of(variant: str) -> str:
 
 
 def load_boundaries(plan: Plan, arm: str) -> list[BoundaryRecord]:
-    return list(read_jsonl(plan.arms[arm].boundaries, BoundaryRecord))
+    rows = list(read_jsonl(plan.arms[arm].boundaries, BoundaryRecord))
+    require_single_phase(rows)
+    return rows
 
 
 def draw_sanity(plan: Plan, boundaries: dict[str, list[BoundaryRecord]]) -> dict[str, list[str]]:
     """Seeded draw of the harness sanity subset, stratified by verifier truth within each arm."""
+    if require_single_phase(b for rows in boundaries.values() for b in rows) != "1a":
+        raise ValueError("the frozen sanity subset is Phase 1a only")
     per_arm, not_done = int(plan.sanity["per_arm"]), int(plan.sanity["not_done"])
     out = {}
     for arm in sorted(boundaries):

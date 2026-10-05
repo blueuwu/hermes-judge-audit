@@ -19,6 +19,7 @@ from pathlib import Path
 from hjr.schemas import (
     BoundaryRecord,
     ControllerVerdict,
+    Phase,
     Split,
     ToolEvent,
     TurnRecord,
@@ -30,6 +31,54 @@ from hjr.split import load_split
 # Tool use that reaches past the model endpoint. Local runs cannot enforce the allowlist, so
 # these boundaries are tagged rather than trusted silently.
 NETWORK_USE = re.compile(r"\b(curl|wget|pip3? install|uv (pip|add)|apt(-get)? install|git clone)\b")
+# Hermes logs one of these ERROR lines, and exits 1, when a model call fails for good: a
+# non-retryable error (402 billing, 401/403 key) or retries exhausted (429, 5xx). A call that
+# recovers on retry logs neither.
+HERMES_PROVIDER_ERROR = re.compile(r" ERROR .*(Non-retryable client error|API call failed after)")
+STATUS = re.compile(r"\b(4[0-9]{2}|5[0-9]{2})\b")
+
+
+def _error_class(text: str, status: int | None = None) -> str:
+    """402 | 429 | 5xx | auth | other, from an HTTP status or an error message."""
+    if status is None:
+        found = STATUS.search(text)
+        status = int(found.group(1)) if found else None
+    low = text.lower()
+    if status == 402 or "insufficient credits" in low or "billing" in low:
+        return "402"
+    if status in (401, 403) or "api key" in low or "unauthorized" in low:
+        return "auth"
+    if status == 429 or "rate limit" in low or "ratelimiterror" in low:
+        return "429"
+    if (status is not None and status >= 500) or "internalservererror" in low:
+        return "5xx"
+    return "other"
+
+
+def provider_errors(trial_dir: Path, turns: list[TurnRecord]) -> list[str]:
+    """Unrecovered provider failures in a trial: the agent's (Hermes log) and the in-loop
+    judge's (transport error after retries). Reads log lines, exit codes and judge attempt
+    metadata only, never the trajectory or the agent's response."""
+    found = []
+    lines: set[str] = set()
+    for log in sorted((trial_dir / "agent" / "hermes-logs").glob("*.log")):
+        lines |= set(log.read_text(encoding="utf-8", errors="replace").splitlines())
+    for line in sorted(lines):
+        if HERMES_PROVIDER_ERROR.search(line):
+            found.append(f"agent {_error_class(line)}")
+    last: dict[str, dict] = {}
+    path = trial_dir / "agent" / "judge_attempts.jsonl"
+    if path.is_file():
+        for line in path.read_text(encoding="utf-8").splitlines():
+            if line.strip():
+                attempt = json.loads(line)
+                last[attempt["boundary_id"]] = attempt
+    for turn in turns:
+        if turn.controller_error:
+            a = last.get(turn.boundary_id, {})
+            text = f"{a.get('error_type', '')} {turn.controller_error}"
+            found.append(f"judge {_error_class(text, a.get('http_status'))}")
+    return found
 
 
 @dataclass
@@ -48,7 +97,14 @@ def uses_network(events: list[ToolEvent]) -> bool:
 
 
 def _boundary(
-    turn: TurnRecord, truth: dict, meta: dict, *, split: Split, hermes_sha: str, harbor: str
+    turn: TurnRecord,
+    truth: dict,
+    meta: dict,
+    *,
+    split: Split,
+    hermes_sha: str,
+    harbor: str,
+    phase: Phase = "1a",
 ) -> BoundaryRecord:
     controller = turn.controller
     tags: dict[str, str | int | float] = {
@@ -68,6 +124,7 @@ def _boundary(
     return BoundaryRecord(
         boundary_id=turn.boundary_id,
         run_id=turn.run_id,
+        phase=phase,
         task_id=turn.task_id,
         task_version=meta.get("version", "1.0.0"),
         category=meta["category"],
@@ -103,6 +160,7 @@ def ingest_trial(
     splits: Mapping[str, Split],
     hermes_sha: str,
     harbor: str,
+    phase: Phase = "1a",
 ) -> IngestResult:
     out = IngestResult()
     name = trial_dir.name
@@ -117,6 +175,19 @@ def ingest_trial(
         out.excluded.append({"trial": name, "reason": "no verifier boundaries.json"})
         return out
     turns = list(read_jsonl(turns_path, TurnRecord))
+    errors = provider_errors(trial_dir, turns)
+    if errors:
+        # The provider stopped the agent, not the agent itself: its workspace would read as
+        # verifier-not-done, so no boundary of the trial is kept. A 402 is spend-stop shortfall.
+        out.excluded.append(
+            {
+                "trial": name,
+                "reason": "provider_error",
+                "detail": ", ".join(sorted(set(errors))),
+                "shortfall": str(any(e.endswith(" 402") for e in errors)).lower(),
+            }
+        )
+        return out
     if turns and _task_meta(tasks_dir, turns[0].task_id).get("soak_only"):
         out.excluded.append({"trial": name, "reason": "soak-only task (never analysed)"})
         return out
@@ -148,6 +219,7 @@ def ingest_trial(
                 split=splits[turn.task_id],
                 hermes_sha=hermes_sha,
                 harbor=harbor,
+                phase=phase,
             )
         )
     return out
@@ -159,13 +231,18 @@ def ingest_job(
     *,
     hermes_sha: str,
     harbor: str,
+    phase: Phase = "1a",
     splits: Mapping[str, Split] | None = None,
 ) -> IngestResult:
+    if phase not in ("1a", "1b-enrichment"):
+        raise ValueError(f"unknown phase {phase!r}")
+    if job_dir.name.startswith("phase1b-") and phase != "1b-enrichment":
+        raise ValueError(f"{job_dir.name} requires phase 1b-enrichment")
     splits = load_split() if splits is None else splits
     total = IngestResult()
     for trial_dir in sorted(p for p in job_dir.iterdir() if p.is_dir() and "__" in p.name):
         part = ingest_trial(
-            trial_dir, tasks_dir, splits=splits, hermes_sha=hermes_sha, harbor=harbor
+            trial_dir, tasks_dir, splits=splits, hermes_sha=hermes_sha, harbor=harbor, phase=phase
         )
         total.boundaries += part.boundaries
         total.excluded += part.excluded

@@ -135,3 +135,111 @@ def test_split_comes_from_the_frozen_config(tmp_path):
     result = ingest_job(job, TASKS, hermes_sha="ffc", harbor="0.23.0", splits={})
     assert result.boundaries == []
     assert result.excluded == [{"trial": trial, "reason": "task not in configs/split.toml"}]
+
+
+def test_enrichment_ingest_preserves_split_and_requires_explicit_phase(tmp_path):
+    import pytest
+
+    job = tmp_path / "phase1b-weak"
+    trial = "c3-02-missing-sqlite__a1"
+    _trial(job, trial, [_turn(trial, 1, "done", "done")], _graded("not_done"))
+    with pytest.raises(ValueError, match="requires phase"):
+        ingest_job(job, TASKS, hermes_sha="ffc", harbor="0.23.0")
+    result = ingest_job(job, TASKS, hermes_sha="ffc", harbor="0.23.0", phase="1b-enrichment")
+    assert result.boundaries[0].phase == "1b-enrichment"
+    assert result.boundaries[0].split == "heldout"
+
+
+def test_ingest_cli_records_requested_phase(tmp_path, monkeypatch):
+    from hjr import cli, manifest
+
+    job = tmp_path / "phase1b-weak"
+    trial = "c3-02-missing-sqlite__a1"
+    _trial(job, trial, [_turn(trial, 1, "done", "done")], _graded("not_done"))
+    monkeypatch.setattr(manifest, "hermes_sha", lambda: "synthetic")
+    monkeypatch.setattr(manifest, "_provenance", lambda *_: {})
+    monkeypatch.setattr(manifest, "_jobs", lambda *_: {})
+    monkeypatch.setattr(manifest, "sha256_file", lambda *_: "hash")
+    out = tmp_path / "boundaries.jsonl"
+    assert (
+        cli.main(
+            [
+                "ingest",
+                "--job",
+                str(job),
+                "--tasks",
+                str(TASKS),
+                "--out",
+                str(out),
+                "--phase",
+                "1b-enrichment",
+            ]
+        )
+        == 0
+    )
+    assert json.loads(out.read_text(encoding="utf-8"))["phase"] == "1b-enrichment"
+    assert (
+        json.loads(out.with_suffix(".manifest.json").read_text(encoding="utf-8"))["phase"]
+        == "1b-enrichment"
+    )
+
+
+def _logs(job: Path, trial: str, lines: list[str], attempts: list[dict] = ()) -> None:
+    logs = job / trial / "agent" / "hermes-logs"
+    logs.mkdir(parents=True)
+    (logs / "errors.log").write_text(
+        "".join(f"2026-10-06 10:00:0{i},000 {x}\n" for i, x in enumerate(lines))
+    )
+    (job / trial / "agent" / "judge_attempts.jsonl").write_text(
+        "".join(json.dumps(a) + "\n" for a in attempts)
+    )
+
+
+CREDIT = "ERROR run_agent: Non-retryable client error: Error code: 402 - Insufficient credits"
+RETRY_WARNING = "WARNING run_agent: provider returned 429, retrying in 2s (attempt 1/3)"
+
+
+def _attempt(bid: str, n: int, status: str, http: int | None = None) -> dict:
+    return {"boundary_id": bid, "attempt": n, "status": status, "http_status": http}
+
+
+def test_provider_error_trials_are_excluded_whole(tmp_path):
+    job = tmp_path / "phase1b-weak-a"
+    # 402 mid-run: turn 1 is clean, then the agent and the judge both hit the credit wall.
+    mid = "c3-02-missing-sqlite__m1"
+    turns = [
+        _turn(mid, 1, "continue", "continue"),
+        _turn(mid, 2, "continue", "continue").model_copy(
+            update={"agent_exit_code": 1, "controller": None, "controller_error": "APIStatusError"}
+        ),
+        _turn(mid, 3, "continue", "continue").model_copy(update={"agent_exit_code": 1}),
+    ]
+    _trial(job, mid, turns, _graded("not_done", "not_done", "not_done"))
+    _logs(job, mid, [CREDIT], [_attempt(f"job/{mid}/b02", 1, "error", 402)])
+    # 402 on the final turn: only the agent's last call fails; the judge still answered.
+    final = "c3-02-missing-sqlite__f1"
+    turns = [
+        _turn(final, 1, "continue", "continue"),
+        _turn(final, 2, "continue", "continue").model_copy(update={"agent_exit_code": 1}),
+    ]
+    _trial(job, final, turns, _graded("not_done", "not_done"))
+    _logs(job, final, ["WARNING cli: unrelated", CREDIT])
+    # 5xx after retries: excluded, but not spend-stop shortfall.
+    outage = "c3-02-missing-sqlite__o1"
+    _trial(job, outage, [_turn(outage, 1, "done", "done")], _graded("not_done"))
+    _logs(job, outage, ["ERROR run_agent: API call failed after 3 retries. HTTP 503: overloaded"])
+    # A 429 that recovered on retry, for the agent and the judge: kept.
+    ok = "c3-02-missing-sqlite__r1"
+    _trial(job, ok, [_turn(ok, 1, "done", "done")], _graded("done"))
+    bid = f"job/{ok}/b01"
+    _logs(job, ok, [RETRY_WARNING], [_attempt(bid, 1, "error", 429), _attempt(bid, 2, "ok")])
+
+    result = ingest_job(job, TASKS, hermes_sha="ffc", harbor="0.23.0", phase="1b-enrichment")
+    assert [b.boundary_id for b in result.boundaries] == [bid]
+    excluded = {e["trial"]: e for e in result.excluded}
+    assert set(excluded) == {mid, final, outage}
+    assert all(e["reason"] == "provider_error" for e in excluded.values())
+    assert excluded[mid]["detail"] == "agent 402, judge 402"
+    assert excluded[final]["detail"] == "agent 402"
+    assert excluded[outage]["detail"] == "agent 5xx"
+    assert [excluded[t]["shortfall"] for t in (mid, final, outage)] == ["true", "true", "false"]

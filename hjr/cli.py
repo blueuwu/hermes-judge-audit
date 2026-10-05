@@ -12,7 +12,7 @@ from dotenv import load_dotenv
 from hjr import manifest
 from hjr.config import ROOT, check_self_judges, global_seed, load_judge_config
 from hjr.judge import Variant
-from hjr.schemas import BoundaryRecord, read_jsonl
+from hjr.schemas import BoundaryRecord, RunManifest, read_jsonl, require_single_phase
 
 RUNS = ROOT / "results" / "runs"
 DEV_PREFIX = "dev-"
@@ -33,6 +33,12 @@ def cmd_replay(args: argparse.Namespace) -> int:
     if not dev and args.run_id.startswith(DEV_PREFIX):
         raise SystemExit(f"run ids starting with {DEV_PREFIX!r} are reserved for dev-only arms")
     boundaries = list(read_jsonl(args.boundaries, BoundaryRecord))
+    phase = require_single_phase(boundaries)
+    prev_path = RUNS / args.run_id / "manifest.json"
+    if prev_path.exists():
+        prev = RunManifest.model_validate_json(prev_path.read_text(encoding="utf-8"))
+        if prev.phase != phase:
+            raise ValueError("refusing to mix phases in a replay run")
     if args.limit:
         boundaries = boundaries[: args.limit]
     if args.subset == "sanity":
@@ -87,6 +93,7 @@ def cmd_replay(args: argparse.Namespace) -> int:
         judge_config_sha256=cfg.sha256,
         seed=global_seed(),
         started_at=started,
+        phase=phase,
     )
     manifest.write_manifest(run_dir, record)
     print(f"{args.run_id}: {dict(counts)}")
@@ -209,17 +216,34 @@ def cmd_ingest(args: argparse.Namespace) -> int:
     from hjr.manifest import hermes_sha, ingest_manifest
     from hjr.schemas import write_jsonl
 
-    result = ingest_job(args.job, args.tasks, hermes_sha=hermes_sha(), harbor=version("harbor"))
+    result = ingest_job(
+        args.job, args.tasks, hermes_sha=hermes_sha(), harbor=version("harbor"), phase=args.phase
+    )
     n = write_jsonl(args.out, result.boundaries)
     excluded = args.out.with_name(args.out.stem + ".excluded.json")
     excluded.write_bytes((json.dumps(result.excluded, indent=2) + "\n").encode("utf-8"))
     tasks = sorted({b.task_id for b in result.boundaries})
     record = ingest_manifest(
-        args.job, args.tasks, tasks, boundaries=n, excluded=len(result.excluded)
+        args.job, args.tasks, tasks, boundaries=n, excluded=len(result.excluded), phase=args.phase
     )
     manifest_path = args.out.with_name(args.out.stem + ".manifest.json")
     manifest_path.write_bytes((json.dumps(record, indent=2) + "\n").encode("utf-8"))
     print(f"{n} boundaries -> {args.out}; {len(result.excluded)} exclusions -> {excluded}")
+    return 0
+
+
+def cmd_phase1b_estimate(args: argparse.Namespace) -> int:
+    from hjr.enrichment import render, task_rates
+
+    print(render(task_rates(args.boundaries, args.excluded), args.attempts, args.rates))
+    return 0
+
+
+def cmd_phase1b_select(args: argparse.Namespace) -> int:
+    from hjr.enrichment import stage_b_tasks
+
+    for task in stage_b_tasks(args.stage_a):
+        print(task)
     return 0
 
 
@@ -614,7 +638,23 @@ def main(argv: list[str] | None = None) -> int:
     p.add_argument("--job", type=Path, required=True, help="jobs/<job name>")
     p.add_argument("--tasks", type=Path, default=Path("tasks"))
     p.add_argument("--out", type=Path, required=True)
+    p.add_argument("--phase", choices=("1a", "1b-enrichment"), default="1a")
     p.set_defaults(func=cmd_ingest)
+
+    p = sub.add_parser(
+        "phase1b-estimate", help="offline Stage A detection estimate from primary truth only"
+    )
+    p.add_argument("--boundaries", type=Path, default=ROOT / "data/frozen/phase1-weak.jsonl")
+    p.add_argument("--excluded", type=Path, default=ROOT / "data/frozen/phase1-weak.excluded.json")
+    p.add_argument("--attempts", type=int, default=20, help="Stage A attempts per task")
+    p.add_argument("--rates", type=float, nargs="+", default=[0.02, 0.05, 0.10, 0.20])
+    p.set_defaults(func=cmd_phase1b_estimate)
+
+    p = sub.add_parser(
+        "phase1b-select", help="Stage B tasks: C2-C4 with a primary-truth not-done in Stage A"
+    )
+    p.add_argument("--stage-a", type=Path, required=True, help="frozen Stage A boundaries")
+    p.set_defaults(func=cmd_phase1b_select)
 
     p = sub.add_parser("split", help="write the seeded dev/held-out task split")
     p.add_argument("--tasks", type=Path, default=Path("tasks"))

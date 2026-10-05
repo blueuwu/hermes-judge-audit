@@ -24,7 +24,7 @@ from pathlib import Path
 
 from hjr import metrics, stats
 from hjr.phase2 import Plan, resolve
-from hjr.schemas import AttemptRecord, BoundaryRecord, JudgeVerdict
+from hjr.schemas import AttemptRecord, BoundaryRecord, JudgeVerdict, Phase, require_single_phase
 
 DECISIONS = ("done", "continue", "blocked")
 EXPECTED = metrics.EXPECTED_DECISION
@@ -74,6 +74,7 @@ class Item:
     split: str
     truth: str
     decisions: tuple[str, ...]  # effective decision per sample, in sample order
+    phase: Phase = "1a"
 
     @property
     def decision(self) -> str:
@@ -88,6 +89,8 @@ class Item:
 
     @property
     def correct(self) -> bool:
+        if self.phase == "1b-enrichment":
+            raise ValueError("accuracy is not defined for Phase 1b enrichment")
         return self.decision == EXPECTED[self.truth]
 
     @property
@@ -103,6 +106,7 @@ def build_items(
     samples: int,
 ) -> tuple[list[Item], list[str]]:
     """Items with every sample present. Returns (items, ids missing at least one sample)."""
+    require_single_phase(boundaries.values())
     by_item: dict[str, dict[int, str]] = defaultdict(dict)
     for v in verdicts:
         by_item[v.boundary_id][v.sample] = v.decision
@@ -115,7 +119,9 @@ def build_items(
             incomplete.append(bid)
             continue
         decisions = tuple(got[s] for s in range(samples))
-        items.append(Item(bid, b.task_id, b.category, b.split, truth.states[bid], decisions))
+        items.append(
+            Item(bid, b.task_id, b.category, b.split, truth.states[bid], decisions, b.phase)
+        )
     return items, sorted(incomplete)
 
 
@@ -147,6 +153,7 @@ def _pct(x: float | None) -> str:
 
 
 def _rate(items: Sequence[Item], hit, *, seed: str) -> RateCI:
+    require_single_phase(items)
     k = sum(hit(i) for i in items)
     n = len(items)
 
@@ -158,17 +165,21 @@ def _rate(items: Sequence[Item], hit, *, seed: str) -> RateCI:
 
 
 def false_done(items: Sequence[Item], *, seed: str, first_only: bool = False) -> RateCI:
+    require_single_phase(items)
     neg = [i for i in items if i.truth != "done"]
     return _rate(neg, lambda i: i.judged_done(first_only), seed=seed)
 
 
 def false_continue(items: Sequence[Item], *, seed: str, first_only: bool = False) -> RateCI:
+    require_single_phase(items)
     pos = [i for i in items if i.truth == "done"]
     return _rate(pos, lambda i: not i.judged_done(first_only), seed=seed)
 
 
 def fd_minus_fc(items: Sequence[Item], *, seed: str) -> stats.BootstrapCI:
     """H1: false-DONE rate minus false-CONTINUE rate, task-clustered bootstrap."""
+
+    require_single_phase(items)
 
     def statistic(rows: Sequence[Item]) -> float | None:
         neg = [i for i in rows if i.truth != "done"]
@@ -213,6 +224,7 @@ def paired(
     restrict=lambda i: True,
 ) -> Paired:
     """McNemar on ``indicator`` over items present in both cells (and passing ``restrict``)."""
+    require_single_phase([*baseline[1], *candidate[1]])
     b = {i.boundary_id: i for i in baseline[1] if restrict(i)}
     c = {i.boundary_id: i for i in candidate[1] if restrict(i)}
     shared = sorted(b.keys() & c.keys())
@@ -247,7 +259,7 @@ class CellReport:
     unanimous: tuple[int, int]
     # Codex arm only: replies that did not match the verdict schema exactly
     schema_invalid: tuple[int, int] | None
-    kappa: stats.Agreement
+    kappa: stats.Agreement | None
 
 
 def cell_report(
@@ -262,8 +274,11 @@ def cell_report(
     samples: int,
     seed: str,
 ) -> CellReport:
+    phase = require_single_phase(boundaries.values())
+    states = metrics.TruthMap(phase)
+    states.update(truth.states)
     scored = [v for v in verdicts if v.boundary_id in truth.states]
-    scores = metrics.score(scored, truth.states, what=f"{arm} {cell}") if scored else None
+    scores = metrics.score(scored, states, what=f"{arm} {cell}") if scored else None
     items, incomplete = build_items(verdicts, boundaries, truth, samples=samples)
     key = f"{seed}:{arm}:{cell}"
     meta = [v.harness_meta for v in verdicts if v.harness_meta and "schema_valid" in v.harness_meta]
@@ -286,7 +301,7 @@ def cell_report(
         false_continue_first=false_continue(items, seed=f"{key}:fc1", first_only=True),
         unanimous=(sum(i.unanimous for i in items), len(items)),
         schema_invalid=invalid,
-        kappa=stats.agreement(pairs, ["done", "not_done"]),
+        kappa=stats.agreement(pairs, ["done", "not_done"]) if phase == "1a" else None,
     )
 
 
@@ -297,6 +312,7 @@ def cell_report(
 class Report:
     truth_source: str
     plan: Plan
+    phase: Phase = "1a"
     cells: dict[tuple[str, str], CellReport] = field(default_factory=dict)
     truth: dict[str, Truth] = field(default_factory=dict)
     h1: dict[str, stats.BootstrapCI] = field(default_factory=dict)
@@ -369,11 +385,12 @@ def analyse(
     attempts: Mapping[str, Sequence[AttemptRecord]],
     sanity: Mapping[str, Sequence[JudgeVerdict]] | None = None,
 ) -> Report:
+    phase = require_single_phase(b for rows in boundaries.values() for b in rows)
     seed = plan.seed("bootstrap")
     sources = {t.source for t in truth.values()}
     if len(sources) != 1:
         raise ValueError(f"one truth source per report, got {sorted(sources)}")
-    report = Report(truth_source=sources.pop(), plan=plan, truth=dict(truth))
+    report = Report(truth_source=sources.pop(), plan=plan, truth=dict(truth), phase=phase)
     for arm in plan.arms:
         by_id = {b.boundary_id: b for b in boundaries[arm]}
         rows = [v for v in verdicts.get(arm, []) if v.boundary_id in by_id]
@@ -394,6 +411,8 @@ def analyse(
                 samples=plan.samples,
                 seed=seed,
             )
+        if phase == "1b-enrichment":
+            continue
         report.h1[arm] = fd_minus_fc(report.cells[(arm, SELF_CELL)].items, seed=f"{seed}:{arm}:h1")
 
         def cell(name: str, _arm: str = arm) -> tuple[str, list[Item]]:
@@ -506,8 +525,8 @@ def _paired_table(rows: Sequence[Paired], holm: bool) -> list[str]:
     return out
 
 
-def _kappa(k: stats.Agreement) -> str:
-    if k.kappa is None:
+def _kappa(k: stats.Agreement | None) -> str:
+    if k is None or k.kappa is None:
         return "–"
     return f"{k.kappa:.2f} (PABAK {k.pabak:.2f}; done prevalence {k.prevalence['done']:.2f})"
 
@@ -574,6 +593,8 @@ def _arm_section(report: Report, arm: str) -> list[str]:
 
 
 def render(report: Report) -> str:
+    if report.phase == "1b-enrichment":
+        return _render_enrichment(report)
     lines = [
         f"# Phase 2 summary (truth: {report.truth_source})",
         "",
@@ -618,4 +639,38 @@ def render(report: Report) -> str:
         ]
         for (arm, name), (k, n) in sorted(report.sanity.items()):
             lines.append(f"| {arm} | `{name}` | {k}/{n} |")
+    return "\n".join(lines) + "\n"
+
+
+def _render_enrichment(report: Report) -> str:
+    lines = [
+        "# Phase 1b enrichment (truth: verifier)",
+        "",
+        "Reported separately from Phase 1a; only truth-conditional metrics are estimated.",
+        "",
+        "| Arm | Cell | Transport errors / attempts | Unresolved | Parse failed "
+        "| Format violations | DONE given not_done | Not DONE given not_done "
+        "| DONE given blocked | Not DONE given done |",
+        "|---|---|---|---|---|---|---|---|---|---|",
+    ]
+    diversity = []
+    for (arm, name), cell in report.cells.items():
+        key = f"{report.plan.seed('bootstrap')}:{arm}:{name}:enrichment"
+        neg = [i for i in cell.items if i.truth == "not_done"]
+        blocked = [i for i in cell.items if i.truth == "blocked"]
+        fd = _rate(neg, lambda i: i.judged_done(), seed=f"{key}:fd")
+        recall = _rate(neg, lambda i: not i.judged_done(), seed=f"{key}:recall")
+        bd = _rate(blocked, lambda i: i.judged_done(), seed=f"{key}:blocked")
+        scores = cell.scores
+        lines.append(
+            f"| {arm} | `{cell.variant}` | {cell.transport.errors}/{cell.transport.attempts} "
+            f"| {cell.transport.unresolved_calls} | {scores.parse_failures if scores else '-'} "
+            f"| {scores.format_violations if scores else '-'} | {fd.render()} | {recall.render()} "
+            f"| {bd.render()} | {cell.false_continue.render()} |"
+        )
+        diversity.append(
+            f"\n{arm}, `{name}`: {len(neg)} not-done boundaries across "
+            f"{len({i.task_id for i in neg})} tasks; {len(cell.incomplete)} incomplete items.\n"
+        )
+    lines.extend(diversity)
     return "\n".join(lines) + "\n"

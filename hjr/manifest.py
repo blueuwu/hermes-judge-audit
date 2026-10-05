@@ -12,7 +12,7 @@ from pathlib import Path
 
 from hjr.arms import Arm
 from hjr.config import ROOT
-from hjr.schemas import AttemptRecord, RunManifest, read_jsonl
+from hjr.schemas import AttemptRecord, Phase, RunManifest, read_jsonl
 
 HERMES_DIR = ROOT / "third_party" / "hermes-agent"
 
@@ -98,6 +98,7 @@ def judge_run_manifest(
     judge_config_sha256: str,
     seed: int,
     started_at: datetime,
+    phase: Phase = "1a",
 ) -> RunManifest:
     """Merge this invocation into the run's manifest; counts are recomputed from disk."""
     from hjr.replay import load_verdicts
@@ -106,12 +107,15 @@ def judge_run_manifest(
     prev = None
     if path.exists():
         prev = RunManifest.model_validate_json(path.read_text(encoding="utf-8"))
+    if prev is not None and prev.phase != phase:
+        raise ValueError("refusing to mix phases in a replay manifest")
     verdicts = load_verdicts(run_dir)
     inputs = {**(prev.inputs if prev else {}), rel(boundaries_path): sha256_file(boundaries_path)}
     models = {**(prev.models if prev else {}), **{k: a.describe() for k, a in arms.items()}}
     return RunManifest(
         run_id=run_dir.name,
         kind="judge-replay",
+        phase=phase,
         git_sha=git_sha,
         git_dirty=git_dirty,
         hermes_sha=hermes_sha(),
@@ -176,11 +180,19 @@ def soak_manifest(job_dirs: list[Path], tasks_dir: Path, task_ids: list[str]) ->
 
 
 def ingest_manifest(
-    job_dir: Path, tasks_dir: Path, task_ids: list[str], *, boundaries: int, excluded: int
+    job_dir: Path,
+    tasks_dir: Path,
+    task_ids: list[str],
+    *,
+    boundaries: int,
+    excluded: int,
+    phase: Phase = "1a",
 ) -> dict:
     """Provenance of a frozen boundary file: code, Hermes, arms, split and task versions."""
     record = {"kind": "ingest", **_provenance(tasks_dir, task_ids)}
     record["judge_config_sha256"] = sha256_file(ROOT / "configs" / "judge_variants.toml")
+    if phase != "1a":
+        record["phase"] = phase
     record["split_sha256"] = sha256_file(ROOT / "configs" / "split.toml")
     record["counts"] = {"boundaries": boundaries, "excluded": excluded}
     return record | {"jobs": _jobs([job_dir]), "written_at": datetime.now(UTC).isoformat()}

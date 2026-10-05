@@ -12,6 +12,7 @@ from pydantic import AwareDatetime, BaseModel, ConfigDict, Field
 TruthState = Literal["done", "not_done", "blocked"]
 # "probe" items test output-format compliance only and never enter a semantic metric.
 Split = Literal["dev", "heldout", "probe"]
+Phase = Literal["1a", "1b-enrichment"]
 
 
 class _Record(BaseModel):
@@ -44,6 +45,8 @@ class BoundaryRecord(_Record):
     boundary_id: str
     run_id: str
     task_id: str
+    # Omit the legacy default on serialization to preserve constructed fixture hashes.
+    phase: Phase = Field(default="1a", exclude_if=lambda value: value == "1a")
     task_version: str = "1.0.0"
     category: str
     split: Split
@@ -185,6 +188,7 @@ class DriftIncident(_Record):
 class RunManifest(_Record):
     run_id: str
     kind: Literal["judge-replay", "harbor"]
+    phase: Phase = Field(default="1a", exclude_if=lambda value: value == "1a")
     git_sha: str
     git_dirty: bool
     hermes_sha: str
@@ -223,3 +227,10 @@ def write_jsonl(path: Path, records: Iterable[BaseModel]) -> int:
             fh.write(rec.model_dump_json(exclude_none=True) + "\n")
             count += 1
     return count
+
+
+def require_single_phase(records: Iterable) -> Phase:
+    phases = {r.phase for r in records}
+    if len(phases) > 1:
+        raise ValueError(f"refusing to mix phases: {sorted(phases)}")
+    return next(iter(phases), "1a")

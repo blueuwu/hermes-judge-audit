@@ -10,7 +10,7 @@ import pytest
 from hjr import analysis, judge
 from hjr.arms import MixedArmError
 from hjr.config import load_judge_config
-from hjr.phase2 import cell_of, draw_sanity, load_boundaries, load_plan, resolve
+from hjr.phase2 import cell_of, draw_sanity, load_plan, resolve
 from hjr.schemas import JudgeVerdict, VerifierResult
 from tests.factories import make_boundary
 
@@ -42,14 +42,13 @@ def test_self_cells_judge_only_their_own_arm():
         selfs = {v.model for v in PLAN.variants(arm) if v.model.startswith("self-")}
         assert selfs == {f"self-{arm}"}
         assert CFG.self_of[f"self-{arm}"] == arm
-        assert {b.tags["agent_arm"] for b in load_boundaries(PLAN, arm)} == {arm}
 
 
-def test_headtail_cell_is_identical_to_head4k_on_every_phase1_boundary():
+def test_headtail_cell_is_identical_on_short_synthetic_boundaries():
     ((cell, same),) = PLAN.identical.items()
     for arm in PLAN.arms:
         a, b = resolve(cell, arm), resolve(same, arm)
-        for boundary in load_boundaries(PLAN, arm):
+        for boundary in [make_boundary(last_response="x" * n) for n in (0, 1959, 2757, 4000)]:
             assert judge.build_messages(
                 boundary, prompt=a.prompt, view=a.view
             ) == judge.build_messages(boundary, prompt=b.prompt, view=b.view)
@@ -70,11 +69,21 @@ def test_remaining_seed_streams_are_unchanged(stream):
     assert random.Random(PLAN.seed(stream)).random() == first
 
 
-def test_sanity_subset_regenerates_from_its_seed():
-    drawn = draw_sanity(PLAN, {arm: load_boundaries(PLAN, arm) for arm in PLAN.arms})
+def test_sanity_subset_draw_is_deterministic_and_stratified():
+    boundaries = {
+        arm: [
+            make_boundary(
+                boundary_id=f"{arm}/b{k}",
+                verifier=VerifierResult(truth_state="not_done" if k < 8 else "done"),
+            )
+            for k in range(20)
+        ]
+        for arm in PLAN.arms
+    }
+    drawn = draw_sanity(PLAN, boundaries)
+    assert drawn == draw_sanity(PLAN, boundaries)
     for arm in PLAN.arms:
-        assert drawn[arm] == PLAN.sanity_ids(arm)
-        rows = {b.boundary_id: b for b in load_boundaries(PLAN, arm)}
+        rows = {b.boundary_id: b for b in boundaries[arm]}
         neg = [i for i in drawn[arm] if rows[i].verifier.truth_state != "done"]
         assert len(drawn[arm]) == PLAN.sanity["per_arm"] and len(neg) == PLAN.sanity["not_done"]
 

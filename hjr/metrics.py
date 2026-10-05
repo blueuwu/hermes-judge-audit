@@ -20,7 +20,7 @@ from collections.abc import Iterable, Mapping
 from dataclasses import dataclass
 
 from hjr.arms import MixedArmError, require_single_arm
-from hjr.schemas import AttemptRecord, BoundaryRecord, JudgeVerdict
+from hjr.schemas import AttemptRecord, BoundaryRecord, JudgeVerdict, Phase, require_single_phase
 
 EXPECTED_DECISION = {"done": "done", "not_done": "continue", "blocked": "blocked"}
 
@@ -45,9 +45,9 @@ class JudgeScores:
     model_calls: int
     parse_failures: Rate
     format_violations: Rate
-    semantic_accuracy: Rate
-    effective_accuracy: Rate
-    strict_accuracy: Rate
+    semantic_accuracy: Rate | None
+    effective_accuracy: Rate | None
+    strict_accuracy: Rate | None
     # Per truth class, under effective scoring (what production would have done)
     false_done_effective: Rate
     false_continue_effective: Rate
@@ -56,8 +56,15 @@ class JudgeScores:
     false_continue_semantic: Rate
 
 
-def truth_map(boundaries: Iterable[BoundaryRecord]) -> dict[str, str]:
-    out = {}
+class TruthMap(dict[str, str]):
+    def __init__(self, phase: Phase = "1a"):
+        super().__init__()
+        self.phase = phase
+
+
+def truth_map(boundaries: Iterable[BoundaryRecord]) -> TruthMap:
+    boundaries = list(boundaries)
+    out = TruthMap(require_single_phase(boundaries))
     for b in boundaries:
         if b.split == "probe":
             raise ValueError(f"{b.boundary_id} is a format probe and cannot enter accuracy metrics")
@@ -84,6 +91,7 @@ def score(verdicts: list[JudgeVerdict], truth: Mapping[str, str], *, what: str) 
     if missing:
         raise KeyError(f"no truth for {len(missing)} boundaries, e.g. {sorted(missing)[0]}")
 
+    enriched = getattr(truth, "phase", "1a") == "1b-enrichment"
     called = [v for v in verdicts if v.outcome != "no_call"]
     parsed = [v for v in called if v.outcome == "parsed"]
 
@@ -105,9 +113,13 @@ def score(verdicts: list[JudgeVerdict], truth: Mapping[str, str], *, what: str) 
         model_calls=len(called),
         parse_failures=Rate(sum(v.outcome == "parse_failed" for v in called), len(called)),
         format_violations=Rate(sum(v.outcome == "format_violation" for v in called), len(called)),
-        semantic_accuracy=Rate(sum(map(correct, parsed)), len(parsed)),
-        effective_accuracy=Rate(sum(map(correct, verdicts)), len(verdicts)),
-        strict_accuracy=Rate(sum(map(strict_correct, verdicts)), len(verdicts)),
+        semantic_accuracy=Rate(sum(map(correct, parsed)), len(parsed)) if not enriched else None,
+        effective_accuracy=Rate(sum(map(correct, verdicts)), len(verdicts))
+        if not enriched
+        else None,
+        strict_accuracy=Rate(sum(map(strict_correct, verdicts)), len(verdicts))
+        if not enriched
+        else None,
         false_done_effective=false_done(verdicts),
         false_continue_effective=false_continue(verdicts),
         false_done_semantic=false_done(parsed),

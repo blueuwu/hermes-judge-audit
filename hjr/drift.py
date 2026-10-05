@@ -90,6 +90,8 @@ def compare(
     _check_variants(baseline, candidate)
     boundaries = list(boundaries)
     truth = metrics.truth_map(boundaries)
+    if truth.phase == "1b-enrichment":
+        raise ValueError("drift correctness comparisons are Phase 1a only")
     meta = {b.boundary_id: b for b in boundaries}
 
     def by_item(rows: list[JudgeVerdict]) -> dict[str, dict[int, str]]:
