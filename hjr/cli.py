@@ -448,6 +448,60 @@ def cmd_audit(args: argparse.Namespace) -> int:
     return 0
 
 
+def cmd_pairs_build(args: argparse.Namespace) -> int:
+    import importlib
+    import json
+
+    from hjr.pairs import BuildResult, ResponseEdit, read_dev, response_pairs, state_pairs
+    from hjr.schemas import write_jsonl
+
+    boundaries = read_dev(args.boundaries)
+    out = args.out.resolve()
+    for protected in ("tasks", "hjr/mutants", "data/frozen", "data/mutants", "results"):
+        if out.is_relative_to(ROOT / protected):
+            raise ValueError("pairs output must be outside frozen and research-result directories")
+    if args.kind == "response":
+        edits = list(read_jsonl(args.edits, ResponseEdit)) if args.edits else []
+        result = BuildResult(items=response_pairs(boundaries, args.cell, edits))
+    else:
+        from hjr.mutants import load_all, require_frozen, retired
+
+        if not args.executor or not args.snapshots:
+            raise ValueError("state pairs need --snapshots and --executor module:factory")
+        module, factory = args.executor.split(":")
+        executor = getattr(importlib.import_module(module), factory)()
+        require_frozen()
+        retired_keys = retired()
+        mutants = [m for m in load_all() if m.key not in retired_keys]
+        snapshots = json.loads(args.snapshots.read_text(encoding="utf-8"))
+        result = BuildResult()
+        for boundary in boundaries:
+            if boundary.boundary_id not in snapshots:
+                raise ValueError("dev boundary missing from snapshot mapping")
+            part = state_pairs(
+                boundary, Path(snapshots[boundary.boundary_id]), mutants, args.cell, executor
+            )
+            result.items.extend(part.items)
+            result.excluded.extend(part.excluded)
+    write_jsonl(out, result.items)
+    out.with_suffix(".excluded.json").write_text(
+        json.dumps(result.excluded, indent=2) + "\n", encoding="utf-8"
+    )
+    print(f"{len(result.items)} items; {len(result.excluded)} exclusions; {out}")
+    return 0
+
+
+def cmd_pairs_summary(args: argparse.Namespace) -> int:
+    from hjr.pairs import PairItem
+    from hjr.pairs_analysis import analyse, render
+    from hjr.schemas import JudgeVerdict
+
+    items = list(read_jsonl(args.items, PairItem))
+    verdicts = list(read_jsonl(args.verdicts, JudgeVerdict))
+    print(render(analyse(items, verdicts, tolerance=args.tolerance)), end="")
+    return 0
+
+
 def main(argv: list[str] | None = None) -> int:
     parser = argparse.ArgumentParser(prog="hjr", description=__doc__)
     parser.add_argument("-v", "--verbose", action="store_true")
@@ -489,6 +543,24 @@ def main(argv: list[str] | None = None) -> int:
             a.add_argument("--workdir", type=Path, default=audit.WORKDIR)
             a.add_argument("--jobs", type=Path, default=audit.JOBS)
             a.add_argument("--tasks", type=Path, default=audit.TASKS)
+
+    p = sub.add_parser("pairs-build", help="build dev controlled pairs (no judge calls)")
+    p.add_argument("--boundaries", type=Path, required=True, help="dev-only JSONL")
+    p.add_argument("--out", type=Path, required=True)
+    p.add_argument("--cell", action="append", required=True, help="prompt:model:view")
+    p.add_argument("--kind", choices=["response", "state"], default="response")
+    p.add_argument("--edits", type=Path, help="reviewed ResponseEdit JSONL for response pairs")
+    p.add_argument(
+        "--snapshots", type=Path, help="state: dev boundary id to extracted workspace JSON"
+    )
+    p.add_argument("--executor", help="state: module:factory implementing ReplayExecutor")
+    p.set_defaults(func=cmd_pairs_build)
+
+    p = sub.add_parser("pairs-summary", help="controlled-pairs analysis tables (no model calls)")
+    p.add_argument("--items", type=Path, required=True)
+    p.add_argument("--verdicts", type=Path, required=True)
+    p.add_argument("--tolerance", type=float, help="dated, recorded E1 equivalence tolerance")
+    p.set_defaults(func=cmd_pairs_summary)
 
     p = sub.add_parser("replay", help="replay judge variants over a boundaries file")
     p.add_argument("--boundaries", type=Path, required=True)

@@ -23,7 +23,7 @@ from pathlib import Path
 from hjr import verifier
 from hjr.config import ROOT
 from hjr.manifest import git_state
-from hjr.schemas import BoundaryRecord, read_jsonl
+from hjr.schemas import BoundaryRecord, VerifierResult, read_jsonl
 
 JOBS = ROOT / "jobs"
 TRUTH = ROOT / "data" / "truth"
@@ -136,6 +136,19 @@ def write(name: str, rows: list[Row], truth_dir: Path = TRUTH, log_dir: Path = L
 def load_truth(path: Path) -> dict[str, str]:
     with path.open(encoding="utf-8") as fh:
         return {r["boundary_id"]: r["truth_state"] for r in map(json.loads, fh)}
+
+
+def primary_rows(path: Path) -> dict[str, dict]:
+    """Primary truth rows (``hjr regrade``) for a frozen boundaries file, by boundary id."""
+    truth = TRUTH / f"{path.stem}.jsonl"
+    if not truth.is_file():
+        raise ValueError(f"{truth} is missing: run `hjr regrade {path}` first")
+    with truth.open(encoding="utf-8") as fh:
+        return {r["boundary_id"]: r for r in map(json.loads, fh)}
+
+
+def primary_verifier(row: dict) -> VerifierResult:
+    return VerifierResult(truth_state=row["truth_state"], requirements=row["requirements"])
 
 
 def run(boundaries_path: Path, jobs: Path = JOBS) -> tuple[Path, list[Row]]:

@@ -49,19 +49,6 @@ class AuditItem(BaseModel):
     verifier_sha256: str
 
 
-def primary_rows(path: Path) -> dict[str, dict]:
-    """Primary truth rows (``hjr regrade``) for a frozen boundaries file, by boundary id."""
-    truth = regrade.TRUTH / f"{path.stem}.jsonl"
-    if not truth.is_file():
-        raise ValueError(f"{truth} is missing: run `hjr regrade {path}` first")
-    with truth.open(encoding="utf-8") as fh:
-        return {r["boundary_id"]: r for r in map(json.loads, fh)}
-
-
-def primary_verifier(row: dict) -> VerifierResult:
-    return VerifierResult(truth_state=row["truth_state"], requirements=row["requirements"])
-
-
 def metadata(doc: dict, primary: dict[str, dict]) -> AuditItem | None:
     # Project before validation so malformed held-out payloads cannot appear in exceptions.
     run = doc.get("run_id")
@@ -84,7 +71,7 @@ def metadata(doc: dict, primary: dict[str, dict]) -> AuditItem | None:
 def load_metadata(paths: Sequence[Path]) -> dict[str, AuditItem]:
     items = {}
     for path in paths:
-        primary = primary_rows(path)
+        primary = regrade.primary_rows(path)
         with path.open(encoding="utf-8") as fh:
             for line in fh:
                 if not line.strip():
@@ -493,7 +480,7 @@ class Session:
         require_open(self.draw_log["items"][bid]["split"])
         found = None
         for path in self.boundary_paths:
-            primary = primary_rows(path)
+            primary = regrade.primary_rows(path)
             with path.open(encoding="utf-8") as fh:
                 for line in fh:
                     if not line.strip():
@@ -512,7 +499,8 @@ class Session:
                         found = BoundaryRecord.model_validate(doc)
                     except ValueError:
                         raise ValueError("invalid sampled boundary record") from None
-                    found = found.model_copy(update={"verifier": primary_verifier(primary[bid])})
+                    verifier = regrade.primary_verifier(primary[bid])
+                    found = found.model_copy(update={"verifier": verifier})
         if found is None:
             raise ValueError("sampled boundary is missing")
         return found
