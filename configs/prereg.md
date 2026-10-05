@@ -643,3 +643,25 @@ Phase 1a.
 *Unchanged.* The task suite and split; the judge cells and sampling of the Phase 2 design
 amendment; H1 to H5 and the H4 test; the strong-judge arrangements; and the $20 stop on paid
 Phase 2 calls. Phase 1b spend gets its own limit in its note.
+
+**2026-10-05. Frozen verifier, before any Phase 2 judge call.** The mutation suite passes:
+suite `3ed35af4025f`, run `results/mutants/3ed35af4025f-20261005T091106Z`. 30 of 30 oracle bases
+grade as expected, 260 of 260 gated mutants are killed on their targeted checks, 33 of 33 benign
+variants are accepted, and no mutant survives, so none needed classifying and
+`data/mutants/equivalent.jsonl` is empty. Ten mutants were retired after a run, each with a
+written reason in `data/mutants/retired.jsonl` and a `/2` replacement logged in
+`data/mutants/added.jsonl`: six whose edit replaced the whole file, and four whose code or
+declared targets did not match their own description (`c2-02 look:flag-ignored`,
+`c2-03 look:docs-and-badge-missed`, `c2-04 look:timeout-key-kept`,
+`c3-03 look:hand-edited-prices`). In each of the four, the verifier was right.
+- The primary verifier is the `tests/` tree of every task at commit `63ce540`, with versions as
+  in `data/verifiers.json` (each the sha256 of `tasks/<task>/tests/`): v2 for
+  `c2-01-rename-function`, `c2-03-release-bump` and `c6-04-data-quality-report`, and v1 for the
+  other 27 tasks. No task's `tests/` has changed since `67559d5`.
+- Regrade (`hjr regrade`, logs `results/regrade/phase1-{weak,strong}.md`, primary truth
+  `data/truth/phase1-{weak,strong}.jsonl`): every boundary of a v1 task reproduces its ingest
+  truth (160 of 160). Seven boundaries change, all `not_done` to `done`: five `c2-01` and two
+  `c6-04`, all dev. These are the two defects named under *Truth* in Amendment 1.
+- Primary truth on Phase 1a: weak 72 done, 4 not done, 12 blocked; strong 73 done, 5 not done,
+  12 blocked. `hjr phase2-summary` reads primary truth by default; `--truth v1` gives the
+  sensitivity tables with truth as frozen at Phase 1.

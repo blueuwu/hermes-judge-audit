@@ -9,8 +9,8 @@ manifest. Full job directories ship as release assets.
 
 | Arm | Job | Ran (UTC, 2026-10-02) | Trials | Errored | Boundaries | Excluded |
 |---|---|---|---|---|---|---|
-| weak (GLM-5.3-Flash, Z.AI) | `phase1-weak` | 19:19–19:57 | 90 | 2 | 88 | 2 |
-| strong (DeepSeek V4.1 Flash, DeepSeek) | `phase1-strong` | 19:57–20:18 | 90 | 0 | 90 | 0 |
+| weak (GLM-5.3-Flash, Z.AI) | `phase1-weak` | 13:49–14:27 | 90 | 2 | 88 | 2 |
+| strong (DeepSeek V4.1 Flash, DeepSeek) | `phase1-strong` | 14:27–14:48 | 90 | 0 | 90 | 0 |
 
 **Exclusions.** Both are weak-arm `c4-04-regex-log` trials whose first turn hit the 600 s turn
 limit. Their first model call was still streaming: the arm's one completed trial on that task
