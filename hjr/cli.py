@@ -333,7 +333,10 @@ def cmd_phase2_summary(args: argparse.Namespace) -> int:
 
     plan = load_plan()
     boundaries = {arm: load_boundaries(plan, arm) for arm in plan.arms}
-    truth = {a: analysis.truth_from_verifier(boundaries[a]) for a in plan.arms}
+    if args.truth == "v1":
+        truth = {a: analysis.truth_from_verifier(boundaries[a]) for a in plan.arms}
+    else:
+        truth = {a: analysis.truth_from_file(plan.arms[a].boundaries) for a in plan.arms}
 
     def attempts(run_dir: Path) -> list:
         path = run_dir / "attempts.jsonl"
@@ -352,11 +355,24 @@ def cmd_phase2_summary(args: argparse.Namespace) -> int:
         {a: attempts(d) for a, d in runs.items()},
         sanity,
     )
-    out = RUNS / "phase2" / "summary.md"
+    out = RUNS / "phase2" / ("summary.md" if args.truth == "primary" else "summary-v1.md")
     out.parent.mkdir(parents=True, exist_ok=True)
     out.write_text(analysis.render(report), encoding="utf-8", newline="\n")
     print(out.read_text(encoding="utf-8"))
     return 0
+
+
+def cmd_regrade(args: argparse.Namespace) -> int:
+    from hjr import regrade
+
+    bad = 0
+    for path in args.boundaries:
+        out, not_reproduced = regrade.run(path.resolve())
+        print(f"{path}: primary truth in {out.relative_to(ROOT)}")
+        for r in not_reproduced:
+            print(f"  NOT REPRODUCED {r.boundary_id}: v1 {r.v1_truth_state}, now {r.truth_state}")
+        bad += len(not_reproduced)
+    return 1 if bad else 0
 
 
 def cmd_mutants(args: argparse.Namespace) -> int:
@@ -481,7 +497,17 @@ def main(argv: list[str] | None = None) -> int:
     p.add_argument("--workers", type=int, default=4)
     p.set_defaults(func=cmd_mutants)
 
+    p = sub.add_parser("regrade", help="regrade frozen boundaries at current verifier versions")
+    p.add_argument("boundaries", type=Path, nargs="+", help="data/frozen/phase1-<arm>.jsonl")
+    p.set_defaults(func=cmd_regrade)
+
     p = sub.add_parser("phase2-summary", help="Phase 2 analysis tables (no model calls)")
+    p.add_argument(
+        "--truth",
+        choices=["primary", "v1"],
+        default="primary",
+        help="primary: the regraded truth in data/truth/; v1: as frozen at Phase 1 (sensitivity)",
+    )
     p.set_defaults(func=cmd_phase2_summary)
 
     args = parser.parse_args(argv)

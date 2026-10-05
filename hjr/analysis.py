@@ -20,6 +20,7 @@ from __future__ import annotations
 from collections import Counter, defaultdict
 from collections.abc import Iterable, Mapping, Sequence
 from dataclasses import dataclass, field
+from pathlib import Path
 
 from hjr import metrics, stats
 from hjr.phase2 import Plan, resolve
@@ -36,12 +37,22 @@ H4_MAX_FC_RISE = 0.05  # false-CONTINUE may rise by at most 5 points
 
 @dataclass(frozen=True)
 class Truth:
-    source: str  # "verifier"
+    source: str  # "verifier" (v1, as frozen at Phase 1) | "verifier-primary"
     states: dict[str, str]  # boundary id -> done | not_done | blocked
 
 
 def truth_from_verifier(boundaries: Iterable[BoundaryRecord]) -> Truth:
     return Truth("verifier", metrics.truth_map(boundaries))
+
+
+def truth_from_file(boundaries_path: str | Path) -> Truth:
+    """Primary truth: the regrade of an arm's frozen boundaries (``hjr regrade``)."""
+    from hjr.regrade import TRUTH, load_truth
+
+    path = TRUTH / f"{Path(boundaries_path).stem}.jsonl"
+    if not path.is_file():
+        raise SystemExit(f"{path} is missing: run `hjr regrade {boundaries_path}` first")
+    return Truth("verifier-primary", load_truth(path))
 
 
 # ── Items ─────────────────────────────────────────────────────────────
