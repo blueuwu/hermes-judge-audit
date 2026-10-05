@@ -665,3 +665,31 @@ declared targets did not match their own description (`c2-02 look:flag-ignored`,
 - Primary truth on Phase 1a: weak 72 done, 4 not done, 12 blocked; strong 73 done, 5 not done,
   12 blocked. `hjr phase2-summary` reads primary truth by default; `--truth v1` gives the
   sensitivity tables with truth as frozen at Phase 1.
+
+**2026-10-05. Amendment 2: Phase 1b sequential design, before any Phase 1b trial.** The Phase 1b
+target in Amendment 1 (≥60 verifier-not-done boundaries across ≥15 tasks) was set before the
+regrade. Under primary truth, the Phase 1a weak arm produced 1 not-done boundary in 46 on the 16
+C2–C4 tasks, all on c4-03. No fixed allocation is expected to meet the target, and three attempts
+per task cannot locate the tasks that yield not-dones. The target is retained as a goal only.
+Nothing downstream depends on it, as Amendment 1 already implies.
+
+Phase 1b runs in two stages, using the configuration frozen in the Phase 1b note. Stage A
+schedules 20 attempts on each of the 16 C2–C4 tasks (320 trials). Stage B schedules 40 more
+attempts on each task with at least one primary-truth not-done boundary in Stage A. No task enters
+Stage B on any other basis, and no task outside C2–C4 is added. Truth for both stages is the
+frozen primary verifier. Stage A runs as job phase1b-weak-a and Stage B as phase1b-weak-b.
+
+Spend on paid Phase 1b calls stops at $20, enforced by a dedicated provider key with that credit
+limit. If the limit is reached mid-stage, completed trials are kept, unscheduled ones are not run,
+and the shortfall is reported.
+
+Phase 1a ran with zero infrastructure retries, contrary to the retry policy stated at lines 128
+and 362; this deviation is disclosed here. Phase 1b matches Phase 1a: no retries, and
+infrastructure failures are excluded with reasons.
+
+Truth-conditional metrics are reported both micro-averaged and as task-macro averages, with
+task-bootstrap intervals. Achieved diversity is reported as the number of distinct tasks with
+not-done boundaries, along with each task's share. If fewer than 5 distinct tasks yield not-dones,
+Phase 1b reports per-task counts and per-task judge decisions only, with no pooled rate or
+interval. Stage A rates, Stage B counts and the Stage B task selection are all reported. Phase 1b
+sampling is adaptive, so its task mix is not representative and is never compared to Phase 1a's.
