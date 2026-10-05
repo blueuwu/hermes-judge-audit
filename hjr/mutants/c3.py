@@ -243,6 +243,18 @@ def _(ws):
     o.write(ws, PRICES, STALE)
 
 
+@mutant(
+    T,
+    "look:hand-edited-prices/2",
+    "prices typed in by hand: active prices fresh, date and data/prices.csv left stale",
+    breaks=("prices_synced", "as_of_date"),
+)
+def _(ws):
+    stale_date = STALE.splitlines()[0].removeprefix("# prices as of ")
+    o.mutate_json(ws, CAT, lambda c: c.update(synced_as_of=stale_date))
+    o.write(ws, PRICES, STALE)
+
+
 @mutant(T, "con:apply-script-patched", "apply_prices.py edited, the catalog still right")
 def _(ws):
     o.replace(ws, APPLY, 'print(f"applied', 'print(f"applied (patched)')

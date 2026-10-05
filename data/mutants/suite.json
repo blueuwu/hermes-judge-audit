@@ -1,5 +1,5 @@
 {
- "suite_sha256": "6d2c63b339b748a7c48b1beb59f395cd7adab2abb63aceaff095f26d2d2f5cb3",
+ "suite_sha256": "3ed35af4025fe45b48bb7b6b53218fcf6f7bbadfeb60c585564c32c4646fd966",
  "mutants": {
   "c1-01-csv-to-json/benign:compact-json": "fa2b33cb52774c0e0dcbe22c39cbf534e8977f811fe83b0b8bfa06d7e615b25b",
   "c1-01-csv-to-json/con:input-cleaned": "8775a21b5ecea0e12069d1b57bb4b4ce926b5fa70bebdeecb593e8cfec57c9d4",
@@ -68,6 +68,7 @@
   "c2-01-rename-function/req:tests_pass": "5b5f6326c8559fbfab582ad8dcd2058a367a552b34d40a7e97f37ecbee97f6de",
   "c2-02-add-dry-run-flag/benign:second-dry-run-test": "9afd359518938f44d5b04a9ccfe2cc7da650c3cfdb2d10c64c1cd899163459fb",
   "c2-02-add-dry-run-flag/look:flag-ignored": "028213a5393dc2205d6163942b37ae8b48850e44390e57e955b14835e7ad6ad1",
+  "c2-02-add-dry-run-flag/look:flag-ignored/2": "ea7fc2ce3f7cabdbc9f450545f773506f501ab2bf5ec39ac68206793ae99942a",
   "c2-02-add-dry-run-flag/look:quiet-default": "699876abc56a383568c854941a43f415955e2742f5526f39266b3f3979f0f00f",
   "c2-02-add-dry-run-flag/req:default_unchanged": "f5d945168014d3d83bd50bf00ef60ea06ebfab57898761ad53b8039193ce3877",
   "c2-02-add-dry-run-flag/req:dry_run_deletes_nothing": "94bcf94e8a8f66f143aff95cc65f913a7ac9c5aec4653d7026a4cf8ddf756d79",
@@ -83,6 +84,7 @@
   "c2-03-release-bump/con:stray-file": "e5d4a6de9aef733abd7e34e9b8db8c2e62c70911ac48c73a637297cd607ba0cf",
   "c2-03-release-bump/look:blind-replace": "6c0bccb46d72744916bc92116932aec01661cd6803d696b5cf1390a427879a55",
   "c2-03-release-bump/look:docs-and-badge-missed": "b2237a6c5b65dfaec3bbe55b2a6f98b0ea92c5a294cbbbb3df1908eb713e4dfe",
+  "c2-03-release-bump/look:docs-and-badge-missed/2": "29c17e2320850991e282b7d407ef7de1f03fd78d3c87dcb81cde2a3138aebed4",
   "c2-03-release-bump/look:heading-renamed": "7ea6b4c6c8871070f2b06f3abc1662d50588ac6c757961d127ed2064663dd991",
   "c2-03-release-bump/req:changelog_section": "de6603b249c736ca6fa152f140484614ac785cb08f2ed29f49559e895b57cdb0",
   "c2-03-release-bump/req:docs_version": "32a47337eb27cb7df4ffb3a643b7b013cbe3257097f6329cd0ce483d21dc3d4f",
@@ -96,6 +98,7 @@
   "c2-04-settings-migration/look:legacy-kept-no-schema": "9d04c2f08571992938624084b40a88e3a1baeb6c92f9ca65bf3c41dc44c434a4",
   "c2-04-settings-migration/look:seconds-kept": "c94c360b224ca898b87d3450f3d33ce8fca6ef9b073ec9290c569b5eaf8df6aa",
   "c2-04-settings-migration/look:timeout-key-kept": "f52c686390bc175fab82b3613877013b0d5d13567090a06beddbe2f13091dc30",
+  "c2-04-settings-migration/look:timeout-key-kept/2": "ae30e0200ec2998ce8c245b27dc2b23f196a3a1d53ef55f1167502ce41fe1e62",
   "c2-04-settings-migration/req:booleans": "f76ccbdd81d30879de04288347c1b1387c3c098b67dcb177167222f91f68a590",
   "c2-04-settings-migration/req:ini_unchanged": "03c8e47e76fe317624c4b4fcffc9eaf61ad127b6b05ec5543628b9a479cd1aa7",
   "c2-04-settings-migration/req:numbers": "4e68bd93233cadef1e243720c2f9a67739939802a59762a26747cb0caf51741d",
@@ -136,6 +139,7 @@
   "c3-03-flaky-sync/benign:catalog-reformatted": "5db70f73847c7924a1b2f436f18ed882ddaa8c5723edbed109960917b2e1bd05",
   "c3-03-flaky-sync/con:apply-script-patched": "5a6432cfd17848fae56bd14e556f583ac3c847ec4bd27321154b10330447d515",
   "c3-03-flaky-sync/look:hand-edited-prices": "f7e37117aa115fc3f28ae62a1b548e7cda9a0c48c5f56c80824516a40534bfc0",
+  "c3-03-flaky-sync/look:hand-edited-prices/2": "44db0928d8f3d7815026959070dab22a65e2ad575e3c2e17c327df55757c31d2",
   "c3-03-flaky-sync/look:stale-applied": "7246af4c010bc7061bddea3ff27a844fd56ab5e44e78f606d6950d543dc3f36a",
   "c3-03-flaky-sync/req:active_prices": "ac7de6f4a073e0160c9ee09e4fb7ac8c7474c7fb9e16ab48838d591dd7e9dc1b",
   "c3-03-flaky-sync/req:apply_script_unchanged": "fed0e0cd1172f10b07f27f8f60d8ae45c535bbb6eda7b039033bb40a4bdd70f0",

@@ -184,6 +184,25 @@ def _(ws):
     _drop_dry_run_test(ws)
 
 
+@mutant(
+    T,
+    "look:flag-ignored/2",
+    "the flag is accepted but ignored; the README and tests never mention it",
+    breaks=("dry_run_deletes_nothing", "readme_documents_flag", "test_added"),
+)
+def _(ws):
+    o.replace(ws, TOOL, "        if args.dry_run:\n", "        if False:\n")
+    o.replace(ws, README, " [--dry-run]", "")
+    o.replace(
+        ws,
+        README,
+        " With `--dry-run` it prints\n"
+        "`would delete <path>` for each file instead and deletes nothing.\n",
+        "\n",
+    )
+    _drop_dry_run_test(ws)
+
+
 @mutant(T, "look:quiet-default", "the default run no longer prints what it deleted")
 def _(ws):
     o.replace(ws, TOOL, '        print(f"deleted {path}")\n', "")
@@ -266,6 +285,17 @@ def _(ws):
 
 
 @mutant(T, "look:docs-and-badge-missed", "only pyproject and the package were bumped")
+def _(ws):
+    o.replace(ws, CONF, 'version = "1.5"\nrelease = "1.5.0"', 'version = "1.4"\nrelease = "1.4.2"')
+    o.replace(ws, RD, "badge/version-1.5.0-blue", "badge/version-1.4.2-blue")
+
+
+@mutant(
+    T,
+    "look:docs-and-badge-missed/2",
+    "pyproject, package and changelog released; docs version and badge left at 1.4.2",
+    breaks=("docs_version", "readme_badge"),
+)
 def _(ws):
     o.replace(ws, CONF, 'version = "1.5"\nrelease = "1.5.0"', 'version = "1.4"\nrelease = "1.4.2"')
     o.replace(ws, RD, "badge/version-1.5.0-blue", "badge/version-1.4.2-blue")
@@ -387,6 +417,16 @@ def _(ws):
 @mutant(T, "look:timeout-key-kept", "the old timeout key kept next to timeout_ms")
 def _(ws):
     o.edit_json(ws, SJ, _set("server", "timeout", 30))
+
+
+@mutant(
+    T,
+    "look:timeout-key-kept/2",
+    "the old timeout key kept next to timeout_ms",
+    breaks=("timeouts_ms",),
+)
+def _(ws):
+    o.mutate_json(ws, SJ, _set("server", "timeout", 30))
 
 
 @mutant(T, "con:ini-rewritten", "settings.ini is rewritten to say schema v2")
