@@ -247,6 +247,17 @@ def cmd_phase1b_select(args: argparse.Namespace) -> int:
     return 0
 
 
+def cmd_preflight(args: argparse.Namespace) -> int:
+    from hjr.preflight import check_utf8
+
+    problems = check_utf8()
+    for problem in problems:
+        print(f"FAIL {problem}")
+    if not problems:
+        print("ok utf8_mode=1, preferred encoding UTF-8")
+    return 1 if problems else 0
+
+
 def cmd_split(args: argparse.Namespace) -> int:
     from collections import Counter
 
@@ -655,6 +666,9 @@ def main(argv: list[str] | None = None) -> int:
     )
     p.add_argument("--stage-a", type=Path, required=True, help="frozen Stage A boundaries")
     p.set_defaults(func=cmd_phase1b_select)
+
+    p = sub.add_parser("preflight", help="launch-environment checks before a paid job")
+    p.set_defaults(func=cmd_preflight)
 
     p = sub.add_parser("split", help="write the seeded dev/held-out task split")
     p.add_argument("--tasks", type=Path, default=Path("tasks"))
