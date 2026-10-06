@@ -31,3 +31,8 @@ prevalence.
   coarse and states the cluster count.
 - Held-out-only metrics, and pooled metrics that include held-out boundaries, are sealed until
   `repair-freeze-v1`. Before that freeze, only dev-only results may be computed or viewed.
+
+*Precedence.* Where the opening rule paragraph and the full pre-analysis rule differ, the full
+pre-analysis rule governs. In particular: Stage A not-done clusters are all 16 tasks; per-task
+not-done rates on selected tasks come from Stage B only; held-out-only and pooled metrics that
+include held-out boundaries are sealed until `repair-freeze-v1`.
