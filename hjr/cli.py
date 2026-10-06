@@ -247,6 +247,23 @@ def cmd_phase1b_select(args: argparse.Namespace) -> int:
     return 0
 
 
+def cmd_phase1b_pools(args: argparse.Namespace) -> int:
+    from hjr.pools import report
+
+    try:
+        pools = args.judge_pool or ["dev"]
+        text = report(args.stage_a, args.stage_b, pools, seed=str(global_seed()))
+    except PermissionError as exc:
+        print(f"refused: {exc}")
+        return 2
+    if args.out is None:
+        print(text, end="")
+    else:
+        args.out.write_text(text, encoding="utf-8", newline="\n")
+        print(f"-> {args.out}")
+    return 0
+
+
 def cmd_preflight(args: argparse.Namespace) -> int:
     from hjr.preflight import check_utf8
 
@@ -666,6 +683,20 @@ def main(argv: list[str] | None = None) -> int:
     )
     p.add_argument("--stage-a", type=Path, required=True, help="frozen Stage A boundaries")
     p.set_defaults(func=cmd_phase1b_select)
+
+    p = sub.add_parser(
+        "phase1b-pools", help="Phase 1b pool report under deviation-2 (refuses sealed pools)"
+    )
+    p.add_argument("--stage-a", type=Path, default=ROOT / "data/frozen/phase1b-weak-a.jsonl")
+    p.add_argument("--stage-b", type=Path, default=ROOT / "data/frozen/phase1b-weak-b.jsonl")
+    p.add_argument(
+        "--judge-pool",
+        action="append",
+        choices=("dev", "heldout", "all"),
+        help="Stage A+B selected-task pool for judge figures (default: dev)",
+    )
+    p.add_argument("--out", type=Path, help="write the report here instead of stdout")
+    p.set_defaults(func=cmd_phase1b_pools, judge_pool=None)
 
     p = sub.add_parser("preflight", help="launch-environment checks before a paid job")
     p.set_defaults(func=cmd_preflight)
