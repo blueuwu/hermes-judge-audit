@@ -10,7 +10,7 @@ from hjr import stats
 from hjr.config import global_seed
 from hjr.judge import Variant, build_messages, prompt_sha256
 from hjr.pairs import PairItem, require_dev
-from hjr.schemas import JudgeVerdict
+from hjr.schemas import BoundaryRecord, JudgeVerdict
 
 
 @dataclass
@@ -44,6 +44,11 @@ def _ci(rows: Sequence[tuple[str, float]], stream: str) -> stats.BootstrapCI:
         lambda rs: sum(r[1] for r in rs) / len(rs) if rs else None,
         seed=f"{global_seed()}:bootstrap:pairs:{stream}",
     )
+
+
+def _identity(b: BoundaryRecord) -> tuple[str, str | None, str]:
+    """Summaries never pool runs, agent models or phases. Phase is the record's own field."""
+    return b.run_id, b.agent_model, b.phase
 
 
 def analyse(
@@ -80,7 +85,7 @@ def analyse(
         if v.prompt_sha256 != item.prompt_sha256:
             raise ValueError("verdict input hash mismatch")
         b = item.boundary
-        group = (b.run_id, b.agent_model, str(b.tags.get("phase", "1a")), item.cell)
+        group = (*_identity(b), item.cell)
         identities[group].add((v.arm_id, v.sub_arm_id))
         samples[key][v.sample] = v.decision == "done"
     if any(len(ids) > 1 for ids in identities.values()):
@@ -89,7 +94,7 @@ def analyse(
     grouped = defaultdict(dict)
     for key, item in by_key.items():
         b = item.boundary
-        identity = (b.run_id, b.agent_model, str(b.tags.get("phase", "1a")), item.cell)
+        identity = (*_identity(b), item.cell)
         label = ":".join(str(x) for x in identity)
         if len(samples[key]) != 3:
             report.excluded.append(f"{label} {item.pair_id}/{item.arm}: incomplete samples")
@@ -128,9 +133,7 @@ def analyse(
                 report.excluded.append(f"{label} {pair_id}: evidence_invisible")
                 continue
             observations[(label, "H8")].append((b.task_id, float(null), float(mutated)))
-            state[(b.run_id, b.agent_model, str(b.tags.get("phase", "1a")))][
-                (pair_id, item.cell)
-            ] = (b.task_id, not mutated)
+            state[_identity(b)][(pair_id, item.cell)] = (b.task_id, not mutated)
     # Reviewed response edits share the original base's null and independent repeat.
     for (label, pair_id), arms in grouped.items():
         if "edit" not in arms:

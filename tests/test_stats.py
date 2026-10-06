@@ -75,3 +75,85 @@ def test_small_cells_report_counts_only():
     assert stats.fmt_count(3, 11) == "3/11"
     assert stats.fmt_count(5, 20, (0.1, 0.45)) == "5/20 (25.0%, 10.0–45.0)"
     assert stats.fmt_count(0, 0) == "–"
+
+
+def _reference_bootstrap(rows, cluster, statistic, seed, resamples=stats.BOOTSTRAP_RESAMPLES):
+    """cluster_bootstrap as committed before the task-macro refactor."""
+    import math
+    import random
+    from collections import defaultdict
+
+    groups = defaultdict(list)
+    for r in rows:
+        groups[cluster(r)].append(r)
+    keys = sorted(groups, key=str)
+    rng = random.Random(seed)
+    values, undefined = [], 0
+    for _ in range(resamples):
+        v = statistic([r for k in rng.choices(keys, k=len(keys)) for r in groups[k]])
+        if v is None:
+            undefined += 1
+        else:
+            values.append(v)
+    est = statistic(list(rows))
+    if not values:
+        return stats.BootstrapCI(est, None, None, resamples, undefined)
+    values.sort()
+    lo = values[int(math.floor(0.025 * (len(values) - 1)))]
+    hi = values[int(math.ceil(0.975 * (len(values) - 1)))]
+    return stats.BootstrapCI(est, lo, hi, resamples, undefined)
+
+
+def test_cluster_bootstrap_unchanged_by_task_macro_refactor():
+    rows = [(f"t{i % 7}", (i * 37) % 5 == 0) for i in range(60)]
+
+    def mean(rs):
+        return sum(r[1] for r in rs) / len(rs) if rs else None
+
+    def picky(rs):
+        hits = [r for r in rs if r[0] in {"t1", "t2"}]
+        return mean(hits) if hits else None
+
+    for statistic in (mean, picky):
+        for seed in (0, "s:1"):
+            assert stats.cluster_bootstrap(
+                rows, lambda r: r[0], statistic, seed=seed
+            ) == _reference_bootstrap(rows, lambda r: r[0], statistic, seed)
+
+
+def test_task_macro_weighs_each_task_once():
+    rows = [("a", 1.0)] * 4 + [("b", 0.0)]
+    assert stats.task_macro(rows, lambda r: r[0], lambda r: r[1]) == 0.5
+    assert stats.task_macro([], lambda r: r[0], lambda r: r[1]) is None
+    ci = stats.task_macro_bootstrap(rows, lambda r: r[0], lambda r: r[1], seed=3)
+    assert ci.estimate == 0.5
+    # Two clusters drawn with replacement: macro is 0, 0.5 or 1, never the micro 0.8
+    assert ci.low == 0.0 and ci.high == 1.0 and ci.undefined == 0
+
+
+def test_task_macro_bootstrap_counts_a_task_drawn_twice_twice():
+    rows = [("a", 1.0)] * 9 + [("b", 0.0), ("c", 0.0), ("c", 1.0)]
+    means = {"a": 1.0, "b": 0.0, "c": 0.5}
+
+    sizes = {"a": 9, "b": 1, "c": 2}
+
+    # Same draws as cluster_bootstrap, which concatenates whole tasks: walk the drawn rows a
+    # task at a time and average the per-task means, one per drawn copy.
+    def per_draw(rs):
+        out, i = [], 0
+        while i < len(rs):
+            out.append(means[rs[i][0]])
+            i += sizes[rs[i][0]]
+        return sum(out) / len(out)
+
+    expected = stats.cluster_bootstrap(rows, lambda r: r[0], per_draw, seed="macro")
+    got = stats.task_macro_bootstrap(rows, lambda r: r[0], lambda r: r[1], seed="macro")
+    assert got == expected
+    assert got.estimate == pytest.approx(0.5)
+
+
+def test_task_macro_bootstrap_single_task_is_degenerate():
+    ci = stats.task_macro_bootstrap(
+        [("a", 1.0), ("a", 0.0)], lambda r: r[0], lambda r: r[1], seed=1
+    )
+    assert (ci.estimate, ci.low, ci.high) == (0.5, 0.5, 0.5)

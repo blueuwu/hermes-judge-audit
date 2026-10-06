@@ -2,7 +2,8 @@
 
 * Wilson intervals for independent proportions.
 * Task-clustered percentile bootstrap for anything aggregated over boundaries: tasks are
-  resampled with replacement, and every boundary of a drawn task comes along.
+  resampled with replacement, and every boundary of a drawn task comes along. The same draws
+  give task-macro intervals (the mean of per-task means).
 * Exact McNemar (two-sided binomial on the discordant pairs) and Holm's step-down correction.
 * Cohen's kappa, always reported next to prevalence and PABAK.
 """
@@ -12,7 +13,7 @@ from __future__ import annotations
 import math
 import random
 from collections import defaultdict
-from collections.abc import Callable, Hashable, Mapping, Sequence
+from collections.abc import Callable, Hashable, Iterable, Mapping, Sequence
 from dataclasses import dataclass
 
 from scipy.stats import binomtest
@@ -55,21 +56,74 @@ def cluster_bootstrap[T](
     level: float = 0.95,
 ) -> BootstrapCI:
     """Percentile interval from resampling whole clusters (tasks) with replacement."""
+    groups = _groups(rows, cluster)
+    return _percentile(
+        statistic(list(rows)),
+        (
+            statistic([r for k in drawn for r in groups[k]])
+            for drawn in _draws(groups, seed, resamples)
+        ),
+        resamples,
+        level,
+    )
+
+
+def task_macro[T](rows: Sequence[T], cluster: Callable[[T], Hashable], value) -> float | None:
+    """Mean over clusters of each cluster's mean ``value``: every task weighs the same."""
+    groups = _groups(rows, cluster)
+    return _macro([[value(r) for r in groups[k]] for k in groups])
+
+
+def task_macro_bootstrap[T](
+    rows: Sequence[T],
+    cluster: Callable[[T], Hashable],
+    value: Callable[[T], float],
+    *,
+    seed: int | str,
+    resamples: int = BOOTSTRAP_RESAMPLES,
+    level: float = 0.95,
+) -> BootstrapCI:
+    """Task-macro mean with a percentile interval from resampling whole tasks. A task drawn
+    twice counts twice, so each draw, not each distinct task, carries equal weight."""
+    groups = _groups(rows, cluster)
+    means = {k: [value(r) for r in g] for k, g in groups.items()}
+    return _percentile(
+        _macro(list(means.values())),
+        (_macro([means[k] for k in drawn]) for drawn in _draws(groups, seed, resamples)),
+        resamples,
+        level,
+    )
+
+
+def _groups[T](rows: Sequence[T], cluster: Callable[[T], Hashable]) -> dict[Hashable, list[T]]:
     groups: dict[Hashable, list[T]] = defaultdict(list)
     for r in rows:
         groups[cluster(r)].append(r)
+    return groups
+
+
+def _draws(groups: Mapping[Hashable, list], seed: int | str, resamples: int):
     keys = sorted(groups, key=str)
     rng = random.Random(seed)
+    for _ in range(resamples):
+        yield rng.choices(keys, k=len(keys))
+
+
+def _macro(groups: Sequence[Sequence[float]]) -> float | None:
+    means = [sum(g) / len(g) for g in groups if g]
+    return sum(means) / len(means) if means else None
+
+
+def _percentile(
+    est: float | None, draws: Iterable[float | None], resamples: int, level: float
+) -> BootstrapCI:
     values: list[float] = []
     undefined = 0
-    for _ in range(resamples):
-        drawn = [r for k in rng.choices(keys, k=len(keys)) for r in groups[k]]
-        v = statistic(drawn)
+    for v in draws:
         if v is None:
             undefined += 1
         else:
             values.append(v)
-    est = statistic(list(rows))
     if not values:
         return BootstrapCI(est, None, None, resamples, undefined)
     values.sort()

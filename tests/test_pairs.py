@@ -433,3 +433,35 @@ def test_read_dev_uses_primary_truth(tmp_path, monkeypatch):
     write_jsonl(path, [b, make_boundary(boundary_id="phase1-weak/t1/b02")])
     with pytest.raises(ValueError, match="no primary truth"):
         read_dev(path)
+
+
+def test_summaries_group_by_the_phase_field_not_a_phase_tag():
+    def items_for(phase, n, tags=None):
+        rows = [
+            make_boundary(
+                boundary_id=f"{phase}/b{i}", task_id=f"t{i}", phase=phase, tags=tags or {}
+            )
+            for i in range(n)
+        ]
+        return response_pairs(rows, [CELL])
+
+    # Ingest records carry phase as a field and no phase tag; same run and agent model
+    phase1a, phase1b = items_for("1a", 2), items_for("1b-enrichment", 3)
+    items = phase1a + phase1b
+    report = pairs_analysis.analyse(items, verdicts(items, lambda i, s: "done"), tolerance=None)
+    assert {label: v[1] for label, v in report.noise.items()} == {
+        f"test:None:1a:{CELL}": 2,
+        f"test:None:1b-enrichment:{CELL}": 3,
+    }
+    # A stray phase tag never overrides the field
+    tagged = items_for("1a", 2, {"phase": "1b-enrichment"}) + phase1b
+    report = pairs_analysis.analyse(tagged, verdicts(tagged, lambda i, s: "done"), tolerance=None)
+    assert {label: v[1] for label, v in report.noise.items()} == {
+        f"test:None:1a:{CELL}": 2,
+        f"test:None:1b-enrichment:{CELL}": 3,
+    }
+    # Different serving arms in different phases are separate groups, not a refused mix
+    mixed = verdicts(phase1a, lambda i, s: "done") + [
+        v.model_copy(update={"arm_id": "other"}) for v in verdicts(phase1b, lambda i, s: "done")
+    ]
+    assert len(pairs_analysis.analyse(items, mixed, tolerance=None).noise) == 2
