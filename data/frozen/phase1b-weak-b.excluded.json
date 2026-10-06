@@ -1,0 +1,22 @@
+[
+  {
+    "trial": "c4-03-cobol-modernization__8AgAS4R",
+    "reason": "no turns.jsonl (agent never finished a turn)"
+  },
+  {
+    "trial": "c4-03-cobol-modernization__A9m5JHh",
+    "reason": "no turns.jsonl (agent never finished a turn)"
+  },
+  {
+    "trial": "c4-03-cobol-modernization__d6KBME6",
+    "reason": "no turns.jsonl (agent never finished a turn)"
+  },
+  {
+    "trial": "c4-03-cobol-modernization__nFAmiKj",
+    "reason": "no turns.jsonl (agent never finished a turn)"
+  },
+  {
+    "trial": "c4-03-cobol-modernization__URckekd",
+    "reason": "no turns.jsonl (agent never finished a turn)"
+  }
+]
