@@ -36,3 +36,11 @@ prevalence.
 pre-analysis rule governs. In particular: Stage A not-done clusters are all 16 tasks; per-task
 not-done rates on selected tasks come from Stage B only; held-out-only and pooled metrics that
 include held-out boundaries are sealed until `repair-freeze-v1`.
+
+*Sealing scope.* The seal covers any metric derived from judge outputs or trajectory content on held-out boundaries. Primary-truth counts and rates are unsealed. Disclosure: per-task primary-truth not-done counts for held-out tasks were surfaced in the operational Stage A and Stage B reports before this rule was finalized; no judge-derived held-out figure has been computed or viewed.
+
+Truth not-done rates are boundary-level: the numerator is not-done truth rows and the denominator is truth-labeled boundaries, not attempted trials. No-boundary trials are reported separately and do not enter the rate denominator.
+
+Coarse CI cutoff: COARSE_MAX_CLUSTERS = 10. Every reported CI states its cluster count and the number of clusters with at least one event.
+
+'Per-task counts only' means raw per-task numerators, denominators, and judge-vs-truth contingency counts where applicable. No rate, pooled or per-task judge metric, or CI is computed for a pool that fails the distinct-not-done-task rule.
