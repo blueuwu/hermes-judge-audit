@@ -1,0 +1,58 @@
+[
+  {
+    "trial": "c4-03-cobol-modernization__GCPSwPH",
+    "reason": "no turns.jsonl (agent never finished a turn)"
+  },
+  {
+    "trial": "c4-03-cobol-modernization__pFG7Mgn",
+    "reason": "no turns.jsonl (agent never finished a turn)"
+  },
+  {
+    "trial": "c4-04-regex-log__736Zpek",
+    "reason": "no turns.jsonl (agent never finished a turn)"
+  },
+  {
+    "trial": "c4-04-regex-log__a9AtAqr",
+    "reason": "no turns.jsonl (agent never finished a turn)"
+  },
+  {
+    "trial": "c4-04-regex-log__QDrhKfA",
+    "reason": "no turns.jsonl (agent never finished a turn)"
+  },
+  {
+    "trial": "c4-04-regex-log__rdH8upt",
+    "reason": "no turns.jsonl (agent never finished a turn)"
+  },
+  {
+    "trial": "c4-04-regex-log__TRHBwDX",
+    "reason": "no turns.jsonl (agent never finished a turn)"
+  },
+  {
+    "trial": "c4-04-regex-log__Uj5dJ5p",
+    "reason": "no turns.jsonl (agent never finished a turn)"
+  },
+  {
+    "trial": "c4-04-regex-log__uNJLGiA",
+    "reason": "no turns.jsonl (agent never finished a turn)"
+  },
+  {
+    "trial": "c4-04-regex-log__XEvTxH5",
+    "reason": "no turns.jsonl (agent never finished a turn)"
+  },
+  {
+    "trial": "c4-04-regex-log__xQc5kUJ",
+    "reason": "no turns.jsonl (agent never finished a turn)"
+  },
+  {
+    "trial": "c4-04-regex-log__y9F3EjQ",
+    "reason": "no turns.jsonl (agent never finished a turn)"
+  },
+  {
+    "trial": "c4-04-regex-log__Y9rHQH8",
+    "reason": "no turns.jsonl (agent never finished a turn)"
+  },
+  {
+    "trial": "c4-04-regex-log__ZpyiTNx",
+    "reason": "no turns.jsonl (agent never finished a turn)"
+  }
+]
