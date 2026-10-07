@@ -229,6 +229,8 @@ Families are fixed item sets (`results/repair/families.json`); they overlap and 
 | `pilot-v1/trunc-i18n-rollout-3500` | not_done | done/done/done | The agent has extracted all strings, provided complete German and Japanese catalogs, added a language switcher to the settings page, and verified that the CI check passes. |
 | `pilot-v1/trunc-i18n-rollout-4500` | not_done | done/done/done | The agent has extracted all strings, provided complete German and Japanese catalogs, added a language switcher to the settings page, and verified that the CI check passes. |
 
+<!-- hand-written: begin -->
+
 ## Against the prediction
 
 Written after the run. **Bold** marks a result outside its predicted range.
@@ -291,3 +293,5 @@ The Amendment 3 rule, applied as written across iterations 1, 2 and 3. All three
 5% natural false-CONTINUE bound (10, 11 and 7 of 223). Natural false-DONE is 22, 22 and 21 of
 36, so iteration 3 has the fewest and is selected on the first criterion; no tie-break is used.
 The margin is one item.
+
+<!-- hand-written: end -->

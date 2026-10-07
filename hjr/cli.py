@@ -111,6 +111,12 @@ def cmd_repair_design(args: argparse.Namespace) -> int:
 
     if args.iteration != repair.ITERATION:
         raise SystemExit(f"hjr/repair.py holds iteration {repair.ITERATION}, not {args.iteration}")
+    report = repair_design.REPORTS / f"iteration-{args.iteration}.md"
+    if repair_design.has_hand_written(report):
+        raise SystemExit(
+            f"refused: {manifest.rel(report)} holds a hand-written section; "
+            "it is not regenerated or overwritten"
+        )
     status = 0
     if not args.report_only:
         git_sha, dirty = manifest.git_state()

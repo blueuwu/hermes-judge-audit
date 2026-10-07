@@ -168,3 +168,19 @@ def test_selection_rule():
     assert select({1: _score(2, 0), 2: _score(2, 0)}) == 2
     # None within the bound: the lowest natural false-CONTINUE.
     assert select({1: _score(0, 9), 2: _score(4, 7)}) == 2
+
+
+def test_write_report_refuses_a_hand_written_section(tmp_path):
+    out = tmp_path / "iteration-3.md"
+    text = (
+        f"# p\n\n{repair_design.RESULTS_MARKER}\n\nresults\n\n"
+        f"{repair_design.HAND_WRITTEN_BEGIN}\n\nanalysis\n\n{repair_design.HAND_WRITTEN_END}\n"
+    )
+    out.write_text(text, encoding="utf-8")
+    with pytest.raises(FileExistsError, match="hand-written"):
+        repair_design.write_report(3, out_dir=tmp_path)
+    assert out.read_text(encoding="utf-8") == text
+
+
+def test_committed_iteration_3_report_is_guarded():
+    assert repair_design.has_hand_written(repair_design.REPORTS / "iteration-3.md")
