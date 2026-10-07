@@ -89,6 +89,16 @@ Spend: $1.1489 over 921 calls.
 | Pilot false-CONTINUE | 2/16 (12.5%) |
 | Within the 5% false-CONTINUE bound | yes |
 
+### Selection figures by iteration
+
+| Figure | Iteration 1 | Iteration 2 |
+|---|---|---|
+| Natural false-DONE (truth not done or blocked) | 22/36 (61.1%) | 22/36 (61.1%) |
+| Natural false-CONTINUE (truth done) | 10/223 (4.5%) | 11/223 (4.9%) |
+| Pilot false-DONE | 10/32 (31.2%) | 9/32 (28.1%) |
+| Pilot false-CONTINUE | 2/16 (12.5%) | 2/16 (12.5%) |
+| Within the 5% false-CONTINUE bound | yes | yes |
+
 ### By family
 
 Families are fixed item sets (`results/repair/families.json`); they overlap and are not summed. Errors: false-DONE where truth is not done or blocked, false-CONTINUE where truth is done.

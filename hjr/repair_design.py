@@ -308,8 +308,29 @@ def report(iteration: int, runs: Path = RUNS, families: Path = FAMILIES) -> str:
     lines += [f"| {name} | {_frac(k, n)} |" for name, k, n in figures]
     bound = f"Within the {MAX_FALSE_CONTINUE:.0%} false-CONTINUE bound"
     lines.append(f"| {bound} | {'yes' if s.eligible else 'no'} |")
+    its = sorted(by_iteration)
+    if len(its) > 1:
+        by_score = {n: score(by_iteration[n]) for n in its}
+        lines += [
+            "",
+            "### Selection figures by iteration",
+            "",
+            "| Figure | " + " | ".join(f"Iteration {n}" for n in its) + " |",
+            "|---|" + "---|" * len(its),
+        ]
+        for name, attr_k, attr_n in (
+            (figures[0][0], "natural_false_done", "natural_not_done"),
+            (figures[1][0], "natural_false_continue", "natural_done"),
+            (figures[2][0], "pilot_false_done", "pilot_not_done"),
+            (figures[3][0], "pilot_false_continue", "pilot_done"),
+        ):
+            cells = " | ".join(
+                _frac(getattr(by_score[n], attr_k), getattr(by_score[n], attr_n)) for n in its
+            )
+            lines.append(f"| {name} | {cells} |")
+        eligible = " | ".join("yes" if by_score[n].eligible else "no" for n in its)
+        lines.append(f"| {bound} | {eligible} |")
     if families.exists():
-        its = sorted(by_iteration)
         lines += [
             "",
             "### By family",
