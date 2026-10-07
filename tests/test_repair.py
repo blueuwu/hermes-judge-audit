@@ -49,8 +49,53 @@ def test_prompt_names_nothing_from_the_design_set():
         "sha256",
         "docs_updated",
         "manifest_correct",
+        "deprecat",
+        "alias",
+        "unreleased",
+        "check_format",
     ):
         assert word not in text
+
+
+def test_families_file_matches_the_design_set():
+    families = repair_design.load_families()
+    names = [f.name for f in families]
+    assert len(names) == len(set(names))
+    # Every id-listed family names design-set items that exist (family_rows checks the count).
+    items = [
+        _item("done", ["done"] * 3, source="p1b-a"),
+    ]
+    with pytest.raises(ValueError, match="ids not all"):
+        repair_design.family_rows([f for f in families if f.ids][:1], {1: items})
+
+
+def test_family_filters():
+    fam = repair_design.Family("x", "", {"task": "t", "truth": "done"})
+    assert fam.contains(_item("done", ["done"]))
+    assert not fam.contains(_item("not_done", ["done"]))
+    assert not fam.contains(_item("done", ["done"], source="pilot"))
+    with pytest.raises(ValueError, match="unknown"):
+        repair_design.Family("y", "", {"colour": "red"}).contains(_item("done", ["done"]))
+
+
+def test_family_rows_count_errors_per_iteration():
+    fam = repair_design.Family("x", "", {"truth": "done"})
+    by_it = {1: [_item("done", ["continue"] * 3)], 2: [_item("done", ["done"] * 3)]}
+    [(_, size, errors)] = repair_design.family_rows([fam], by_it)
+    assert size == 1 and errors == {1: 1, 2: 0}
+
+
+def test_write_report_keeps_the_prediction(tmp_path, monkeypatch):
+    monkeypatch.setattr(
+        repair_design, "report", lambda n, runs=None: f"## Results: iteration {n}\n"
+    )
+    out = tmp_path / "iteration-2.md"
+    out.write_text("# repair-v1 design iteration 2\n\n## Prediction\n\nfewer errors\n")
+    repair_design.write_report(2, out_dir=tmp_path)
+    repair_design.write_report(2, out_dir=tmp_path)
+    text = out.read_text()
+    assert text.count("## Prediction") == 1 and text.count("## Results") == 1
+    assert text.index("fewer errors") < text.index(repair_design.RESULTS_MARKER)
 
 
 def test_user_prompt_keeps_production_fields():

@@ -128,9 +128,7 @@ def cmd_repair_design(args: argparse.Namespace) -> int:
                 split="dev",
             )
             status |= cmd_replay(run)
-    out = repair_design.REPORTS / f"iteration-{args.iteration}.md"
-    out.parent.mkdir(parents=True, exist_ok=True)
-    out.write_text(repair_design.report(args.iteration), encoding="utf-8", newline="\n")
+    out = repair_design.write_report(args.iteration)
     print(f"-> {manifest.rel(out)}")
     scores = repair_design.scores()
     if scores:

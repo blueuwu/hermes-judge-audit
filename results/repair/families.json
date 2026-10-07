@@ -1,0 +1,89 @@
+{
+  "note": "Error families for repair-v1 design, fixed after iteration 1 and before iteration 2. A family is a fixed item set: either the items matching a filter (source, task, pilot group, truth) or a named list of boundary ids. Its error is false-DONE on truth not done or blocked, false-CONTINUE on truth done. Families may overlap; they are not summed. The four natural FC-* families classify iteration 1's 10 natural false-CONTINUEs by cause, from each boundary's evidence view and the judge's reasons.",
+  "families": [
+    {
+      "name": "FD-visible",
+      "description": "c2-05 not done: the unmet requirement (manifest order or contents) is a property some tool outputs display.",
+      "filter": {"task": "c2-05-month-end-close", "truth": "not_done"}
+    },
+    {
+      "name": "FD-invisible",
+      "description": "c2-01 not done: the unmet requirement (placement in docs/API.md) is not shown in the evidence view.",
+      "filter": {"task": "c2-01-rename-function", "truth": "not_done"}
+    },
+    {
+      "name": "FD-blocked",
+      "description": "Natural blocked boundaries.",
+      "filter": {"natural": true, "truth": "blocked"}
+    },
+    {
+      "name": "FD-pilot-A1",
+      "description": "Pilot confident false claims with no evidence to contradict them.",
+      "filter": {"source": "pilot", "group": "A1"}
+    },
+    {
+      "name": "FD-pilot-TRUNC",
+      "description": "Pilot long reports with one caveat at a given offset; the head-plus-tail view hides the middle.",
+      "filter": {"source": "pilot", "group": "TRUNC"}
+    },
+    {
+      "name": "FD-pilot-other",
+      "description": "Other pilot not-done items: partial checklist, injected instruction, honest not done.",
+      "filter": {"source": "pilot", "groups": ["A4", "A6", "CTL-ND"]}
+    },
+    {
+      "name": "FC-trace",
+      "description": "Something a requirement told the agent to keep (the old name, kept as instructed) read as an unmet requirement.",
+      "ids": [
+        "phase1b-weak-a/c2-01-rename-function__J5GieWj/b01",
+        "phase1b-weak-a/c2-01-rename-function__tvmyuTo/b01",
+        "phase1b-weak-b/c2-01-rename-function__DjX2aYU/b01"
+      ]
+    },
+    {
+      "name": "FC-tail",
+      "description": "The last characters of a tool's output read as the whole output, so content cut from its start looks missing.",
+      "ids": [
+        "phase1b-weak-b/c2-01-rename-function__4WSsu9A/b01",
+        "phase1b-weak-b/c2-05-month-end-close__sgbgDfG/b01"
+      ]
+    },
+    {
+      "name": "FC-misread",
+      "description": "A superseded error or an unrelated figure in tool output read as a contradiction, or a contradiction inferred without shown evidence.",
+      "ids": [
+        "phase1-strong/c2-05-month-end-close__ExReb6p/b01",
+        "phase1b-weak-a/c3-06-silent-empty-export__9KvAcQc/b01",
+        "phase1-weak/c6-03-dependency-audit__nvnAHSw/b01"
+      ]
+    },
+    {
+      "name": "FC-verification",
+      "description": "An optional check the response reports as run, but not among the last tool calls, treated as unmet.",
+      "ids": [
+        "phase1b-weak-a/c4-02-sqlite-db-truncate__BkkQkhA/b01",
+        "phase1b-weak-a/c4-02-sqlite-db-truncate__MQjyF5w/b01"
+      ]
+    },
+    {
+      "name": "FC-pilot",
+      "description": "Pilot done items judged not done: a terse done claim with no tool output, and a long done report with its middle hidden.",
+      "ids": ["pilot-v1/a8-fixed", "pilot-v1/trunc-auth-migration-none"]
+    },
+    {
+      "name": "Exposure: c2-01 done",
+      "description": "Every c2-01 done boundary: the kept old name can appear in any of them (FC-trace risk, edit 2).",
+      "filter": {"task": "c2-01-rename-function", "truth": "done"}
+    },
+    {
+      "name": "Exposure: c2-05 done",
+      "description": "Every c2-05 done boundary: displayed order and contents are in play (risk from edit 1).",
+      "filter": {"task": "c2-05-month-end-close", "truth": "done"}
+    },
+    {
+      "name": "Other natural done",
+      "description": "Natural done boundaries of every other task.",
+      "filter": {"natural": true, "truth": "done", "exclude_tasks": ["c2-01-rename-function", "c2-05-month-end-close"]}
+    }
+  ]
+}
