@@ -257,11 +257,33 @@ Written after the run. **Bold** marks a result outside its predicted range.
 
 FD-pilot-other (0) and FC-pilot (1) had no prediction row.
 
+Prediction misses: three results fell outside their preregistered ranges, FD-invisible (16,
+predicted 17), Other natural done (2, predicted 3–4) and Pilot false-CONTINUE (1/16, predicted
+2–3). All three missed in the favorable direction; they are still misses.
+
 - The mechanistic note under the prediction was wrong: Exposure: c2-01 done fell from 7 to 3,
   inside the predicted range, although the remaining hits it names sit in `docs/API.md`. Two
   FC-trace items (`tvmyuTo`, `DjX2aYU`) still read the old-name header in `docs/API.md` as unmet.
-- The FD-invisible item that moved, `KsxcDKg`, was decided CONTINUE 2 of 3 on the same reading,
-  an old-name header in `docs/API.md` taken as a use left un-updated. It is one item, within noise.
+- `KsxcDKg` (post-hoc). FD-invisible counts false-DONEs, so 17/17 in iterations 1 and 2 means
+  every item was missed, and 16/17 in iteration 3 means `KsxcDKg` was caught. Its samples were
+  done/done/done in iterations 1 and 2, and continue/continue/done in iteration 3. Both
+  CONTINUE reasons cite the old-name header in `docs/API.md` as a use left un-updated, the same
+  over-reading edit 2 was meant to remove and that drives the FC-trace false-CONTINUEs. The
+  catch was lucky and for the wrong reason. The move from 17/17 to 16/17 is not evidence that
+  iteration 3 detects invisible state better; the blind spot stands.
+
+## Interpretation across iterations (post-hoc)
+
+Written after the selection below was fixed by the rule. It did not enter the frozen selection
+rule.
+
+- FD-blocked was 0/12 in all three iterations.
+- FD-visible was 5/7 in all three iterations.
+- Iteration 3 reduced natural false-CONTINUE from 11/223 (4.9%) to 7/223 (3.1%), leaving
+  headroom under the frozen 5% bound.
+- Natural false-DONE moved only from 22/36 to 21/36, which is within noise.
+- The prompt edits reduced over-reading of shown evidence. They did not fix under-checking of
+  visible evidence.
 
 ## Selection
 
