@@ -23,6 +23,7 @@ resume-safe replay picks up where it stopped.
 
 from __future__ import annotations
 
+import contextlib
 import json
 import os
 import shutil
@@ -180,6 +181,42 @@ def installed_version(executable: str) -> str:
     return out.stdout.strip().removeprefix("codex-cli").strip()
 
 
+def kill_tree(proc: subprocess.Popen) -> None:
+    """Kill the process and everything it started. On Windows `codex` is a launcher (a .cmd
+    shim, then node, then codex.exe); killing only the launcher leaves the children holding
+    the output pipes, so the call never returns."""
+    if os.name == "nt":
+        subprocess.run(["taskkill", "/T", "/F", "/PID", str(proc.pid)], capture_output=True)
+    else:
+        with contextlib.suppress(ProcessLookupError):
+            os.killpg(proc.pid, 9)
+
+
+def run_with_tree_kill(
+    cmd: list[str], *, input: str, timeout: float, **kwargs
+) -> subprocess.CompletedProcess:
+    """``subprocess.run`` whose timeout kills the whole process tree, then raises
+    ``TimeoutExpired`` as ``subprocess.run`` does."""
+    proc = subprocess.Popen(
+        cmd,
+        stdin=subprocess.PIPE,
+        stdout=subprocess.PIPE,
+        stderr=subprocess.PIPE,
+        start_new_session=os.name != "nt",
+        **kwargs,
+    )
+    try:
+        stdout, stderr = proc.communicate(input, timeout=timeout)
+    except subprocess.TimeoutExpired:
+        kill_tree(proc)
+        try:
+            proc.communicate(timeout=30)
+        except subprocess.TimeoutExpired:
+            proc.kill()
+        raise subprocess.TimeoutExpired(cmd, timeout) from None
+    return subprocess.CompletedProcess(cmd, proc.returncode, stdout, stderr)
+
+
 class CodexClient:
     def __init__(
         self,
@@ -188,7 +225,7 @@ class CodexClient:
         version: str,
         limiter: TokenBucket,
         executable: str | None = None,
-        run: Callable[..., subprocess.CompletedProcess] = subprocess.run,
+        run: Callable[..., subprocess.CompletedProcess] = run_with_tree_kill,
         sleep: Callable[[float], None] = time.sleep,
         max_attempts: int = MAX_ATTEMPTS,
         check_version: bool = True,
@@ -263,7 +300,6 @@ class CodexClient:
                 proc = self._run(
                     self.command(cwd, out_file),
                     input=prompt,
-                    capture_output=True,
                     text=True,
                     encoding="utf-8",
                     timeout=CALL_TIMEOUT_S,

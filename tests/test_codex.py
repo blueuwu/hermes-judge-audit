@@ -4,6 +4,8 @@ from __future__ import annotations
 
 import json
 import subprocess
+import sys
+import time
 from pathlib import Path
 
 import pytest
@@ -16,6 +18,7 @@ from hjr.codex import (
     QuotaExhausted,
     parse_events,
     render_prompt,
+    run_with_tree_kill,
     schema_valid,
 )
 from hjr.config import load_judge_config
@@ -215,3 +218,26 @@ def test_render_prompt_puts_static_instructions_first():
 def test_parse_events_ignores_noise_and_collects_errors():
     out = parse_events('warning: x\n{"type": "turn.failed", "error": {"message": "boom"}}\n{bad')
     assert out["errors"] == ["boom"] and out["tools"] == []
+
+
+def test_timeout_kills_the_whole_process_tree():
+    # A launcher whose child keeps the output pipes open, as `codex` -> node -> codex.exe does.
+    child = "import time; time.sleep(120)"
+    launcher = (
+        "import subprocess, sys, time; "
+        f"subprocess.Popen([sys.executable, '-c', {child!r}]); time.sleep(120)"
+    )
+    start = time.monotonic()
+    with pytest.raises(subprocess.TimeoutExpired):
+        run_with_tree_kill([sys.executable, "-c", launcher], input="", timeout=2, text=True)
+    assert time.monotonic() - start < 30
+
+
+def test_run_with_tree_kill_returns_output():
+    done = run_with_tree_kill(
+        [sys.executable, "-c", "import sys; print(sys.stdin.read().upper())"],
+        input="verdict",
+        timeout=30,
+        text=True,
+    )
+    assert done.returncode == 0 and done.stdout.strip() == "VERDICT"
