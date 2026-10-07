@@ -1,0 +1,59 @@
+{
+  "run_id": "repair-i3-p1a-weak",
+  "kind": "judge-replay",
+  "git_sha": "1d0e96c9d29733ba2a6b4c1dccf719f25a224c18",
+  "git_dirty": false,
+  "hermes_sha": "ffc74885c5f6eb75f6c134fb4eef86d734066623",
+  "uv_lock_sha256": "42e8c0f532edbdad795d459d5f933af34d4b7b6923f895a35ffc50040be73697",
+  "inputs": {
+    "data/frozen/phase1-weak.jsonl": "745f1d33a9a1170937e797a6b935a88a490b7a22ee49e4d3c44704072e4f3f5c"
+  },
+  "variants": [
+    "repair-v1:flash:evidence"
+  ],
+  "samples": 3,
+  "judge_config_sha256": "87795b2e4797b48220dd2ee941f4e3b771382ae4ab6825fbc8b9cc596581f4a7",
+  "models": {
+    "flash": {
+      "model_id": "google/gemini-3-flash-preview",
+      "base_url": "https://openrouter.ai/api/v1",
+      "provider": "google-ai-studio",
+      "temperature": "0.0",
+      "max_tokens": "4096",
+      "reasoning": "provider-default",
+      "arm_id": "6b9d36f0d198",
+      "dev_only": "false",
+      "source": "Recommended goal_judge override in website/docs/user-guide/features/goals.md:244 at ffc74885"
+    }
+  },
+  "observed_identities": {
+    "6b9d36f0d198": [
+      {
+        "sub_arm_id": "6bd40d6bdd15",
+        "model": "google/gemini-3-flash-preview",
+        "provider": "Google AI Studio",
+        "calls": 102
+      }
+    ]
+  },
+  "seed": 20261001,
+  "started_at": "2026-10-07T11:47:43.273219Z",
+  "finished_at": "2026-10-07T11:48:29.445049Z",
+  "counts": {
+    "boundaries": 34,
+    "parsed": 102,
+    "attempts": 102,
+    "attempt_errors": 0
+  },
+  "usage": {
+    "repair-v1:flash:evidence": {
+      "calls": 102.0,
+      "tokens_in": 236073.0,
+      "tokens_out": 4642.0,
+      "reasoning_tokens": 0.0,
+      "cost_usd": 0.13196250000000004,
+      "calls_without_cost": 0.0
+    }
+  },
+  "notes": ""
+}
