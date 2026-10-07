@@ -1,0 +1,153 @@
+{
+  "run_id": "probe-p2",
+  "kind": "judge-replay",
+  "git_sha": "1e55350bd8352094a7576454a958427c00560df3",
+  "git_dirty": false,
+  "hermes_sha": "ffc74885c5f6eb75f6c134fb4eef86d734066623",
+  "uv_lock_sha256": "42e8c0f532edbdad795d459d5f933af34d4b7b6923f895a35ffc50040be73697",
+  "inputs": {
+    "data/frozen/format_probe.jsonl": "e5413030704d2b1fe80329a57d226f13beafb59e03382fe3fc3723389774b04f"
+  },
+  "variants": [
+    "prod-plain:self-strong:head4k",
+    "prod-plain:self-weak:head4k",
+    "prod-plain:strong:head4k",
+    "repair-v1:flash:evidence",
+    "repair-v1:strong:evidence"
+  ],
+  "samples": 1,
+  "judge_config_sha256": "87795b2e4797b48220dd2ee941f4e3b771382ae4ab6825fbc8b9cc596581f4a7",
+  "models": {
+    "strong": {
+      "model_id": "gpt-6.1-sol",
+      "base_url": "codex-cli://exec",
+      "provider": "openai-codex",
+      "temperature": "None",
+      "max_tokens": "None",
+      "reasoning": "medium",
+      "harness": "codex",
+      "arm_id": "76367f6e9355",
+      "dev_only": "false",
+      "source": "Independent strong judge, prereg amendment 2026-10-02 (Phase 2 design)"
+    },
+    "self-strong": {
+      "model_id": "deepseek/deepseek-v4.1-flash",
+      "base_url": "https://openrouter.ai/api/v1",
+      "provider": "deepseek",
+      "temperature": "0.0",
+      "max_tokens": "4096",
+      "reasoning": "provider-default",
+      "arm_id": "c72b5a6b5ba4",
+      "dev_only": "false",
+      "source": "Production default: goal_judge resolves to the main model (goals.md:238 at ffc74885)"
+    },
+    "self-weak": {
+      "model_id": "z-ai/glm-5.3-flash",
+      "base_url": "https://openrouter.ai/api/v1",
+      "provider": "z-ai",
+      "temperature": "0.0",
+      "max_tokens": "4096",
+      "reasoning": "provider-default",
+      "arm_id": "703f52990aaa",
+      "dev_only": "false",
+      "source": "Production default: goal_judge resolves to the main model (goals.md:238 at ffc74885)"
+    },
+    "flash": {
+      "model_id": "google/gemini-3-flash-preview",
+      "base_url": "https://openrouter.ai/api/v1",
+      "provider": "google-ai-studio",
+      "temperature": "0.0",
+      "max_tokens": "4096",
+      "reasoning": "provider-default",
+      "arm_id": "6b9d36f0d198",
+      "dev_only": "false",
+      "source": "Recommended goal_judge override in website/docs/user-guide/features/goals.md:244 at ffc74885"
+    }
+  },
+  "observed_identities": {
+    "6b9d36f0d198": [
+      {
+        "sub_arm_id": "6bd40d6bdd15",
+        "model": "google/gemini-3-flash-preview",
+        "provider": "Google AI Studio",
+        "calls": 20
+      }
+    ],
+    "703f52990aaa": [
+      {
+        "sub_arm_id": "4b992c7d0667",
+        "model": "z-ai/glm-5.3-flash",
+        "provider": "Z.AI",
+        "calls": 20
+      }
+    ],
+    "76367f6e9355": [
+      {
+        "sub_arm_id": "3fe34b6a363f",
+        "model": "",
+        "provider": "codex-cli 0.159.3",
+        "calls": 40
+      }
+    ],
+    "c72b5a6b5ba4": [
+      {
+        "sub_arm_id": "a774efd72761",
+        "model": "deepseek/deepseek-v4.1-flash",
+        "provider": "DeepSeek",
+        "calls": 20
+      }
+    ]
+  },
+  "seed": 20261001,
+  "started_at": "2026-10-07T12:21:35.916713Z",
+  "finished_at": "2026-10-07T13:07:07.423827Z",
+  "counts": {
+    "boundaries": 20,
+    "parsed": 100,
+    "attempts": 106,
+    "attempt_errors": 6
+  },
+  "usage": {
+    "prod-plain:self-strong:head4k": {
+      "calls": 20.0,
+      "tokens_in": 18602.0,
+      "tokens_out": 1770.0,
+      "reasoning_tokens": 876.0,
+      "cost_usd": 0.0017825400000000002,
+      "calls_without_cost": 0.0
+    },
+    "prod-plain:self-weak:head4k": {
+      "calls": 20.0,
+      "tokens_in": 17812.0,
+      "tokens_out": 3792.0,
+      "reasoning_tokens": 2737.0,
+      "cost_usd": 0.0030010799999999997,
+      "calls_without_cost": 0.0
+    },
+    "prod-plain:strong:head4k": {
+      "calls": 20.0,
+      "tokens_in": 195895.0,
+      "tokens_out": 1218.0,
+      "reasoning_tokens": 0.0,
+      "cost_usd": 0.0,
+      "calls_without_cost": 20.0
+    },
+    "repair-v1:flash:evidence": {
+      "calls": 20.0,
+      "tokens_in": 28805.0,
+      "tokens_out": 754.0,
+      "reasoning_tokens": 0.0,
+      "cost_usd": 0.0166645,
+      "calls_without_cost": 0.0
+    },
+    "repair-v1:strong:evidence": {
+      "calls": 20.0,
+      "tokens_in": 206015.0,
+      "tokens_out": 1290.0,
+      "reasoning_tokens": 74.0,
+      "cost_usd": 0.0,
+      "calls_without_cost": 20.0
+    }
+  },
+  "notes": ""
+}
