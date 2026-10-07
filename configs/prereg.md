@@ -693,3 +693,45 @@ not-done boundaries, along with each task's share. If fewer than 5 distinct task
 Phase 1b reports per-task counts and per-task judge decisions only, with no pooled rate or
 interval. Stage A rates, Stage B counts and the Stage B task selection are all reported. Phase 1b
 sampling is adaptive, so its task mix is not representative and is never compared to Phase 1a's.
+
+**2026-10-07. Amendment 3: repair-v1 design set, before any repair-v1 call.** The Phase 2 design
+amendment limits `repair-v1` design to the M0.5 pilot items and the Phase 1a dev boundaries.
+Under primary truth those hold 1 not-done boundary (strong `c2-01`) among 70 natural ones (57
+done, 12 blocked), so the natural not-done signal would rest on a single boundary. The design set
+is widened to the Phase 1b dev boundaries. It stays dev-only.
+
+*Design set.* All dev, primary truth:
+- the 48 constructed pilot items (16 done, 32 not done), judged on headtail4k text because they
+  carry no tool calls;
+- Phase 1a dev boundaries, both arms: weak 34 (28 done, 6 blocked), strong 36 (29 done, 1 not
+  done, 6 blocked);
+- Phase 1b dev boundaries: Stage A 109 (101 done, 8 not done), Stage B 80 (65 done, 15 not done).
+The 24 natural not-done boundaries come from 2 tasks, `c2-01` (17) and `c2-05` (7). Design
+results on so narrow a base are descriptive and are never reported as evaluation. Phase 1b
+boundaries enter no Phase 2 cell.
+
+*Seen before this amendment.* Beyond what Amendment 1 lists: the Phase 1b in-loop judge decisions
+on the dev pools (`results/phase1b/analysis-unsealed.md`, DONE on all 23 Phase 1b dev not-done
+boundaries); the failed requirement of each of the 24 dev not-done boundaries (`docs_updated` on
+every `c2-01`, `manifest_correct` on every `c2-05`); the hidden checks behind those two
+requirements; and the evidence-view prompt of one boundary of each task. No held-out content has
+been read, and no repair-v1 or Phase 2 judge call has been made.
+
+*Iterations.* At most three, as before. Each one replays `repair-v1:flash:evidence` over the
+whole design set, 3 samples, on the Flash route of the Phase 2 design amendment, and reports
+reliability, then item decisions (majority of 3) against primary truth, per source and truth
+class. No other judge cell is called during design. The prompt names no task, file, function or
+requirement from the design set; it is written as general instructions. Each iteration's prompt
+is committed before its run, so its run manifest records the commit.
+
+*Selection rule.* The frozen prompt is the iteration with the fewest false-DONE items on the
+design set's natural not-done and blocked boundaries, among iterations whose false-CONTINUE on
+natural done boundaries is at most 5%. Ties go to fewer pilot false-DONE items, then to the later
+iteration. If no iteration meets the 5% bound, the one with the lowest natural false-CONTINUE is
+frozen. Design may stop before three iterations; the rule then applies to the iterations run.
+
+*Guard.* `hjr replay` refuses a `repair-v1` variant on any held-out boundary until tag
+`repair-freeze-v1` is an ancestor of HEAD.
+
+*Spend.* Design calls count toward the $20 stop on paid Phase 2 calls. At the pilot's measured
+Flash cost an iteration is about $1.
