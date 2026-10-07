@@ -39,6 +39,8 @@ def cmd_replay(args: argparse.Namespace) -> int:
         prev = RunManifest.model_validate_json(prev_path.read_text(encoding="utf-8"))
         if prev.phase != phase:
             raise ValueError("refusing to mix phases in a replay run")
+    if args.split:
+        boundaries = [b for b in boundaries if b.split == args.split]
     if args.limit:
         boundaries = boundaries[: args.limit]
     if args.subset == "sanity":
@@ -72,15 +74,18 @@ def cmd_replay(args: argparse.Namespace) -> int:
 
     git_sha, dirty = manifest.git_state()
     started = datetime.now(UTC)
-    counts = replay(
-        boundaries,
-        variants,
-        samples=args.samples,
-        run_dir=run_dir,
-        arms=arms,
-        completions=clients,
-        workers=args.workers,
-    )
+    try:
+        counts = replay(
+            boundaries,
+            variants,
+            samples=args.samples,
+            run_dir=run_dir,
+            arms=arms,
+            completions=clients,
+            workers=args.workers,
+        )
+    except PermissionError as exc:
+        raise SystemExit(f"refused: {exc}") from None
     record = manifest.judge_run_manifest(
         run_dir,
         git_sha=git_sha,
@@ -99,6 +104,38 @@ def cmd_replay(args: argparse.Namespace) -> int:
     print(f"{args.run_id}: {dict(counts)}")
     failed = counts.get("transport_failed") or counts.get("drift_incidents") or counts.get("halted")
     return 1 if failed else 0
+
+
+def cmd_repair_design(args: argparse.Namespace) -> int:
+    from hjr import repair, repair_design
+
+    if args.iteration != repair.ITERATION:
+        raise SystemExit(f"hjr/repair.py holds iteration {repair.ITERATION}, not {args.iteration}")
+    status = 0
+    if not args.report_only:
+        git_sha, dirty = manifest.git_state()
+        if dirty:
+            raise SystemExit("commit the iteration's prompt before its run (prereg Amendment 3)")
+        for source, path in repair_design.SOURCES.items():
+            run = argparse.Namespace(
+                boundaries=path,
+                run_id=repair_design.run_id(args.iteration, source),
+                variant=[repair_design.VARIANT],
+                samples=repair_design.SAMPLES,
+                workers=args.workers,
+                limit=0,
+                subset=None,
+                split="dev",
+            )
+            status |= cmd_replay(run)
+    out = repair_design.REPORTS / f"iteration-{args.iteration}.md"
+    out.parent.mkdir(parents=True, exist_ok=True)
+    out.write_text(repair_design.report(args.iteration), encoding="utf-8", newline="\n")
+    print(f"-> {manifest.rel(out)}")
+    scores = repair_design.scores()
+    if scores:
+        print(f"selection rule over iterations {sorted(scores)}: {repair_design.select(scores)}")
+    return status
 
 
 def cmd_pilot_build(args: argparse.Namespace) -> int:
@@ -628,7 +665,18 @@ def main(argv: list[str] | None = None) -> int:
         choices=["sanity"],
         help="only the preregistered subset of configs/phase2.toml for these boundaries' arm",
     )
+    p.add_argument("--split", choices=["dev", "heldout"], help="only boundaries of this split")
     p.set_defaults(func=cmd_replay)
+
+    p = sub.add_parser(
+        "repair-design", help="one repair-v1 design iteration over the dev design set (Amendment 3)"
+    )
+    p.add_argument("--iteration", type=int, required=True)
+    p.add_argument("--workers", type=int, default=8)
+    p.add_argument(
+        "--report-only", action="store_true", help="rewrite the report from runs on disk"
+    )
+    p.set_defaults(func=cmd_repair_design)
 
     p = sub.add_parser("pilot-build", help="write the constructed M0.5 pilot boundaries")
     p.add_argument("--out", type=Path, default=ROOT / "data" / "frozen" / "pilot_boundaries.jsonl")

@@ -88,9 +88,11 @@ def test_sanity_subset_draw_is_deterministic_and_stratified():
         assert len(drawn[arm]) == PLAN.sanity["per_arm"] and len(neg) == PLAN.sanity["not_done"]
 
 
-def test_repair_prompt_cannot_be_built_before_it_is_designed():
-    with pytest.raises(NotImplementedError):
-        judge.build_messages(make_boundary(), prompt="repair-v1", view="evidence")
+def test_repair_prompt_puts_static_instructions_first():
+    messages = judge.build_messages(make_boundary(), prompt="repair-v1", view="evidence")
+    system, user = (m["content"] for m in messages)
+    assert "Wrote hello.txt." not in system and "hello.txt" not in system
+    assert user.startswith("Goal:\nWrite hello.txt") and "Wrote hello.txt." in user
 
 
 # ── Items ─────────────────────────────────────────────────────────────

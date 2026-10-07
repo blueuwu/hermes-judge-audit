@@ -139,6 +139,19 @@ class _Writer:
             fh.close()
 
 
+def require_repair_open(boundaries: Iterable[BoundaryRecord], variants: Iterable[Variant]) -> None:
+    """repair-v1 is designed on dev material; no held-out boundary reaches it before the freeze
+    (prereg Amendment 3)."""
+    from hjr.pools import HELDOUT_TAG, judge_unsealed
+
+    if not any(v.prompt == "repair-v1" for v in variants):
+        return
+    if any(b.split != "dev" for b in boundaries) and not judge_unsealed():
+        raise PermissionError(
+            f"repair-v1 on held-out boundaries needs tag {HELDOUT_TAG} as an ancestor of HEAD"
+        )
+
+
 def _identity(rec: JudgeVerdict) -> tuple[str, str]:
     return rec.judge_model_reported, rec.provider_reported
 
@@ -156,6 +169,7 @@ def replay(
     """Judge every (boundary, variant, sample) not already on disk. Returns outcome counts."""
     boundaries = list(boundaries)
     variants = list(variants)
+    require_repair_open(boundaries, variants)
     run_dir.mkdir(parents=True, exist_ok=True)
     counts: Counter[str] = Counter()
     writer = _Writer()

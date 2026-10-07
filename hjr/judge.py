@@ -23,6 +23,7 @@ from typing import Any
 from hermes_cli import goals as hg
 from hermes_time import safe_strftime
 
+from hjr import repair
 from hjr.schemas import BoundaryRecord, ToolEvent, TurnRecord
 
 # Anything the judge can be shown: a frozen boundary, or a live turn inside the harness.
@@ -37,8 +38,8 @@ TIME_FORMAT = "%Y-%m-%d %H:%M:%S %Z"
 TEMPERATURE = 0.0
 MAX_TOKENS = hg.DEFAULT_JUDGE_MAX_TOKENS
 
-# repair-v1 is designed from dev data only and frozen at tag repair-freeze-v1 (prereg amendment
-# "Phase 2 design"); until then it is a name the plan can refer to, and building it fails.
+# repair-v1 (hjr/repair.py) is designed from dev data only and frozen at tag repair-freeze-v1
+# (prereg amendment "Phase 2 design" and Amendment 3).
 PROMPTS = ("prod-plain", "prod-contract", "repair-v1")
 VIEWS = ("head4k", "headtail4k", "evidence")
 
@@ -149,8 +150,12 @@ def build_user_prompt(
             contract_block=hg._truncate(block, CONTRACT_CHARS), **common
         )
     if prompt == "repair-v1":
-        raise NotImplementedError("repair-v1 is not designed yet (see the Phase 2 amendment)")
+        return repair.USER_TEMPLATE.format(**common)
     raise ValueError(f"unknown prompt {prompt!r}")
+
+
+def system_prompt(prompt: str) -> str:
+    return repair.SYSTEM_PROMPT if prompt == "repair-v1" else hg.JUDGE_SYSTEM_PROMPT
 
 
 def build_messages(boundary: JudgeInput, *, prompt: str, view: str) -> list[dict[str, str]]:
@@ -164,7 +169,7 @@ def build_messages(boundary: JudgeInput, *, prompt: str, view: str) -> list[dict
         active_delegations=boundary.active_delegations,
     )
     return [
-        {"role": "system", "content": hg.JUDGE_SYSTEM_PROMPT},
+        {"role": "system", "content": system_prompt(prompt)},
         {"role": "user", "content": user},
     ]
 

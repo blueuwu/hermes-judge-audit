@@ -3,6 +3,8 @@ from __future__ import annotations
 import json
 import threading
 
+import pytest
+
 from hjr.arms import Arm
 from hjr.client import Attempt, CompletionResult, TransportError
 from hjr.judge import Variant
@@ -177,3 +179,45 @@ def test_reparse_rewrites_copies_only(tmp_path):
         tmp_path / "reparsed" / "judge" / verdict_path(tmp_path, VARIANT).name, JudgeVerdict
     )
     assert rec.format_violation == "unknown_label"
+
+
+def test_repair_prompt_refused_on_heldout_before_the_freeze(tmp_path, monkeypatch):
+    monkeypatch.setattr("hjr.pools.judge_unsealed", lambda *a, **k: False)
+    repair = Variant.parse("repair-v1:fake:evidence")
+    heldout = [make_boundary(boundary_id="t/h0", split="heldout")]
+    fake = FakeJudge()
+    with pytest.raises(PermissionError, match="repair-freeze-v1"):
+        replay(
+            heldout,
+            [repair],
+            samples=1,
+            run_dir=tmp_path,
+            arms={"fake": ARM},
+            completions={"fake": fake},
+        )
+    assert fake.calls == 0
+    # Dev boundaries, and the production prompt on held-out ones, are not affected.
+    replay(
+        _boundaries(1),
+        [repair],
+        samples=1,
+        run_dir=tmp_path,
+        arms={"fake": ARM},
+        completions={"fake": fake},
+    )
+    _run(tmp_path, heldout, fake, samples=1)
+    assert fake.calls == 2
+
+
+def test_repair_prompt_allowed_on_heldout_after_the_freeze(tmp_path, monkeypatch):
+    monkeypatch.setattr("hjr.pools.judge_unsealed", lambda *a, **k: True)
+    fake = FakeJudge()
+    replay(
+        [make_boundary(boundary_id="t/h0", split="heldout")],
+        [Variant.parse("repair-v1:fake:evidence")],
+        samples=1,
+        run_dir=tmp_path,
+        arms={"fake": ARM},
+        completions={"fake": fake},
+    )
+    assert fake.calls == 1
