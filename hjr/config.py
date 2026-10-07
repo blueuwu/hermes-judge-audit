@@ -26,6 +26,8 @@ class Endpoint:
     kind: str = "chat"
     # For a CLI harness: the exact version every call must run on
     version: str = ""
+    # Calls in flight at once on this endpoint; 0 leaves it to the replay's worker count
+    max_concurrent: int = 0
 
 
 @dataclass(frozen=True)
@@ -105,6 +107,7 @@ def load_judge_config(path: Path = JUDGE_CONFIG) -> JudgeConfig:
             dev_only=bool(v.get("dev_only", False)),
             kind=v.get("kind", "chat"),
             version=v.get("version", ""),
+            max_concurrent=int(v.get("max_concurrent", 0)),
         )
         for name, v in data.get("endpoints", {}).items()
     }

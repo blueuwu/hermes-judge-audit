@@ -66,7 +66,12 @@ def cmd_replay(args: argparse.Namespace) -> int:
         if endpoint.kind == "codex":
             from hjr.codex import CodexClient
 
-            client = CodexClient(arm, version=endpoint.version, limiter=limiter)
+            client = CodexClient(
+                arm,
+                version=endpoint.version,
+                limiter=limiter,
+                max_concurrent=endpoint.max_concurrent,
+            )
         else:
             client = JudgeClient(arm, api_key_env=endpoint.api_key_env, limiter=limiter)
         clients[key] = client.complete

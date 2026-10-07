@@ -241,3 +241,44 @@ def test_run_with_tree_kill_returns_output():
         text=True,
     )
     assert done.returncode == 0 and done.stdout.strip() == "VERDICT"
+
+
+def test_max_concurrent_caps_calls_in_flight():
+    import threading
+
+    lock = threading.Lock()
+    state = {"now": 0, "peak": 0}
+    fake = FakeCodex([OK] * 12)
+
+    def run(cmd, **kwargs):
+        with lock:
+            state["now"] += 1
+            state["peak"] = max(state["peak"], state["now"])
+        time.sleep(0.05)
+        with lock:
+            state["now"] -= 1
+            return fake(cmd, **kwargs)
+
+    client = CodexClient(
+        ARM,
+        version="0.159.3",
+        limiter=TokenBucket(6000, burst=100),
+        run=run,
+        check_version=False,
+        executable="codex",
+        max_concurrent=4,
+    )
+    threads = [
+        threading.Thread(target=client.complete, args=([{"role": "user", "content": "x"}],))
+        for _ in range(12)
+    ]
+    for t in threads:
+        t.start()
+    for t in threads:
+        t.join()
+    assert state["peak"] == 4
+
+
+def test_codex_endpoint_runs_at_most_four_calls_at_once():
+    cfg = load_judge_config()
+    assert cfg.endpoint(cfg.model("strong")).max_concurrent == 4

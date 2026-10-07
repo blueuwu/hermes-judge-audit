@@ -29,6 +29,7 @@ import os
 import shutil
 import subprocess
 import tempfile
+import threading
 import time
 from collections.abc import Callable
 from pathlib import Path
@@ -229,6 +230,7 @@ class CodexClient:
         sleep: Callable[[float], None] = time.sleep,
         max_attempts: int = MAX_ATTEMPTS,
         check_version: bool = True,
+        max_concurrent: int = 0,
     ):
         if arm.reasoning in ("", "provider-default"):
             raise ValueError("the Codex arm must pin a reasoning effort")
@@ -238,6 +240,7 @@ class CodexClient:
         self.max_attempts = max_attempts
         self._run = run
         self._sleep = sleep
+        self._slots = threading.BoundedSemaphore(max_concurrent) if max_concurrent > 0 else None
         self._exe = executable or shutil.which("codex") or "codex"
         if check_version:
             found = installed_version(self._exe)
@@ -297,14 +300,15 @@ class CodexClient:
             out_file = out_dir / "last_message.txt"
             start = time.monotonic()
             try:
-                proc = self._run(
-                    self.command(cwd, out_file),
-                    input=prompt,
-                    text=True,
-                    encoding="utf-8",
-                    timeout=CALL_TIMEOUT_S,
-                    env=self._env(),
-                )
+                with self._slots or contextlib.nullcontext():
+                    proc = self._run(
+                        self.command(cwd, out_file),
+                        input=prompt,
+                        text=True,
+                        encoding="utf-8",
+                        timeout=CALL_TIMEOUT_S,
+                        env=self._env(),
+                    )
             except subprocess.TimeoutExpired:
                 proc = None
             ms = int((time.monotonic() - start) * 1000)
