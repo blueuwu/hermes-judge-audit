@@ -38,7 +38,7 @@ from hjr.client import Attempt, CompletionResult, TransportError
 from hjr.ratelimit import TokenBucket
 from hjr.replay import ArmHalted
 
-CALL_TIMEOUT_S = 900.0
+CALL_TIMEOUT_S = 300.0
 MAX_ATTEMPTS = 6
 BASE_BACKOFF_S = 30.0
 MAX_BACKOFF_S = 900.0
