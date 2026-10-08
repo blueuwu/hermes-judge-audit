@@ -134,10 +134,20 @@ def judge_run_manifest(
     )
 
 
+def hash_order(root: Path):
+    """Sort key for files hashed as a tree: case-insensitive, one path component at a time.
+
+    This is Windows' path order, which every recorded tree hash was computed in. Plain
+    ``sorted`` is case-sensitive on Linux and would give a different hash there.
+    """
+    return lambda p: [part.lower() for part in p.relative_to(root).parts]
+
+
 def tree_sha256(root: Path) -> str:
     """Hash of every file under ``root``, keyed by relative path."""
     h = hashlib.sha256()
-    for path in sorted(p for p in root.rglob("*") if p.is_file() and "__pycache__" not in p.parts):
+    files = (p for p in root.rglob("*") if p.is_file() and "__pycache__" not in p.parts)
+    for path in sorted(files, key=hash_order(root)):
         h.update(path.relative_to(root).as_posix().encode() + b"\0" + sha256_file(path).encode())
     return h.hexdigest()
 

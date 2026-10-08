@@ -21,6 +21,7 @@ from dataclasses import dataclass
 from pathlib import Path
 
 from hjr.config import ROOT
+from hjr.manifest import hash_order
 
 TASKS = ROOT / "tasks"
 VERSIONS = ROOT / "data" / "verifiers.json"
@@ -55,7 +56,8 @@ def task_name(task: str) -> str:
 
 def _files(root: Path) -> list[Path]:
     return sorted(
-        p for p in root.rglob("*") if p.is_file() and not set(p.relative_to(root).parts) & SKIP
+        (p for p in root.rglob("*") if p.is_file() and not set(p.relative_to(root).parts) & SKIP),
+        key=hash_order(root),
     )
 
 
@@ -82,7 +84,7 @@ def version_of(task: str, path: Path = VERSIONS) -> tuple[str, str]:
 def tree_sha(root: Path) -> str:
     """sha256 over the relative path and bytes of every file under root (a base workspace)."""
     h = hashlib.sha256()
-    for p in sorted(q for q in root.rglob("*") if q.is_file()):
+    for p in sorted((q for q in root.rglob("*") if q.is_file()), key=hash_order(root)):
         h.update(p.relative_to(root).as_posix().encode() + b"\0")
         h.update(hashlib.sha256(p.read_bytes()).digest())
     return h.hexdigest()

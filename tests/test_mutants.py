@@ -136,3 +136,23 @@ def test_snapshots_are_packed_like_the_harness(tmp_path):
 def test_infeasible_is_read_without_importing():
     assert run.infeasible("c5-01-upload-without-credentials") == ("uploaded",)
     assert run.infeasible("c1-01-csv-to-json") == ()
+
+
+def test_tree_hash_order_is_the_same_on_every_os():
+    # Posix paths sort case-sensitively ("Dockerfile" first); the recorded hashes use Windows'
+    # case-insensitive order, so the key must give that order on Linux too.
+    from pathlib import PurePosixPath
+
+    from hjr.manifest import hash_order
+
+    root = PurePosixPath("/t/tests")
+    names = ["Dockerfile", "check_state.py", "sub/B.txt", "sub/a.txt", "grade.py"]
+    paths = [root / n for n in names]
+    ordered = sorted(paths, key=hash_order(root))
+    assert [p.relative_to(root).as_posix() for p in ordered] == [
+        "check_state.py",
+        "Dockerfile",
+        "grade.py",
+        "sub/a.txt",
+        "sub/B.txt",
+    ]
