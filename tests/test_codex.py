@@ -279,6 +279,6 @@ def test_max_concurrent_caps_calls_in_flight():
     assert state["peak"] == 4
 
 
-def test_codex_endpoint_runs_at_most_four_calls_at_once():
+def test_codex_endpoint_runs_at_most_twelve_calls_at_once():
     cfg = load_judge_config()
-    assert cfg.endpoint(cfg.model("strong")).max_concurrent == 4
+    assert cfg.endpoint(cfg.model("strong")).max_concurrent == 12

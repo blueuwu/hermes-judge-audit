@@ -30,7 +30,7 @@ kind = "codex"
 base_url = "codex-cli://exec"
 version = "0.159.3"
 rpm = 6
-max_concurrent = 4
+max_concurrent = 12
 
 [endpoints.aistudio-free]
 base_url = "https://generativelanguage.googleapis.com/v1beta/openai"
