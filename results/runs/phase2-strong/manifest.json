@@ -1,0 +1,143 @@
+{
+  "run_id": "phase2-strong",
+  "kind": "judge-replay",
+  "git_sha": "f977becb9442cf4a91a4386352d243826db6c2b5",
+  "git_dirty": false,
+  "hermes_sha": "ffc74885c5f6eb75f6c134fb4eef86d734066623",
+  "uv_lock_sha256": "42e8c0f532edbdad795d459d5f933af34d4b7b6923f895a35ffc50040be73697",
+  "inputs": {
+    "data/frozen/phase1-strong.jsonl": "3a04b37fa52eb682444454c9268a8f2c4d3dde0c8cc3116cf381351c055216aa"
+  },
+  "variants": [
+    "prod-plain:flash:evidence",
+    "prod-plain:flash:head4k",
+    "prod-plain:self-strong:head4k",
+    "prod-plain:strong:head4k",
+    "repair-v1:flash:evidence",
+    "repair-v1:strong:evidence"
+  ],
+  "samples": 3,
+  "judge_config_sha256": "f5d81d280093c7e0272072a5aa396419232c99053b3dfb0b4fda55c0c934f526",
+  "models": {
+    "self-strong": {
+      "model_id": "deepseek/deepseek-v4.1-flash",
+      "base_url": "https://openrouter.ai/api/v1",
+      "provider": "deepseek",
+      "temperature": "0.0",
+      "max_tokens": "4096",
+      "reasoning": "provider-default",
+      "arm_id": "c72b5a6b5ba4",
+      "dev_only": "false",
+      "source": "Production default: goal_judge resolves to the main model (goals.md:238 at ffc74885)"
+    },
+    "flash": {
+      "model_id": "google/gemini-3-flash-preview",
+      "base_url": "https://openrouter.ai/api/v1",
+      "provider": "google-ai-studio",
+      "temperature": "0.0",
+      "max_tokens": "4096",
+      "reasoning": "provider-default",
+      "arm_id": "6b9d36f0d198",
+      "dev_only": "false",
+      "source": "Recommended goal_judge override in website/docs/user-guide/features/goals.md:244 at ffc74885"
+    },
+    "strong": {
+      "model_id": "gpt-6.1-sol",
+      "base_url": "codex-cli://exec",
+      "provider": "openai-codex",
+      "temperature": "None",
+      "max_tokens": "None",
+      "reasoning": "medium",
+      "harness": "codex",
+      "arm_id": "76367f6e9355",
+      "dev_only": "false",
+      "source": "Independent strong judge, prereg amendment 2026-10-02 (Phase 2 design)"
+    }
+  },
+  "observed_identities": {
+    "6b9d36f0d198": [
+      {
+        "sub_arm_id": "6bd40d6bdd15",
+        "model": "google/gemini-3-flash-preview",
+        "provider": "Google AI Studio",
+        "calls": 810
+      }
+    ],
+    "76367f6e9355": [
+      {
+        "sub_arm_id": "3fe34b6a363f",
+        "model": "",
+        "provider": "codex-cli 0.159.3",
+        "calls": 540
+      }
+    ],
+    "c72b5a6b5ba4": [
+      {
+        "sub_arm_id": "a774efd72761",
+        "model": "deepseek/deepseek-v4.1-flash",
+        "provider": "DeepSeek",
+        "calls": 270
+      }
+    ]
+  },
+  "seed": 20261001,
+  "started_at": "2026-10-08T07:29:28.151704Z",
+  "finished_at": "2026-10-08T07:57:29.202451Z",
+  "counts": {
+    "boundaries": 90,
+    "parsed": 1620,
+    "attempts": 1755,
+    "attempt_errors": 135
+  },
+  "usage": {
+    "prod-plain:flash:evidence": {
+      "calls": 270.0,
+      "tokens_in": 506412.0,
+      "tokens_out": 12118.0,
+      "reasoning_tokens": 0.0,
+      "cost_usd": 0.28955999999999976,
+      "calls_without_cost": 0.0
+    },
+    "prod-plain:flash:head4k": {
+      "calls": 270.0,
+      "tokens_in": 359700.0,
+      "tokens_out": 11287.0,
+      "reasoning_tokens": 0.0,
+      "cost_usd": 0.2137109999999998,
+      "calls_without_cost": 0.0
+    },
+    "prod-plain:self-strong:head4k": {
+      "calls": 270.0,
+      "tokens_in": 345999.0,
+      "tokens_out": 46892.0,
+      "reasoning_tokens": 32628.0,
+      "cost_usd": 0.042648539999999936,
+      "calls_without_cost": 0.0
+    },
+    "prod-plain:strong:head4k": {
+      "calls": 270.0,
+      "tokens_in": 2736340.0,
+      "tokens_out": 38878.0,
+      "reasoning_tokens": 1777.0,
+      "cost_usd": 0.0,
+      "calls_without_cost": 270.0
+    },
+    "repair-v1:flash:evidence": {
+      "calls": 270.0,
+      "tokens_in": 640872.0,
+      "tokens_out": 13169.0,
+      "reasoning_tokens": 0.0,
+      "cost_usd": 0.35994300000000035,
+      "calls_without_cost": 0.0
+    },
+    "repair-v1:strong:evidence": {
+      "calls": 270.0,
+      "tokens_in": 2996898.0,
+      "tokens_out": 26108.0,
+      "reasoning_tokens": 6754.0,
+      "cost_usd": 0.0,
+      "calls_without_cost": 270.0
+    }
+  },
+  "notes": ""
+}
