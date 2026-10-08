@@ -147,7 +147,7 @@ Each item is one session and one PR. Nothing here needs `jobs/`, the Codex CLI o
 > flags against `hjr audit draw --help` first. Commit `data/audit/draw.json` without opening or
 > quoting it. Then run `uv run hjr cost --run-id <run>` for phase2-weak, phase2-strong,
 > phase2-sanity-weak and phase2-sanity-strong, and for the earlier runs that count toward the
-> same cap (prereg Amendment 3): `probe-p2` and the four `repair-i1-*` runs. Write
+> same cap (prereg Amendment 3): `probe-p2` and every `repair-i*` run (15). Write
 > `results/runs/phase2/spend.md`: billed spend per run and in total, against the $20 stop on
 > paid Phase 2 calls, with the Codex CLI calls listed as unbilled. In the PR, list anything in the tables that looks inconsistent with
 > the prereg (missing cells, unexpected counts, refused pooling). Don't interpret the results.
