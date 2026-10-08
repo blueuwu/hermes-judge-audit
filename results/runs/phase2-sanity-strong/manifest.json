@@ -1,0 +1,68 @@
+{
+  "run_id": "phase2-sanity-strong",
+  "kind": "judge-replay",
+  "git_sha": "f977becb9442cf4a91a4386352d243826db6c2b5",
+  "git_dirty": false,
+  "hermes_sha": "ffc74885c5f6eb75f6c134fb4eef86d734066623",
+  "uv_lock_sha256": "42e8c0f532edbdad795d459d5f933af34d4b7b6923f895a35ffc50040be73697",
+  "inputs": {
+    "data/frozen/phase1-strong.jsonl": "3a04b37fa52eb682444454c9268a8f2c4d3dde0c8cc3116cf381351c055216aa"
+  },
+  "variants": [
+    "prod-plain:strong-api:head4k",
+    "repair-v1:strong-api:evidence"
+  ],
+  "samples": 3,
+  "judge_config_sha256": "f5d81d280093c7e0272072a5aa396419232c99053b3dfb0b4fda55c0c934f526",
+  "models": {
+    "strong-api": {
+      "model_id": "openai/gpt-6.1-sol",
+      "base_url": "https://openrouter.ai/api/v1",
+      "provider": "openai",
+      "temperature": "None",
+      "max_tokens": "None",
+      "reasoning": "medium",
+      "arm_id": "2d7330f3c0cd",
+      "dev_only": "false",
+      "source": "Harness sanity check for `strong`, prereg amendment 2026-10-02 (Phase 2 design)"
+    }
+  },
+  "observed_identities": {
+    "2d7330f3c0cd": [
+      {
+        "sub_arm_id": "89682e4c156d",
+        "model": "openai/gpt-6.1-sol",
+        "provider": "OpenAI",
+        "calls": 60
+      }
+    ]
+  },
+  "seed": 20261001,
+  "started_at": "2026-10-08T07:57:30.557458Z",
+  "finished_at": "2026-10-08T07:59:35.619415Z",
+  "counts": {
+    "boundaries": 10,
+    "parsed": 60,
+    "attempts": 134,
+    "attempt_errors": 74
+  },
+  "usage": {
+    "prod-plain:strong-api:head4k": {
+      "calls": 30.0,
+      "tokens_in": 39789.0,
+      "tokens_out": 1879.0,
+      "reasoning_tokens": 493.0,
+      "cost_usd": 0.05798919999999999,
+      "calls_without_cost": 0.0
+    },
+    "repair-v1:strong-api:evidence": {
+      "calls": 30.0,
+      "tokens_in": 68502.0,
+      "tokens_out": 2941.0,
+      "reasoning_tokens": 1485.0,
+      "cost_usd": 0.06372879999999999,
+      "calls_without_cost": 0.0
+    }
+  },
+  "notes": ""
+}
