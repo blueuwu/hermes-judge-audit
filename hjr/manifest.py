@@ -208,6 +208,14 @@ def ingest_manifest(
     return record | {"jobs": _jobs([job_dir]), "written_at": datetime.now(UTC).isoformat()}
 
 
+def run_records_state(run_dir: Path) -> dict[str, int]:
+    """Size of every append-only record file in a run; equal before and after a replay means
+    the replay wrote nothing."""
+    if not run_dir.is_dir():
+        return {}
+    return {p.relative_to(run_dir).as_posix(): p.stat().st_size for p in run_dir.rglob("*.jsonl")}
+
+
 def write_manifest(run_dir: Path, record: RunManifest) -> None:
     text = record.model_dump_json(indent=2) + "\n"
     (run_dir / "manifest.json").write_text(text, encoding="utf-8", newline="\n")
