@@ -221,3 +221,79 @@ def test_repair_prompt_allowed_on_heldout_after_the_freeze(tmp_path, monkeypatch
         completions={"fake": fake},
     )
     assert fake.calls == 1
+
+
+RUN = "phase2-sanity-weak"
+RUN_ARGV = [
+    "replay",
+    "--boundaries",
+    "data/frozen/phase1-weak.jsonl",
+    "--run-id",
+    RUN,
+    "--variant",
+    "prod-plain:strong-api:head4k",
+    "--subset",
+    "sanity",
+    "--workers",
+    "1",
+]
+
+
+@pytest.fixture
+def finished_run(tmp_path, monkeypatch):
+    """A copy of a committed finished run; any model call it makes is answered by ``reply``."""
+    import shutil
+
+    from hjr import cli
+    from hjr.config import ROOT
+
+    runs = tmp_path / "runs"
+    shutil.copytree(ROOT / "results" / "runs" / RUN, runs / RUN)
+    monkeypatch.setattr(cli, "RUNS", runs)
+    calls = []
+
+    class StubClient:
+        reply: dict | None = None
+
+        def __init__(self, arm, **kwargs):
+            pass
+
+        def complete(self, messages):
+            calls.append(messages)
+            r = StubClient.reply
+            if r is None:
+                raise AssertionError("a finished run must make no model call")
+            return CompletionResult(
+                text=r["raw"],
+                model_reported=r["judge_model_reported"],
+                provider_reported=r["provider_reported"],
+                finish_reason="stop",
+                attempts=(Attempt(1, True),),
+            )
+
+    monkeypatch.setattr("hjr.client.JudgeClient", StubClient)
+    return runs / RUN, StubClient, calls
+
+
+def test_replay_of_finished_run_leaves_manifest_untouched(finished_run):
+    from hjr import cli
+
+    run_dir, _, calls = finished_run
+    before = (run_dir / "manifest.json").read_bytes()
+    assert cli.main(RUN_ARGV) == 0
+    assert calls == []
+    assert (run_dir / "manifest.json").read_bytes() == before
+
+
+def test_replay_that_judges_something_rewrites_manifest(finished_run):
+    from hjr import cli
+
+    run_dir, stub, calls = finished_run
+    path = run_dir / "judge" / "prod-plain__strong-api__head4k.jsonl"
+    lines = path.read_text(encoding="utf-8").splitlines(keepends=True)
+    path.write_text("".join(lines[:-1]), encoding="utf-8", newline="")
+    stub.reply = json.loads(lines[-1])
+    before = (run_dir / "manifest.json").read_bytes()
+    assert cli.main(RUN_ARGV) == 0
+    assert len(calls) == 1
+    assert (run_dir / "manifest.json").read_bytes() != before
