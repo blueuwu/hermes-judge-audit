@@ -165,7 +165,23 @@ uv run hjr ingest --job jobs/phase1-<arm> --out data/frozen/phase1-<arm>.jsonl
 | `tasks/` | Harbor tasks: goal, workspace, oracle and hidden state checks ([`tasks/README.md`](tasks/README.md)) |
 | `hjr/schemas.py` | Pydantic records for every JSONL file |
 | `hjr/pilot/` | Pilot items, format probes and summary tables |
+| `hjr/regrade.py` | Primary truth: the frozen boundaries regraded at the frozen primary verifier (`data/truth/`) |
+| `hjr/audit.py` | Human verifier audit: seeded draw, blind view, records and report |
+| `hjr/repair.py`, `hjr/repair_design.py` | The `repair-v1` prompt and its dev design iterations (Amendment 3) |
+| `hjr/pairs.py`, `hjr/pairs_analysis.py` | Controlled counterfactual pairs: dev-only builder and summary tables |
+| `hjr/enrichment.py`, `hjr/pools.py`, `hjr/preflight.py` | Phase 1b: Stage A/B selection, reported pools, launch checks |
+| `hjr/routes.py` | Pinned-route check from public model metadata |
+| `hjr/config.py`, `hjr/manifest.py`, `hjr/cli.py` | Config loading, run provenance and measured spend, and the `hjr` command |
 | `configs/` | Pre-registration, judge arms, soak gate, seeds, task split |
 | `data/frozen/` | Frozen decision points |
+| `data/truth/` | Primary truth per frozen boundaries file (`hjr regrade`) |
+| `data/mutants/` | Frozen mutation suite and the equivalent-mutant decisions |
+| `data/labels/` | The retired labelling order (Amendment 1) |
+| `docs/` | Design drafts not yet adopted into the prereg |
 | `results/runs/` | Per-run verdicts, attempts, incidents, summaries and manifests |
 | `results/oracle/`, `results/soak/` | Oracle and soak-gate reports |
+| `results/phase1/`, `results/phase1b/` | Phase 1 run notes; Phase 1b notes, deviations and stage reports |
+| `results/mutants/`, `results/regrade/` | Mutation-suite runs and regrade reports |
+| `results/repair/` | `repair-v1` design iteration reports and error families |
+| `results/smoke/` | Harness smoke check of the frozen suite (never ingested) |
+| `third_party/hermes-agent/` | Hermes, a git submodule pinned at `ffc74885` |
