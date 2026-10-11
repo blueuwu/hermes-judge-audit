@@ -49,7 +49,7 @@ The pre-registered go rule was met on both effects. Measured spend: $1.65 for th
 ```bash
 git clone --recurse-submodules <this repo>
 cd hermes-judge-audit
-uv sync
+uv sync --extra harness   # the tests import harbor
 uv run pytest
 ```
 
