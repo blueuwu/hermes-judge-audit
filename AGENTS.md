@@ -14,10 +14,10 @@ prereg wins.
 | Primary truth (regrade) | done | `data/truth/phase1-{weak,strong}.jsonl`, `results/regrade/` |
 | Phase 1b (weak, enrichment) | done | `results/phase1b/` |
 | repair-v1 design and freeze | done, tag `repair-freeze-v1` | `results/repair/`, prereg Amendment 3 |
-| Phase 2 replay, 6 cells × 3 samples | **done**, 1,584 + 1,620 parsed | `results/runs/phase2-{weak,strong}/` |
+| Phase 2 replay, 6 cells × 3 samples | **done**, 1,582 + 1,620 parsed (weak has 2 parse failures) | `results/runs/phase2-{weak,strong}/` |
 | Strong-judge sanity (paid API) | **done**, 60 + 60 parsed | `results/runs/phase2-sanity-{weak,strong}/` |
-| Human verifier audit | **not started** | `hjr audit`, prereg "Human audit" |
-| Phase 2 analysis tables | **not started** | `hjr phase2-summary` |
+| Human verifier audit | draw committed, audit **not started** | `hjr audit`, `data/audit/draw.json`, prereg "Human audit" |
+| Phase 2 analysis tables | done | `results/runs/phase2/summary.md`, `summary-v1.md`, `spend.md` |
 | Controlled counterfactual pairs (H6–H8, E1) | not started | `hjr pairs-build`, `hjr pairs-summary`, prereg "Controlled counterfactual pairs" |
 | Write-up (README results, report) | not started | |
 
@@ -56,8 +56,8 @@ prereg wins.
 ```bash
 git clone --recurse-submodules https://github.com/blueuwu/hermes-judge-audit.git
 cd hermes-judge-audit
-uv sync
-uv run pytest          # no network, keys, Docker or jobs/ needed
+uv sync --extra harness   # the tests import harbor
+uv run pytest             # no network, keys, Docker or jobs/ needed
 uv run ruff check . && uv run ruff format --check .
 ```
 
@@ -90,9 +90,9 @@ uv run ruff check . && uv run ruff format --check .
   - Anything under `tasks/*/tests/`, the primary verifier.
   - The `repair-v1` prompt.
 - **Finished runs.** Treat `results/runs/<run>/` of a finished run as read-only.
-  - `hjr replay` on a finished run judges nothing, but it rewrites that run's `manifest.json`
-    with the current commit and config hash.
-  - If that happens, restore the file: `git checkout -- results/runs/<run>/manifest.json`.
+  - `hjr replay` on a finished run judges nothing and leaves its `manifest.json` untouched.
+  - The manifest is rewritten only when the replay adds a record, so never rerun a finished run
+    with new variants or samples.
 - **Held-out data.**
   - Held-out boundaries are open, since `repair-freeze-v1` is an ancestor of HEAD.
   - Pairs and any repair design still use dev boundaries only.
