@@ -91,8 +91,9 @@ uv run ruff check . && uv run ruff format --check .
   - The `repair-v1` prompt.
 - **Finished runs.** Treat `results/runs/<run>/` of a finished run as read-only.
   - `hjr replay` on a finished run judges nothing and leaves its `manifest.json` untouched.
-  - The manifest is rewritten only when the replay adds a record, so never rerun a finished run
-    with new variants or samples.
+  - The manifest is rewritten only when what it records changes: new verdicts, attempts or
+    incidents, or new variants or samples. So never rerun a finished run with new variants or
+    samples.
 - **Held-out data.**
   - Held-out boundaries are open, since `repair-freeze-v1` is an ancestor of HEAD.
   - Pairs and any repair design still use dev boundaries only.
