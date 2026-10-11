@@ -79,7 +79,6 @@ def cmd_replay(args: argparse.Namespace) -> int:
 
     git_sha, dirty = manifest.git_state()
     started = datetime.now(UTC)
-    before = manifest.run_records_state(run_dir)
     try:
         counts = replay(
             boundaries,
@@ -93,10 +92,6 @@ def cmd_replay(args: argparse.Namespace) -> int:
     except PermissionError as exc:
         raise SystemExit(f"refused: {exc}") from None
     failed = counts.get("transport_failed") or counts.get("drift_incidents") or counts.get("halted")
-    if prev_path.exists() and manifest.run_records_state(run_dir) == before:
-        # Nothing judged: keep the finished run's manifest, commit and config hash included.
-        print(f"{args.run_id}: {dict(counts)}; nothing new, manifest left as is")
-        return 1 if failed else 0
     record = manifest.judge_run_manifest(
         run_dir,
         git_sha=git_sha,
@@ -111,6 +106,10 @@ def cmd_replay(args: argparse.Namespace) -> int:
         started_at=started,
         phase=phase,
     )
+    if prev_path.exists() and manifest.same_records(prev, record):
+        # Nothing on disk changed: keep the manifest, its commit and config hash included.
+        print(f"{args.run_id}: {dict(counts)}; nothing new, manifest left as is")
+        return 1 if failed else 0
     manifest.write_manifest(run_dir, record)
     print(f"{args.run_id}: {dict(counts)}")
     return 1 if failed else 0
