@@ -208,12 +208,22 @@ def ingest_manifest(
     return record | {"jobs": _jobs([job_dir]), "written_at": datetime.now(UTC).isoformat()}
 
 
-def run_records_state(run_dir: Path) -> dict[str, int]:
-    """Size of every append-only record file in a run; equal before and after a replay means
-    the replay wrote nothing."""
-    if not run_dir.is_dir():
-        return {}
-    return {p.relative_to(run_dir).as_posix(): p.stat().st_size for p in run_dir.rglob("*.jsonl")}
+# Fields that describe the invocation, not the records it judged.
+INVOCATION_FIELDS = {
+    "git_sha",
+    "git_dirty",
+    "hermes_sha",
+    "uv_lock_sha256",
+    "judge_config_sha256",
+    "finished_at",
+}
+
+
+def same_records(prev: RunManifest, record: RunManifest) -> bool:
+    """True when ``record`` differs from ``prev`` only in the invocation's provenance."""
+    return prev.model_dump(exclude=INVOCATION_FIELDS) == record.model_dump(
+        exclude=INVOCATION_FIELDS
+    )
 
 
 def write_manifest(run_dir: Path, record: RunManifest) -> None:

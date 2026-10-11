@@ -9,7 +9,7 @@ from hjr.arms import Arm
 from hjr.client import Attempt, CompletionResult, TransportError
 from hjr.judge import Variant
 from hjr.replay import EMPTY_RESPONSE_REASON, load_verdicts, replay, verdict_path
-from hjr.schemas import AttemptRecord, DriftIncident, JudgeVerdict, read_jsonl
+from hjr.schemas import AttemptRecord, DriftIncident, JudgeVerdict, RunManifest, read_jsonl
 from tests.factories import make_boundary
 
 VARIANT = Variant.parse("prod-plain:fake:head4k")
@@ -297,3 +297,18 @@ def test_replay_that_judges_something_rewrites_manifest(finished_run):
     assert cli.main(RUN_ARGV) == 0
     assert len(calls) == 1
     assert (run_dir / "manifest.json").read_bytes() != before
+
+
+def test_replay_refreshes_a_stale_manifest_with_nothing_to_judge(finished_run):
+    """A replay stopped after its last verdict but before its manifest: the rerun fixes it."""
+    from hjr import cli
+
+    run_dir, _, calls = finished_run
+    path = run_dir / "manifest.json"
+    fresh = RunManifest.model_validate_json(path.read_text(encoding="utf-8"))
+    counts = {**fresh.counts, "parsed": fresh.counts["parsed"] - 1}
+    stale = fresh.model_copy(update={"counts": counts})
+    path.write_text(stale.model_dump_json(indent=2) + "\n", encoding="utf-8")
+    assert cli.main(RUN_ARGV) == 0
+    assert calls == []
+    assert RunManifest.model_validate_json(path.read_text(encoding="utf-8")).counts == fresh.counts
