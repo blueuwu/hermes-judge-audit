@@ -9,7 +9,7 @@ against deterministic state verifiers and human labels, then measures judge-side
 frozen held-out set. Hypotheses and analysis rules are fixed in
 [`configs/prereg.md`](configs/prereg.md).
 
-Status: offline pilot done; soak gate passed by both agent arms, GLM-5.3-Flash (weak) and DeepSeek V4.1 Flash (strong), after Qwen3-Coder failed it on two routes (`results/soak/`). Task suite (30 tasks) and split frozen; Phase 1 trajectories frozen (178 boundaries, `results/phase1/`). Phase 2 design frozen by amendment (`configs/phase2.toml`); human truth labelling of all 178 boundaries next, then the judge replays.
+Status: Phase 1a trajectories frozen (178 boundaries), primary verifier frozen after the mutation suite, Phase 1b enrichment and `repair-v1` design done (tag `repair-freeze-v1`). Phase 2 replay done and analysed (below). Human verifier audit, controlled counterfactual pairs and the write-up remain.
 
 ## Pilot findings (M0.5, constructed items)
 
@@ -43,6 +43,74 @@ Full tables: [`results/runs/pilot-v1/summary.md`](results/runs/pilot-v1/summary.
   so this measures the model and its default together.
 
 The pre-registered go rule was met on both effects. Measured spend: $1.65 for the 1,440 pilot calls.
+
+## Phase 2 results (natural trajectories)
+
+178 Phase 1a boundaries (weak 88, strong 90), six judge cells, 3 samples each. Truth is the
+frozen primary verifier (weak 72 done, 4 not done, 12 blocked; strong 73 done, 5 not done,
+12 blocked). Item decision is the majority of 3. Arms are reported separately and never pooled.
+Full tables: [`results/runs/phase2/summary.md`](results/runs/phase2/summary.md); with truth as
+frozen at Phase 1: [`summary-v1.md`](results/runs/phase2/summary-v1.md).
+
+| Production self judge, `prod-plain:self:head4k` | weak (GLM-5.3-Flash) | strong (DeepSeek V4.1 Flash) |
+|---|---|---|
+| Semantic accuracy (calls) | 249/262 (95.0%) | 255/270 (94.4%) |
+| False-DONE (items, truth ≠ done) | 4/16 | 5/17 |
+| False-CONTINUE (items, truth = done) | 0/72 (Wilson 0.0–5.1%) | 0/73 (Wilson 0.0–5.0%) |
+| FD − FC, task-bootstrap 95% interval | +25.0 pp (0.0 to 68.4) | +29.4 pp (0.0 to 70.0) |
+| Unanimous items across 3 samples | 85/88 | 90/90 |
+
+- **H1 not supported.** It needs the FD − FC interval below 0. In both arms the point estimate is
+  positive and the interval reaches 0 from above.
+- **H2 (descriptive).** Every false-DONE item, in every cell, is on a C2, C4 or C6 task. No cell
+  judges any of the 12 blocked C5 boundaries done, in either arm. C1 and C3 have no truth ≠ done
+  boundaries, so the comparison against controls that H2 names cannot be made.
+- **H3 not tested.** Phase 1 has no G-contract boundaries (Phase 2 design amendment).
+- **H4 not met** in any of its four tests (2 arms × {flash, strong}). Each has n = 10 held-out
+  truth ≠ done boundaries and at most 1 discordant pair, against the 15 required. This is the
+  "no detectable difference at n = 10" the prereg stated in advance. False-CONTINUE on the
+  44 held-out done items per arm rises by 0 to +6.8 pp (at most 3 discordant pairs). Every
+  comparison reads "no detectable difference".
+- **H5 (exploratory).** Item correctness of self against Flash, and of either against strong,
+  differs by at most 2 items in 88 or 90 (all "no detectable difference"). At the cell level,
+  Flash matches the self judge's false-DONE in both arms. Strong matches it too, and adds 1 (weak)
+  and 2 (strong) false-CONTINUE items.
+- **Evidence view and repair-v1.** `prod-plain:flash:evidence` has the same false-DONE as
+  `flash:head4k` in both arms. `repair-v1` lowers false-DONE by 1 item in the strong arm only.
+  Against the `prod-plain` cell of the same model, it raises false-CONTINUE by 0 to 4 items.
+  The highest count is under `repair-v1:strong:evidence` (5/72 weak, 5/73 strong).
+- **Truth sensitivity.** Truth as frozen at Phase 1 counts seven more boundaries as not done (five
+  `c2-01`, two `c6-04`, see the frozen-verifier note). Under it the self judge's false-DONE is
+  7/19 (weak) and 9/21 (strong). The strong arm's FD − FC interval then excludes 0
+  (+42.9 pp, 6.2 to 80.0).
+- **Reliability.** No cell has an unresolved call. There are 2 parse failures in 264 calls
+  (`self-weak`) and 0 format violations anywhere. Transport errors per attempt:
+  - `strong` (Codex CLI) head4k: 139/403 (weak) and 120/390 (strong). These are the known hangs,
+    each retried to success.
+  - `flash:head4k`, weak arm: 129/393.
+  - Every other cell: 16 or fewer.
+- **Strong harness check.** The Codex CLI and paid-API harnesses agree on 9/10 and 9/10 items in
+  the strong arm, and 10/10 and 10/10 in the weak arm.
+  - Limitation, applying to every strong result above: the strong and Flash cells differ in
+    harness as well as model, and only this 20-boundary check bounds the harness effect.
+  - The strong cells are labelled "GPT-6.1 Sol via Codex CLI; harness prompt and sampling params
+    not controllable".
+- **Not exercised.** No Phase 1 response reaches 4,000 characters. So the truncation effect from
+  the pilot does not occur here. `headtail4k` is identical to `head4k` by construction, and was
+  not called.
+- **Small sample.** The 16 (weak) and 17 (strong) truth ≠ done boundaries come from few tasks.
+  These are counts from a small natural sample, not precise rates.
+
+Measured spend on paid Phase 2 calls: $5.46 of the $20 stop. The 1,108 Codex CLI calls are
+unbilled ([`results/runs/phase2/spend.md`](results/runs/phase2/spend.md)).
+
+TODO (human audit): verifier error rate per stratum (A, B, C) with Wilson intervals and inclusion
+probabilities, and any sensitivity rerun the prereg's *Truth* rules call for. Pending the owner's
+blind audit (`hjr audit`).
+
+TODO (controlled pairs, H6–H8, E1): truncation flip rates before and after the cut, claim effect,
+evidence-view sensitivity on state pairs, and inertness of meaning-preserving edits. Pending the
+noise-floor tolerance note and the paid pair calls.
 
 ## Setup
 
