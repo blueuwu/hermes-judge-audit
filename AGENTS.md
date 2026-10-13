@@ -4,7 +4,7 @@ Read this before changing anything. `README.md` describes the study and how to r
 `configs/prereg.md` holds the pre-registered rules. Where this file and the prereg disagree, the
 prereg wins.
 
-## Where the project stands (2026-10-08)
+## Where the project stands (2026-10-13)
 
 | Stage | State | Where |
 |---|---|---|
@@ -16,10 +16,10 @@ prereg wins.
 | repair-v1 design and freeze | done, tag `repair-freeze-v1` | `results/repair/`, prereg Amendment 3 |
 | Phase 2 replay, 6 cells × 3 samples | **done**, 1,584 + 1,620 parsed | `results/runs/phase2-{weak,strong}/` |
 | Strong-judge sanity (paid API) | **done**, 60 + 60 parsed | `results/runs/phase2-sanity-{weak,strong}/` |
-| Human verifier audit | **not started** | `hjr audit`, prereg "Human audit" |
-| Phase 2 analysis tables | **not started** | `hjr phase2-summary` |
+| Human verifier audit | **done**, 49 audited, 1 verifier error | `data/audit/`, `results/audit/report.md` |
+| Phase 2 analysis tables | **done** | `results/runs/phase2/` |
 | Controlled counterfactual pairs (H6–H8, E1) | not started | `hjr pairs-build`, `hjr pairs-summary`, prereg "Controlled counterfactual pairs" |
-| Write-up (README results, report) | not started | |
+| Write-up (README results, report) | in progress, pairs TODO | `README.md` |
 
 ## Next steps, in order
 
