@@ -126,6 +126,16 @@ TODO (controlled pairs, H6–H8, E1): truncation flip rates before and after the
 evidence-view sensitivity on state pairs, and inertness of meaning-preserving edits. Pending the
 noise-floor tolerance note and the paid pair calls.
 
+Noise floor, measured 2026-10-13 on `prod-plain:flash:head4k` (each dev base judged twice on
+byte-identical input, 3 samples each; Flash judges at temperature 0):
+- Weak arm: 0/34 item flips (Wilson 0 to 10.2%), and no disagreement among any base's 6 samples.
+- Strong arm: 0/36 item flips (Wilson 0 to 9.6%), likewise no sample disagreement.
+- 420 calls, all parsed, $0.33 billed
+  ([`pairs-noise-weak`](results/runs/pairs-noise-weak/summary.md),
+  [`pairs-noise-strong`](results/runs/pairs-noise-strong/summary.md)).
+- The E1 equivalence tolerance is not set yet. The evidence-view cells for H8 have no noise floor
+  yet; they are measured when the state pairs are built.
+
 ## Setup
 
 ```bash
