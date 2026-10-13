@@ -237,7 +237,7 @@ def build(
 
     require_frozen()
     retired_keys = retired()
-    mutants = [m for m in load_all() if m.key not in retired_keys]
+    mutants = [m for m in load_all().values() if m.key not in retired_keys]
     executor = DockerReplay()
     result = BuildResult()
     for n, b in enumerate(boundaries, 1):

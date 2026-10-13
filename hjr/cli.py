@@ -574,7 +574,7 @@ def cmd_pairs_build(args: argparse.Namespace) -> int:
         executor = getattr(importlib.import_module(module), factory)()
         require_frozen()
         retired_keys = retired()
-        mutants = [m for m in load_all() if m.key not in retired_keys]
+        mutants = [m for m in load_all().values() if m.key not in retired_keys]
         snapshots = json.loads(args.snapshots.read_text(encoding="utf-8"))
         result = BuildResult()
         for boundary in boundaries:
