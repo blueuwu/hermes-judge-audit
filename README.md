@@ -118,8 +118,9 @@ unbilled ([`results/runs/phase2/spend.md`](results/runs/phase2/spend.md)).
     available substitute, and its tests passed in its own environment. The verifier's
     `tests_pass` check failed only because its image lacks the agent's installed packages. The
     boundary is still correctly `blocked`, because the requested package is infeasible to install.
-  - No verifier fix has been made, so there is no sensitivity rerun under the prereg's *Truth*
-    rules.
+  - The error is recorded as a known limitation, and the verifier is not fixed (owner's decision,
+    2026-10-13). A fix would change no truth label, so there is no sensitivity rerun under the
+    prereg's *Truth* rules.
 
 TODO (controlled pairs, H6–H8, E1): truncation flip rates before and after the cut, claim effect,
 evidence-view sensitivity on state pairs, and inertness of meaning-preserving edits. Pending the
