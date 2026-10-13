@@ -626,6 +626,34 @@ def cmd_pairs_run(args: argparse.Namespace) -> int:
     return cmd_replay(run)
 
 
+def cmd_pairs_state(args: argparse.Namespace) -> int:
+    import json
+
+    from hjr import state_replay
+    from hjr.pairs import read_dev
+    from hjr.schemas import write_jsonl
+
+    out = args.out.resolve()
+    for protected in ("tasks", "hjr/mutants", "data/frozen", "data/mutants", "results"):
+        if out.is_relative_to(ROOT / protected):
+            raise ValueError("pairs output must be outside frozen and research-result directories")
+    log_path = out.with_suffix(".log")
+
+    def log(line: str) -> None:
+        stamped = f"{datetime.now(UTC):%H:%M:%S} {line}"
+        print(stamped, flush=True)
+        with log_path.open("a", encoding="utf-8") as fh:
+            fh.write(stamped + "\n")
+
+    result = state_replay.build(read_dev(args.boundaries), args.cell, args.workdir, log=log)
+    write_jsonl(out, result.items)
+    out.with_suffix(".excluded.json").write_text(
+        json.dumps(result.excluded, indent=2) + "\n", encoding="utf-8"
+    )
+    log(f"{len(result.items)} items; {len(result.excluded)} exclusions; {out}")
+    return 0
+
+
 def cmd_pairs_summary(args: argparse.Namespace) -> int:
     from hjr.pairs import PairItem
     from hjr.pairs_analysis import analyse, render
@@ -702,6 +730,15 @@ def main(argv: list[str] | None = None) -> int:
     )
     p.add_argument("--workers", type=int, default=8)
     p.set_defaults(func=cmd_pairs_run)
+
+    p = sub.add_parser(
+        "pairs-state", help="build dev state pairs from Phase 1 snapshots (no judge calls)"
+    )
+    p.add_argument("--boundaries", type=Path, required=True, help="dev-only JSONL")
+    p.add_argument("--out", type=Path, required=True)
+    p.add_argument("--cell", action="append", required=True, help="evidence-view prompt:model:view")
+    p.add_argument("--workdir", type=Path, required=True, help="where snapshots are extracted")
+    p.set_defaults(func=cmd_pairs_state)
 
     p = sub.add_parser("pairs-summary", help="controlled-pairs analysis tables (no model calls)")
     p.add_argument("--items", type=Path, required=True)
