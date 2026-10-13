@@ -29,3 +29,46 @@
   The builder is deterministic, so a rebuild with the reviewed edits reproduces these items.
 - Noise floor judged on 2026-10-13 with `hjr pairs-run --family noise` (runs `pairs-noise-weak`
   and `pairs-noise-strong`). No H6 or edit item has been judged.
+
+## State pairs (H8), evidence-view cells, per agent arm
+
+Built on 2026-10-14 with `hjr pairs-state` (adapter `hjr/state_replay.py`) for the cells
+`prod-plain:flash:evidence`, `repair-v1:flash:evidence` and `repair-v1:strong:evidence`. No judge
+call has been made on them.
+
+- Each dev boundary's Phase 1 snapshot (`jobs/`, not committed) is copied twice. Every frozen,
+  non-retired requirement mutant of its task is applied to one copy, and both copies replay the
+  boundary's last three recorded calls through Hermes's own tools at `ffc74885`, offline, in the
+  task's image. Grades come from the frozen verifier.
+- Every snapshot graded back to its recorded primary truth, so no pair was lost to the grading
+  path.
+- The builder's replay rule is exact equality of each replayed ToolEvent (tool, command, exit,
+  output tail). That is the wording of the third proposed clarification in
+  `docs/pairs-design-draft.md`, which has not been adopted.
+
+| | weak | strong |
+|---|---:|---:|
+| Pairs built | 10 | 4 |
+| of which evidence-visible | 4 | 1 |
+| Excluded: null replay differs from the record | 69 | 87 |
+| Excluded: mutant does not flip exactly its requirement | 40 | 46 |
+| Excluded: replay changes the requirement contrast | 29 | 14 |
+| Excluded: mutant does not apply to this snapshot | 9 | 15 |
+| Excluded: target requirement not satisfied in the base | 3 | 2 |
+
+Files: `state-{weak,strong}.jsonl` (items), `.excluded.json` (one row per boundary and mutant),
+`.log` (the build log).
+
+Replay fidelity, measured on an unmutated copy of all 70 dev boundaries (210 calls):
+- Exact: `terminal` 67/95, `read_file` 37/38, `execute_code` 17/43, `write_file` 15/15,
+  `clarify` 6/6, `patch` 0/10, `search_files` 0/2, `tool_search` 0/1.
+- 16 `execute_code` calls differ only in the timing fields `duration_seconds` and
+  `execution_count`. Under the exact rule these boundaries are non-replayable; masking
+  those fields would make 12 more boundaries fully replayable (35 instead of 23 of 70).
+- Most other differences are not adapter faults. The snapshot is taken after the last three calls
+  ran, so a replay meets the state those calls left behind. A patch applies again, a test that
+  failed before the fix now passes, a file the agent moved is gone.
+- Two calls depend on session context the replay lacks, and the adapter supplies it. `clarify`
+  gets the headless answer `hermes chat -Q` gives. An overwriting `write_file` is preceded by an
+  unrecorded `read_file` of the same path, standing in for the session's earlier read, so that
+  the read-before-write guard does not refuse it.

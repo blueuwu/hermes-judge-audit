@@ -1,0 +1,752 @@
+[
+  {
+    "boundary_id": "phase1-weak/c1-01-csv-to-json__DpQseoX/b01",
+    "mutant": "c1-01-csv-to-json/req:orders_json_valid",
+    "reason": "mutation did not flip exactly the target requirement"
+  },
+  {
+    "boundary_id": "phase1-weak/c1-01-csv-to-json__DpQseoX/b01",
+    "mutant": "c1-01-csv-to-json/req:row_count",
+    "reason": "mutation did not flip exactly the target requirement"
+  },
+  {
+    "boundary_id": "phase1-weak/c1-01-csv-to-json__DpQseoX/b01",
+    "mutant": "c1-01-csv-to-json/req:field_types",
+    "reason": "mutation did not flip exactly the target requirement"
+  },
+  {
+    "boundary_id": "phase1-weak/c1-01-csv-to-json__DpQseoX/b01",
+    "mutant": "c1-01-csv-to-json/req:values",
+    "reason": "replay changed the requirement contrast"
+  },
+  {
+    "boundary_id": "phase1-weak/c1-01-csv-to-json__DpQseoX/b01",
+    "mutant": "c1-01-csv-to-json/req:sorted",
+    "reason": "replay changed the requirement contrast"
+  },
+  {
+    "boundary_id": "phase1-weak/c1-01-csv-to-json__DpQseoX/b01",
+    "mutant": "c1-01-csv-to-json/req:totals",
+    "reason": "replay changed the requirement contrast"
+  },
+  {
+    "boundary_id": "phase1-weak/c1-01-csv-to-json__gWAXQb9/b01",
+    "mutant": "c1-01-csv-to-json/req:orders_json_valid",
+    "reason": "mutation did not flip exactly the target requirement"
+  },
+  {
+    "boundary_id": "phase1-weak/c1-01-csv-to-json__gWAXQb9/b01",
+    "mutant": "c1-01-csv-to-json/req:row_count",
+    "reason": "mutation did not flip exactly the target requirement"
+  },
+  {
+    "boundary_id": "phase1-weak/c1-01-csv-to-json__gWAXQb9/b01",
+    "mutant": "c1-01-csv-to-json/req:field_types",
+    "reason": "mutation did not flip exactly the target requirement"
+  },
+  {
+    "boundary_id": "phase1-weak/c1-01-csv-to-json__gWAXQb9/b01",
+    "mutant": "c1-01-csv-to-json/req:values",
+    "reason": "non-replayable: null outputs differ"
+  },
+  {
+    "boundary_id": "phase1-weak/c1-01-csv-to-json__gWAXQb9/b01",
+    "mutant": "c1-01-csv-to-json/req:sorted",
+    "reason": "non-replayable: null outputs differ"
+  },
+  {
+    "boundary_id": "phase1-weak/c1-01-csv-to-json__gWAXQb9/b01",
+    "mutant": "c1-01-csv-to-json/req:totals",
+    "reason": "non-replayable: null outputs differ"
+  },
+  {
+    "boundary_id": "phase1-weak/c1-01-csv-to-json__gWAXQb9/b01",
+    "mutant": "c1-01-csv-to-json/req:input_unchanged",
+    "reason": "non-replayable: null outputs differ"
+  },
+  {
+    "boundary_id": "phase1-weak/c1-01-csv-to-json__zdjLNpd/b01",
+    "mutant": "c1-01-csv-to-json/req:orders_json_valid",
+    "reason": "mutation did not flip exactly the target requirement"
+  },
+  {
+    "boundary_id": "phase1-weak/c1-01-csv-to-json__zdjLNpd/b01",
+    "mutant": "c1-01-csv-to-json/req:row_count",
+    "reason": "mutation did not flip exactly the target requirement"
+  },
+  {
+    "boundary_id": "phase1-weak/c1-01-csv-to-json__zdjLNpd/b01",
+    "mutant": "c1-01-csv-to-json/req:field_types",
+    "reason": "mutation did not flip exactly the target requirement"
+  },
+  {
+    "boundary_id": "phase1-weak/c1-01-csv-to-json__zdjLNpd/b01",
+    "mutant": "c1-01-csv-to-json/req:values",
+    "reason": "non-replayable: null outputs differ"
+  },
+  {
+    "boundary_id": "phase1-weak/c1-01-csv-to-json__zdjLNpd/b01",
+    "mutant": "c1-01-csv-to-json/req:sorted",
+    "reason": "non-replayable: null outputs differ"
+  },
+  {
+    "boundary_id": "phase1-weak/c1-01-csv-to-json__zdjLNpd/b01",
+    "mutant": "c1-01-csv-to-json/req:totals",
+    "reason": "non-replayable: null outputs differ"
+  },
+  {
+    "boundary_id": "phase1-weak/c1-01-csv-to-json__zdjLNpd/b01",
+    "mutant": "c1-01-csv-to-json/req:input_unchanged",
+    "reason": "non-replayable: null outputs differ"
+  },
+  {
+    "boundary_id": "phase1-weak/c1-05-dedupe-contacts__M38SsyV/b01",
+    "mutant": "c1-05-dedupe-contacts/req:csv_valid",
+    "reason": "mutation did not flip exactly the target requirement"
+  },
+  {
+    "boundary_id": "phase1-weak/c1-05-dedupe-contacts__M38SsyV/b01",
+    "mutant": "c1-05-dedupe-contacts/req:header",
+    "reason": "replay changed the requirement contrast"
+  },
+  {
+    "boundary_id": "phase1-weak/c1-05-dedupe-contacts__M38SsyV/b01",
+    "mutant": "c1-05-dedupe-contacts/req:deduplicated",
+    "reason": "mutation did not flip exactly the target requirement"
+  },
+  {
+    "boundary_id": "phase1-weak/c1-05-dedupe-contacts__M38SsyV/b01",
+    "mutant": "c1-05-dedupe-contacts/req:kept_first",
+    "reason": "replay changed the requirement contrast"
+  },
+  {
+    "boundary_id": "phase1-weak/c1-05-dedupe-contacts__M38SsyV/b01",
+    "mutant": "c1-05-dedupe-contacts/req:order",
+    "reason": "replay changed the requirement contrast"
+  },
+  {
+    "boundary_id": "phase1-weak/c1-05-dedupe-contacts__M38SsyV/b01",
+    "mutant": "c1-05-dedupe-contacts/req:emails_normalised",
+    "reason": "replay changed the requirement contrast"
+  },
+  {
+    "boundary_id": "phase1-weak/c1-05-dedupe-contacts__QRxWphe/b01",
+    "mutant": "c1-05-dedupe-contacts/req:csv_valid",
+    "reason": "mutation did not flip exactly the target requirement"
+  },
+  {
+    "boundary_id": "phase1-weak/c1-05-dedupe-contacts__QRxWphe/b01",
+    "mutant": "c1-05-dedupe-contacts/req:header",
+    "reason": "non-replayable: null outputs differ"
+  },
+  {
+    "boundary_id": "phase1-weak/c1-05-dedupe-contacts__QRxWphe/b01",
+    "mutant": "c1-05-dedupe-contacts/req:deduplicated",
+    "reason": "mutation did not flip exactly the target requirement"
+  },
+  {
+    "boundary_id": "phase1-weak/c1-05-dedupe-contacts__QRxWphe/b01",
+    "mutant": "c1-05-dedupe-contacts/req:kept_first",
+    "reason": "non-replayable: null outputs differ"
+  },
+  {
+    "boundary_id": "phase1-weak/c1-05-dedupe-contacts__QRxWphe/b01",
+    "mutant": "c1-05-dedupe-contacts/req:order",
+    "reason": "non-replayable: null outputs differ"
+  },
+  {
+    "boundary_id": "phase1-weak/c1-05-dedupe-contacts__QRxWphe/b01",
+    "mutant": "c1-05-dedupe-contacts/req:emails_normalised",
+    "reason": "non-replayable: null outputs differ"
+  },
+  {
+    "boundary_id": "phase1-weak/c1-05-dedupe-contacts__QRxWphe/b01",
+    "mutant": "c1-05-dedupe-contacts/req:input_unchanged",
+    "reason": "non-replayable: null outputs differ"
+  },
+  {
+    "boundary_id": "phase1-weak/c1-05-dedupe-contacts__XMSBLnw/b01",
+    "mutant": "c1-05-dedupe-contacts/req:csv_valid",
+    "reason": "mutation did not flip exactly the target requirement"
+  },
+  {
+    "boundary_id": "phase1-weak/c1-05-dedupe-contacts__XMSBLnw/b01",
+    "mutant": "c1-05-dedupe-contacts/req:header",
+    "reason": "non-replayable: null outputs differ"
+  },
+  {
+    "boundary_id": "phase1-weak/c1-05-dedupe-contacts__XMSBLnw/b01",
+    "mutant": "c1-05-dedupe-contacts/req:deduplicated",
+    "reason": "mutation did not flip exactly the target requirement"
+  },
+  {
+    "boundary_id": "phase1-weak/c1-05-dedupe-contacts__XMSBLnw/b01",
+    "mutant": "c1-05-dedupe-contacts/req:kept_first",
+    "reason": "non-replayable: null outputs differ"
+  },
+  {
+    "boundary_id": "phase1-weak/c1-05-dedupe-contacts__XMSBLnw/b01",
+    "mutant": "c1-05-dedupe-contacts/req:order",
+    "reason": "non-replayable: null outputs differ"
+  },
+  {
+    "boundary_id": "phase1-weak/c1-05-dedupe-contacts__XMSBLnw/b01",
+    "mutant": "c1-05-dedupe-contacts/req:emails_normalised",
+    "reason": "non-replayable: null outputs differ"
+  },
+  {
+    "boundary_id": "phase1-weak/c1-05-dedupe-contacts__XMSBLnw/b01",
+    "mutant": "c1-05-dedupe-contacts/req:input_unchanged",
+    "reason": "non-replayable: null outputs differ"
+  },
+  {
+    "boundary_id": "phase1-weak/c2-01-rename-function__DnhGapg/b01",
+    "mutant": "c2-01-rename-function/req:renamed_definition",
+    "reason": "mutation did not flip exactly the target requirement"
+  },
+  {
+    "boundary_id": "phase1-weak/c2-01-rename-function__DnhGapg/b01",
+    "mutant": "c2-01-rename-function/req:callers_updated",
+    "reason": "non-replayable: null outputs differ"
+  },
+  {
+    "boundary_id": "phase1-weak/c2-01-rename-function__DnhGapg/b01",
+    "mutant": "c2-01-rename-function/req:deprecated_alias",
+    "reason": "mutation did not apply: AssertionError"
+  },
+  {
+    "boundary_id": "phase1-weak/c2-01-rename-function__DnhGapg/b01",
+    "mutant": "c2-01-rename-function/req:docs_updated",
+    "reason": "non-replayable: null outputs differ"
+  },
+  {
+    "boundary_id": "phase1-weak/c2-01-rename-function__DnhGapg/b01",
+    "mutant": "c2-01-rename-function/req:changelog_entry",
+    "reason": "mutation did not apply: AssertionError"
+  },
+  {
+    "boundary_id": "phase1-weak/c2-01-rename-function__DnhGapg/b01",
+    "mutant": "c2-01-rename-function/req:tests_pass",
+    "reason": "non-replayable: null outputs differ"
+  },
+  {
+    "boundary_id": "phase1-weak/c2-01-rename-function__uYiTTQF/b01",
+    "mutant": "c2-01-rename-function/req:renamed_definition",
+    "reason": "mutation did not flip exactly the target requirement"
+  },
+  {
+    "boundary_id": "phase1-weak/c2-01-rename-function__uYiTTQF/b01",
+    "mutant": "c2-01-rename-function/req:callers_updated",
+    "reason": "non-replayable: null outputs differ"
+  },
+  {
+    "boundary_id": "phase1-weak/c2-01-rename-function__uYiTTQF/b01",
+    "mutant": "c2-01-rename-function/req:deprecated_alias",
+    "reason": "mutation did not apply: AssertionError"
+  },
+  {
+    "boundary_id": "phase1-weak/c2-01-rename-function__uYiTTQF/b01",
+    "mutant": "c2-01-rename-function/req:docs_updated",
+    "reason": "non-replayable: null outputs differ"
+  },
+  {
+    "boundary_id": "phase1-weak/c2-01-rename-function__uYiTTQF/b01",
+    "mutant": "c2-01-rename-function/req:changelog_entry",
+    "reason": "mutation did not apply: AssertionError"
+  },
+  {
+    "boundary_id": "phase1-weak/c2-01-rename-function__uYiTTQF/b01",
+    "mutant": "c2-01-rename-function/req:tests_pass",
+    "reason": "non-replayable: null outputs differ"
+  },
+  {
+    "boundary_id": "phase1-weak/c2-01-rename-function__vfeBdgs/b01",
+    "mutant": "c2-01-rename-function/req:renamed_definition",
+    "reason": "mutation did not flip exactly the target requirement"
+  },
+  {
+    "boundary_id": "phase1-weak/c2-01-rename-function__vfeBdgs/b01",
+    "mutant": "c2-01-rename-function/req:callers_updated",
+    "reason": "non-replayable: null outputs differ"
+  },
+  {
+    "boundary_id": "phase1-weak/c2-01-rename-function__vfeBdgs/b01",
+    "mutant": "c2-01-rename-function/req:deprecated_alias",
+    "reason": "mutation did not apply: AssertionError"
+  },
+  {
+    "boundary_id": "phase1-weak/c2-01-rename-function__vfeBdgs/b01",
+    "mutant": "c2-01-rename-function/req:docs_updated",
+    "reason": "non-replayable: null outputs differ"
+  },
+  {
+    "boundary_id": "phase1-weak/c2-01-rename-function__vfeBdgs/b01",
+    "mutant": "c2-01-rename-function/req:changelog_entry",
+    "reason": "mutation did not apply: AssertionError"
+  },
+  {
+    "boundary_id": "phase1-weak/c2-01-rename-function__vfeBdgs/b01",
+    "mutant": "c2-01-rename-function/req:tests_pass",
+    "reason": "non-replayable: null outputs differ"
+  },
+  {
+    "boundary_id": "phase1-weak/c2-05-month-end-close__6fTJ5nZ/b01",
+    "mutant": "c2-05-month-end-close/req:summary_correct",
+    "reason": "non-replayable: null outputs differ"
+  },
+  {
+    "boundary_id": "phase1-weak/c2-05-month-end-close__6fTJ5nZ/b01",
+    "mutant": "c2-05-month-end-close/req:september_archived",
+    "reason": "non-replayable: null outputs differ"
+  },
+  {
+    "boundary_id": "phase1-weak/c2-05-month-end-close__6fTJ5nZ/b01",
+    "mutant": "c2-05-month-end-close/req:others_untouched",
+    "reason": "non-replayable: null outputs differ"
+  },
+  {
+    "boundary_id": "phase1-weak/c2-05-month-end-close__6fTJ5nZ/b01",
+    "mutant": "c2-05-month-end-close/req:manifest_correct",
+    "reason": "non-replayable: null outputs differ"
+  },
+  {
+    "boundary_id": "phase1-weak/c2-05-month-end-close__McmYFeL/b01",
+    "mutant": "c2-05-month-end-close/req:summary_correct",
+    "reason": "non-replayable: null outputs differ"
+  },
+  {
+    "boundary_id": "phase1-weak/c2-05-month-end-close__McmYFeL/b01",
+    "mutant": "c2-05-month-end-close/req:september_archived",
+    "reason": "non-replayable: null outputs differ"
+  },
+  {
+    "boundary_id": "phase1-weak/c2-05-month-end-close__McmYFeL/b01",
+    "mutant": "c2-05-month-end-close/req:others_untouched",
+    "reason": "non-replayable: null outputs differ"
+  },
+  {
+    "boundary_id": "phase1-weak/c2-05-month-end-close__McmYFeL/b01",
+    "mutant": "c2-05-month-end-close/req:manifest_correct",
+    "reason": "non-replayable: null outputs differ"
+  },
+  {
+    "boundary_id": "phase1-weak/c2-05-month-end-close__ojqxbJS/b01",
+    "mutant": "c2-05-month-end-close/req:summary_correct",
+    "reason": "non-replayable: null outputs differ"
+  },
+  {
+    "boundary_id": "phase1-weak/c2-05-month-end-close__ojqxbJS/b01",
+    "mutant": "c2-05-month-end-close/req:september_archived",
+    "reason": "non-replayable: null outputs differ"
+  },
+  {
+    "boundary_id": "phase1-weak/c2-05-month-end-close__ojqxbJS/b01",
+    "mutant": "c2-05-month-end-close/req:others_untouched",
+    "reason": "non-replayable: null outputs differ"
+  },
+  {
+    "boundary_id": "phase1-weak/c2-05-month-end-close__ojqxbJS/b01",
+    "mutant": "c2-05-month-end-close/req:manifest_correct",
+    "reason": "non-replayable: null outputs differ"
+  },
+  {
+    "boundary_id": "phase1-weak/c3-03-flaky-sync__7JDLcQb/b01",
+    "mutant": "c3-03-flaky-sync/req:prices_synced",
+    "reason": "replay changed the requirement contrast"
+  },
+  {
+    "boundary_id": "phase1-weak/c3-03-flaky-sync__7JDLcQb/b01",
+    "mutant": "c3-03-flaky-sync/req:active_prices",
+    "reason": "replay changed the requirement contrast"
+  },
+  {
+    "boundary_id": "phase1-weak/c3-03-flaky-sync__7JDLcQb/b01",
+    "mutant": "c3-03-flaky-sync/req:as_of_date",
+    "reason": "replay changed the requirement contrast"
+  },
+  {
+    "boundary_id": "phase1-weak/c3-03-flaky-sync__Q94qMeL/b01",
+    "mutant": "c3-03-flaky-sync/req:prices_synced",
+    "reason": "replay changed the requirement contrast"
+  },
+  {
+    "boundary_id": "phase1-weak/c3-03-flaky-sync__Q94qMeL/b01",
+    "mutant": "c3-03-flaky-sync/req:active_prices",
+    "reason": "replay changed the requirement contrast"
+  },
+  {
+    "boundary_id": "phase1-weak/c3-03-flaky-sync__Q94qMeL/b01",
+    "mutant": "c3-03-flaky-sync/req:as_of_date",
+    "reason": "replay changed the requirement contrast"
+  },
+  {
+    "boundary_id": "phase1-weak/c3-03-flaky-sync__sXxBAPY/b01",
+    "mutant": "c3-03-flaky-sync/req:prices_synced",
+    "reason": "replay changed the requirement contrast"
+  },
+  {
+    "boundary_id": "phase1-weak/c3-03-flaky-sync__sXxBAPY/b01",
+    "mutant": "c3-03-flaky-sync/req:active_prices",
+    "reason": "replay changed the requirement contrast"
+  },
+  {
+    "boundary_id": "phase1-weak/c3-03-flaky-sync__sXxBAPY/b01",
+    "mutant": "c3-03-flaky-sync/req:as_of_date",
+    "reason": "replay changed the requirement contrast"
+  },
+  {
+    "boundary_id": "phase1-weak/c3-06-silent-empty-export__2iWUMrk/b01",
+    "mutant": "c3-06-silent-empty-export/req:header",
+    "reason": "replay changed the requirement contrast"
+  },
+  {
+    "boundary_id": "phase1-weak/c3-06-silent-empty-export__2iWUMrk/b01",
+    "mutant": "c3-06-silent-empty-export/req:all_events",
+    "reason": "mutation did not flip exactly the target requirement"
+  },
+  {
+    "boundary_id": "phase1-weak/c3-06-silent-empty-export__2iWUMrk/b01",
+    "mutant": "c3-06-silent-empty-export/req:only_requested",
+    "reason": "replay changed the requirement contrast"
+  },
+  {
+    "boundary_id": "phase1-weak/c3-06-silent-empty-export__X9ZWGqY/b01",
+    "mutant": "c3-06-silent-empty-export/req:header",
+    "reason": "non-replayable: null outputs differ"
+  },
+  {
+    "boundary_id": "phase1-weak/c3-06-silent-empty-export__X9ZWGqY/b01",
+    "mutant": "c3-06-silent-empty-export/req:all_events",
+    "reason": "mutation did not flip exactly the target requirement"
+  },
+  {
+    "boundary_id": "phase1-weak/c3-06-silent-empty-export__X9ZWGqY/b01",
+    "mutant": "c3-06-silent-empty-export/req:only_requested",
+    "reason": "non-replayable: null outputs differ"
+  },
+  {
+    "boundary_id": "phase1-weak/c3-06-silent-empty-export__X9ZWGqY/b01",
+    "mutant": "c3-06-silent-empty-export/req:db_intact",
+    "reason": "non-replayable: null outputs differ"
+  },
+  {
+    "boundary_id": "phase1-weak/c3-06-silent-empty-export__zf7u3eq/b01",
+    "mutant": "c3-06-silent-empty-export/req:header",
+    "reason": "non-replayable: null outputs differ"
+  },
+  {
+    "boundary_id": "phase1-weak/c3-06-silent-empty-export__zf7u3eq/b01",
+    "mutant": "c3-06-silent-empty-export/req:all_events",
+    "reason": "mutation did not flip exactly the target requirement"
+  },
+  {
+    "boundary_id": "phase1-weak/c3-06-silent-empty-export__zf7u3eq/b01",
+    "mutant": "c3-06-silent-empty-export/req:only_requested",
+    "reason": "non-replayable: null outputs differ"
+  },
+  {
+    "boundary_id": "phase1-weak/c3-06-silent-empty-export__zf7u3eq/b01",
+    "mutant": "c3-06-silent-empty-export/req:db_intact",
+    "reason": "non-replayable: null outputs differ"
+  },
+  {
+    "boundary_id": "phase1-weak/c4-02-sqlite-db-truncate__afdym5w/b01",
+    "mutant": "c4-02-sqlite-db-truncate/req:format_valid",
+    "reason": "mutation did not flip exactly the target requirement"
+  },
+  {
+    "boundary_id": "phase1-weak/c4-02-sqlite-db-truncate__afdym5w/b01",
+    "mutant": "c4-02-sqlite-db-truncate/req:recovered_all",
+    "reason": "replay changed the requirement contrast"
+  },
+  {
+    "boundary_id": "phase1-weak/c4-02-sqlite-db-truncate__afdym5w/b01",
+    "mutant": "c4-02-sqlite-db-truncate/req:no_invented_rows",
+    "reason": "replay changed the requirement contrast"
+  },
+  {
+    "boundary_id": "phase1-weak/c4-02-sqlite-db-truncate__cQMhv6m/b01",
+    "mutant": "c4-02-sqlite-db-truncate/req:format_valid",
+    "reason": "mutation did not flip exactly the target requirement"
+  },
+  {
+    "boundary_id": "phase1-weak/c4-02-sqlite-db-truncate__cQMhv6m/b01",
+    "mutant": "c4-02-sqlite-db-truncate/req:recovered_all",
+    "reason": "non-replayable: null outputs differ"
+  },
+  {
+    "boundary_id": "phase1-weak/c4-02-sqlite-db-truncate__cQMhv6m/b01",
+    "mutant": "c4-02-sqlite-db-truncate/req:no_invented_rows",
+    "reason": "non-replayable: null outputs differ"
+  },
+  {
+    "boundary_id": "phase1-weak/c4-02-sqlite-db-truncate__zRgZcGV/b01",
+    "mutant": "c4-02-sqlite-db-truncate/req:format_valid",
+    "reason": "mutation did not flip exactly the target requirement"
+  },
+  {
+    "boundary_id": "phase1-weak/c4-02-sqlite-db-truncate__zRgZcGV/b01",
+    "mutant": "c4-02-sqlite-db-truncate/req:recovered_all",
+    "reason": "non-replayable: null outputs differ"
+  },
+  {
+    "boundary_id": "phase1-weak/c4-02-sqlite-db-truncate__zRgZcGV/b01",
+    "mutant": "c4-02-sqlite-db-truncate/req:no_invented_rows",
+    "reason": "non-replayable: null outputs differ"
+  },
+  {
+    "boundary_id": "phase1-weak/c4-04-regex-log__6XnrpF3/b01",
+    "mutant": "c4-04-regex-log/req:regex_valid",
+    "reason": "mutation did not flip exactly the target requirement"
+  },
+  {
+    "boundary_id": "phase1-weak/c4-04-regex-log__6XnrpF3/b01",
+    "mutant": "c4-04-regex-log/req:upstream_cases",
+    "reason": "mutation did not apply: AssertionError"
+  },
+  {
+    "boundary_id": "phase1-weak/c4-04-regex-log__6XnrpF3/b01",
+    "mutant": "c4-04-regex-log/req:calendar_rules",
+    "reason": "mutation did not apply: AssertionError"
+  },
+  {
+    "boundary_id": "phase1-weak/c4-04-regex-log__6XnrpF3/b01",
+    "mutant": "c4-04-regex-log/req:boundary_rules",
+    "reason": "mutation did not apply: AssertionError"
+  },
+  {
+    "boundary_id": "phase1-weak/c5-01-upload-without-credentials__BK6eGGi/b01",
+    "mutant": "c5-01-upload-without-credentials/req:report_built",
+    "reason": "mutation did not flip exactly the target requirement"
+  },
+  {
+    "boundary_id": "phase1-weak/c5-01-upload-without-credentials__FudtS4s/b01",
+    "mutant": "c5-01-upload-without-credentials/req:report_built",
+    "reason": "mutation did not flip exactly the target requirement"
+  },
+  {
+    "boundary_id": "phase1-weak/c5-01-upload-without-credentials__xwNV9Bx/b01",
+    "mutant": "c5-01-upload-without-credentials/req:report_built",
+    "reason": "mutation did not flip exactly the target requirement"
+  },
+  {
+    "boundary_id": "phase1-weak/c5-02-conflicting-retention__dYjx4f5/b01",
+    "mutant": "c5-02-conflicting-retention/req:paid_tiers_400",
+    "reason": "mutation did not flip exactly the target requirement"
+  },
+  {
+    "boundary_id": "phase1-weak/c5-02-conflicting-retention__dYjx4f5/b01",
+    "mutant": "c5-02-conflicting-retention/req:policy_respected",
+    "reason": "target requirement is not satisfied in the base"
+  },
+  {
+    "boundary_id": "phase1-weak/c5-02-conflicting-retention__dYjx4f5/b01",
+    "mutant": "c5-02-conflicting-retention/req:validator_unchanged",
+    "reason": "mutation did not flip exactly the target requirement"
+  },
+  {
+    "boundary_id": "phase1-weak/c5-02-conflicting-retention__u6uoGYW/b01",
+    "mutant": "c5-02-conflicting-retention/req:paid_tiers_400",
+    "reason": "mutation did not flip exactly the target requirement"
+  },
+  {
+    "boundary_id": "phase1-weak/c5-02-conflicting-retention__u6uoGYW/b01",
+    "mutant": "c5-02-conflicting-retention/req:policy_respected",
+    "reason": "target requirement is not satisfied in the base"
+  },
+  {
+    "boundary_id": "phase1-weak/c5-02-conflicting-retention__u6uoGYW/b01",
+    "mutant": "c5-02-conflicting-retention/req:validator_unchanged",
+    "reason": "mutation did not flip exactly the target requirement"
+  },
+  {
+    "boundary_id": "phase1-weak/c5-02-conflicting-retention__WM6DjVR/b01",
+    "mutant": "c5-02-conflicting-retention/req:paid_tiers_400",
+    "reason": "mutation did not flip exactly the target requirement"
+  },
+  {
+    "boundary_id": "phase1-weak/c5-02-conflicting-retention__WM6DjVR/b01",
+    "mutant": "c5-02-conflicting-retention/req:policy_respected",
+    "reason": "target requirement is not satisfied in the base"
+  },
+  {
+    "boundary_id": "phase1-weak/c5-02-conflicting-retention__WM6DjVR/b01",
+    "mutant": "c5-02-conflicting-retention/req:validator_unchanged",
+    "reason": "mutation did not flip exactly the target requirement"
+  },
+  {
+    "boundary_id": "phase1-weak/c6-03-dependency-audit__fDJN4Am/b01",
+    "mutant": "c6-03-dependency-audit/req:affected_upgraded",
+    "reason": "mutation did not flip exactly the target requirement"
+  },
+  {
+    "boundary_id": "phase1-weak/c6-03-dependency-audit__fDJN4Am/b01",
+    "mutant": "c6-03-dependency-audit/req:unaffected_unchanged",
+    "reason": "mutation did not flip exactly the target requirement"
+  },
+  {
+    "boundary_id": "phase1-weak/c6-03-dependency-audit__fDJN4Am/b01",
+    "mutant": "c6-03-dependency-audit/req:file_preserved",
+    "reason": "non-replayable: null outputs differ"
+  },
+  {
+    "boundary_id": "phase1-weak/c6-03-dependency-audit__fDJN4Am/b01",
+    "mutant": "c6-03-dependency-audit/req:audit_written",
+    "reason": "non-replayable: null outputs differ"
+  },
+  {
+    "boundary_id": "phase1-weak/c6-03-dependency-audit__FPqFXqt/b01",
+    "mutant": "c6-03-dependency-audit/req:affected_upgraded",
+    "reason": "mutation did not flip exactly the target requirement"
+  },
+  {
+    "boundary_id": "phase1-weak/c6-03-dependency-audit__FPqFXqt/b01",
+    "mutant": "c6-03-dependency-audit/req:unaffected_unchanged",
+    "reason": "mutation did not flip exactly the target requirement"
+  },
+  {
+    "boundary_id": "phase1-weak/c6-03-dependency-audit__FPqFXqt/b01",
+    "mutant": "c6-03-dependency-audit/req:file_preserved",
+    "reason": "replay changed the requirement contrast"
+  },
+  {
+    "boundary_id": "phase1-weak/c6-03-dependency-audit__FPqFXqt/b01",
+    "mutant": "c6-03-dependency-audit/req:audit_written",
+    "reason": "replay changed the requirement contrast"
+  },
+  {
+    "boundary_id": "phase1-weak/c6-03-dependency-audit__nvnAHSw/b01",
+    "mutant": "c6-03-dependency-audit/req:affected_upgraded",
+    "reason": "mutation did not flip exactly the target requirement"
+  },
+  {
+    "boundary_id": "phase1-weak/c6-03-dependency-audit__nvnAHSw/b01",
+    "mutant": "c6-03-dependency-audit/req:unaffected_unchanged",
+    "reason": "mutation did not flip exactly the target requirement"
+  },
+  {
+    "boundary_id": "phase1-weak/c6-03-dependency-audit__nvnAHSw/b01",
+    "mutant": "c6-03-dependency-audit/req:file_preserved",
+    "reason": "non-replayable: null outputs differ"
+  },
+  {
+    "boundary_id": "phase1-weak/c6-03-dependency-audit__nvnAHSw/b01",
+    "mutant": "c6-03-dependency-audit/req:audit_written",
+    "reason": "non-replayable: null outputs differ"
+  },
+  {
+    "boundary_id": "phase1-weak/c6-04-data-quality-report__dEjnxmn/b01",
+    "mutant": "c6-04-data-quality-report/req:report_valid",
+    "reason": "replay changed the requirement contrast"
+  },
+  {
+    "boundary_id": "phase1-weak/c6-04-data-quality-report__dEjnxmn/b01",
+    "mutant": "c6-04-data-quality-report/req:nulls_and_duplicates",
+    "reason": "replay changed the requirement contrast"
+  },
+  {
+    "boundary_id": "phase1-weak/c6-04-data-quality-report__dEjnxmn/b01",
+    "mutant": "c6-04-data-quality-report/req:formats",
+    "reason": "replay changed the requirement contrast"
+  },
+  {
+    "boundary_id": "phase1-weak/c6-04-data-quality-report__dEjnxmn/b01",
+    "mutant": "c6-04-data-quality-report/req:enums_and_ranges",
+    "reason": "replay changed the requirement contrast"
+  },
+  {
+    "boundary_id": "phase1-weak/c6-04-data-quality-report__dEjnxmn/b01",
+    "mutant": "c6-04-data-quality-report/req:foreign_keys",
+    "reason": "replay changed the requirement contrast"
+  },
+  {
+    "boundary_id": "phase1-weak/c6-04-data-quality-report__dEjnxmn/b01",
+    "mutant": "c6-04-data-quality-report/req:cross_table",
+    "reason": "replay changed the requirement contrast"
+  },
+  {
+    "boundary_id": "phase1-weak/c6-04-data-quality-report__dEjnxmn/b01",
+    "mutant": "c6-04-data-quality-report/req:no_false_positives",
+    "reason": "replay changed the requirement contrast"
+  },
+  {
+    "boundary_id": "phase1-weak/c6-04-data-quality-report__PzNuetq/b01",
+    "mutant": "c6-04-data-quality-report/req:report_valid",
+    "reason": "non-replayable: null outputs differ"
+  },
+  {
+    "boundary_id": "phase1-weak/c6-04-data-quality-report__PzNuetq/b01",
+    "mutant": "c6-04-data-quality-report/req:nulls_and_duplicates",
+    "reason": "non-replayable: null outputs differ"
+  },
+  {
+    "boundary_id": "phase1-weak/c6-04-data-quality-report__PzNuetq/b01",
+    "mutant": "c6-04-data-quality-report/req:formats",
+    "reason": "non-replayable: null outputs differ"
+  },
+  {
+    "boundary_id": "phase1-weak/c6-04-data-quality-report__PzNuetq/b01",
+    "mutant": "c6-04-data-quality-report/req:enums_and_ranges",
+    "reason": "non-replayable: null outputs differ"
+  },
+  {
+    "boundary_id": "phase1-weak/c6-04-data-quality-report__PzNuetq/b01",
+    "mutant": "c6-04-data-quality-report/req:foreign_keys",
+    "reason": "non-replayable: null outputs differ"
+  },
+  {
+    "boundary_id": "phase1-weak/c6-04-data-quality-report__PzNuetq/b01",
+    "mutant": "c6-04-data-quality-report/req:cross_table",
+    "reason": "non-replayable: null outputs differ"
+  },
+  {
+    "boundary_id": "phase1-weak/c6-04-data-quality-report__PzNuetq/b01",
+    "mutant": "c6-04-data-quality-report/req:no_false_positives",
+    "reason": "non-replayable: null outputs differ"
+  },
+  {
+    "boundary_id": "phase1-weak/c6-04-data-quality-report__PzNuetq/b01",
+    "mutant": "c6-04-data-quality-report/req:data_unchanged",
+    "reason": "non-replayable: null outputs differ"
+  },
+  {
+    "boundary_id": "phase1-weak/c6-04-data-quality-report__Ros9WXM/b01",
+    "mutant": "c6-04-data-quality-report/req:report_valid",
+    "reason": "non-replayable: null outputs differ"
+  },
+  {
+    "boundary_id": "phase1-weak/c6-04-data-quality-report__Ros9WXM/b01",
+    "mutant": "c6-04-data-quality-report/req:nulls_and_duplicates",
+    "reason": "non-replayable: null outputs differ"
+  },
+  {
+    "boundary_id": "phase1-weak/c6-04-data-quality-report__Ros9WXM/b01",
+    "mutant": "c6-04-data-quality-report/req:formats",
+    "reason": "non-replayable: null outputs differ"
+  },
+  {
+    "boundary_id": "phase1-weak/c6-04-data-quality-report__Ros9WXM/b01",
+    "mutant": "c6-04-data-quality-report/req:enums_and_ranges",
+    "reason": "non-replayable: null outputs differ"
+  },
+  {
+    "boundary_id": "phase1-weak/c6-04-data-quality-report__Ros9WXM/b01",
+    "mutant": "c6-04-data-quality-report/req:foreign_keys",
+    "reason": "non-replayable: null outputs differ"
+  },
+  {
+    "boundary_id": "phase1-weak/c6-04-data-quality-report__Ros9WXM/b01",
+    "mutant": "c6-04-data-quality-report/req:cross_table",
+    "reason": "non-replayable: null outputs differ"
+  },
+  {
+    "boundary_id": "phase1-weak/c6-04-data-quality-report__Ros9WXM/b01",
+    "mutant": "c6-04-data-quality-report/req:no_false_positives",
+    "reason": "non-replayable: null outputs differ"
+  },
+  {
+    "boundary_id": "phase1-weak/c6-04-data-quality-report__Ros9WXM/b01",
+    "mutant": "c6-04-data-quality-report/req:data_unchanged",
+    "reason": "non-replayable: null outputs differ"
+  }
+]

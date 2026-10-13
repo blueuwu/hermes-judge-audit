@@ -133,8 +133,13 @@ byte-identical input, 3 samples each; Flash judges at temperature 0):
 - 420 calls, all parsed, $0.33 billed
   ([`pairs-noise-weak`](results/runs/pairs-noise-weak/summary.md),
   [`pairs-noise-strong`](results/runs/pairs-noise-strong/summary.md)).
-- The E1 equivalence tolerance is not set yet. The evidence-view cells for H8 have no noise floor
-  yet; they are measured when the state pairs are built.
+- The E1 equivalence tolerance is not set yet.
+
+State pairs (H8), built 2026-10-14 without judge calls
+([`data/pairs/README.md`](data/pairs/README.md)): 10 pairs in the weak arm and 4 in the strong
+arm, of which 4 and 1 are evidence-visible. Most candidates fail exact replay of the last three
+calls, because the snapshot already holds those calls' effects. The evidence-view cells have no
+noise floor yet.
 
 ## Setup
 
