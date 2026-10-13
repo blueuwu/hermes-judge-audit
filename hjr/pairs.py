@@ -339,3 +339,27 @@ def state_pairs(
                 {"boundary_id": boundary.boundary_id, "mutant": mutant.key, "reason": reason}
             )
     return result
+
+
+def run_inputs(
+    items: Iterable[PairItem], families: Iterable[str]
+) -> tuple[str, list[BoundaryRecord]]:
+    """The judge inputs of the chosen families, checked against their recorded hashes."""
+    wanted = set(families)
+    chosen = [i for i in items if i.family in wanted]
+    if not chosen:
+        raise ValueError("no pair items in the requested families")
+    cells = {i.cell for i in chosen}
+    if len(cells) != 1:
+        raise ValueError("pairs-run judges one cell at a time")
+    ids = [i.boundary.boundary_id for i in chosen]
+    if len(set(ids)) != len(ids):
+        raise ValueError("duplicate pair item")
+    for i in chosen:
+        require_dev(i.boundary)
+        v = Variant.parse(i.cell)
+        if prompt_sha256(build_messages(i.boundary, prompt=v.prompt, view=v.view)) != (
+            i.prompt_sha256
+        ):
+            raise ValueError("pair input hash mismatch")
+    return cells.pop(), [i.boundary for i in chosen]

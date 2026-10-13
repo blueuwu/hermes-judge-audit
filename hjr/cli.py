@@ -593,6 +593,39 @@ def cmd_pairs_build(args: argparse.Namespace) -> int:
     return 0
 
 
+def cmd_pairs_run(args: argparse.Namespace) -> int:
+    from hjr.pairs import PairItem, run_inputs
+    from hjr.schemas import write_jsonl
+
+    families = set(args.family)
+    if families - {"noise"} and not args.after_tolerance_note:
+        raise SystemExit(
+            "only the noise floor runs before the dated tolerance note is committed "
+            "(prereg, Hypotheses on pairs); pass --after-tolerance-note once it is"
+        )
+    cell, boundaries = run_inputs(read_jsonl(args.items, PairItem), families)
+    inputs = RUNS / args.run_id / "inputs.jsonl"
+    if inputs.exists():
+        if [b.boundary_id for b in read_jsonl(inputs, BoundaryRecord)] != [
+            b.boundary_id for b in boundaries
+        ]:
+            raise SystemExit(f"{args.run_id} already holds different pair inputs")
+    else:
+        inputs.parent.mkdir(parents=True, exist_ok=True)
+        write_jsonl(inputs, boundaries)
+    run = argparse.Namespace(
+        boundaries=inputs,
+        run_id=args.run_id,
+        variant=[cell],
+        samples=3,
+        workers=args.workers,
+        limit=0,
+        subset=None,
+        split=None,
+    )
+    return cmd_replay(run)
+
+
 def cmd_pairs_summary(args: argparse.Namespace) -> int:
     from hjr.pairs import PairItem
     from hjr.pairs_analysis import analyse, render
@@ -657,6 +690,18 @@ def main(argv: list[str] | None = None) -> int:
     )
     p.add_argument("--executor", help="state: module:factory implementing ReplayExecutor")
     p.set_defaults(func=cmd_pairs_build)
+
+    p = sub.add_parser("pairs-run", help="judge built pair items of chosen families (paid)")
+    p.add_argument("--items", type=Path, required=True, help="pairs-build output")
+    p.add_argument("--run-id", required=True)
+    p.add_argument("--family", action="append", required=True, help="e.g. noise (repeatable)")
+    p.add_argument(
+        "--after-tolerance-note",
+        action="store_true",
+        help="confirm the dated tolerance note is committed; needed for any family but noise",
+    )
+    p.add_argument("--workers", type=int, default=8)
+    p.set_defaults(func=cmd_pairs_run)
 
     p = sub.add_parser("pairs-summary", help="controlled-pairs analysis tables (no model calls)")
     p.add_argument("--items", type=Path, required=True)

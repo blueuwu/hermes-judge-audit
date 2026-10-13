@@ -465,3 +465,43 @@ def test_summaries_group_by_the_phase_field_not_a_phase_tag():
         v.model_copy(update={"arm_id": "other"}) for v in verdicts(phase1b, lambda i, s: "done")
     ]
     assert len(pairs_analysis.analyse(items, mixed, tolerance=None).noise) == 2
+
+
+def test_run_inputs_select_families_and_check_hashes():
+    items = response_pairs([make_boundary()], [CELL])
+    cell, boundaries = pairs.run_inputs(items, {"noise"})
+    assert cell == CELL
+    assert [b.boundary_id for b in boundaries] == [
+        i.boundary.boundary_id for i in items if i.family == "noise"
+    ]
+    with pytest.raises(ValueError, match="no pair items"):
+        pairs.run_inputs(items, {"h7"})
+    with pytest.raises(ValueError, match="one cell"):
+        pairs.run_inputs(
+            response_pairs([make_boundary()], [CELL, "prod-plain:strong:head4k"]), {"noise"}
+        )
+    bad = items[0].model_copy(update={"prompt_sha256": "0" * 64})
+    with pytest.raises(ValueError, match="hash mismatch"):
+        pairs.run_inputs([bad, *items[1:]], {"noise"})
+
+
+def test_cli_pairs_run_replays_noise_and_refuses_perturbations_before_note(tmp_path, monkeypatch):
+    from hjr import cli
+
+    items_path = tmp_path / "pairs.jsonl"
+    write_jsonl(items_path, response_pairs([make_boundary()], [CELL]))
+    monkeypatch.setattr(cli, "RUNS", tmp_path / "runs")
+    calls = []
+    monkeypatch.setattr(cli, "cmd_replay", lambda a: calls.append(a) or 0)
+    args = ["pairs-run", "--items", str(items_path), "--run-id", "r"]
+    with pytest.raises(SystemExit, match="tolerance note"):
+        main([*args, "--family", "h6"])
+    assert main([*args, "--family", "noise"]) == 0
+    (run,) = calls
+    assert run.variant == [CELL] and run.samples == 3
+    assert [
+        b.boundary_id.rsplit("/", 1)[1] for b in read_jsonl(run.boundaries, pairs.BoundaryRecord)
+    ] == ["null", "repeat"]
+    assert main([*args, "--family", "noise"]) == 0
+    with pytest.raises(SystemExit, match="different pair inputs"):
+        main([*args, "--family", "h6", "--after-tolerance-note"])
