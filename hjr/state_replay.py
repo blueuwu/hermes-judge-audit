@@ -11,7 +11,10 @@ is copied back. Grading uses the frozen verifier through ``verifier.grade_snapsh
 Windows checkouts lose Unix modes when a snapshot is extracted, so the adapter keeps each
 snapshot's member modes (``modes``, set per boundary by the build driver) and restores them
 whenever it packs a workspace. A terminal ToolEvent stores only the ``command`` argument, so a
-terminal call is replayed with that argument alone. ``pairs.state_pairs`` grades a workspace
+terminal call is replayed with that argument alone. Two calls need session context the replay
+lacks: ``clarify`` is answered with the headless callback ``hermes chat -Q`` uses, and an
+overwriting ``write_file`` is preceded by an unrecorded ``read_file`` of the same path, standing
+in for the read the session made before writing. ``pairs.state_pairs`` grades a workspace
 before replaying it; the adapter takes the task from that grade, since ``replay`` receives none.
 """
 
@@ -20,9 +23,11 @@ from __future__ import annotations
 import base64
 import io
 import json
+import re
 import shutil
 import subprocess
 import tarfile
+import tempfile
 from collections.abc import Sequence
 from pathlib import Path
 
@@ -63,7 +68,19 @@ for i, ev in enumerate(events):
         except json.JSONDecodeError:
             args = {"raw": ev["cmd"]}
     os.chdir("/app")
-    result = handle_function_call(ev["tool"], args, task_id="hjr-replay", tool_call_id=f"r{i}")
+    if ev["tool"] == "clarify":
+        # hermes chat -Q answers clarify headlessly; reuse that callback.
+        from tools.clarify_tool import clarify_tool
+        from hermes_cli.cli_agent_setup_mixin import _single_query_clarify_callback
+        result = clarify_tool(args.get("questions"), callback=_single_query_clarify_callback)
+    else:
+        if ev["tool"] == "write_file" and os.path.isfile(str(args.get("path", ""))):
+            # The recorded session had read the file it overwrote; give the replay the same
+            # read baseline so the read-before-write guard sees what it saw.
+            handle_function_call("read_file", {"path": args["path"]}, task_id="hjr-replay",
+                                 tool_call_id=f"pre{i}")
+        result = handle_function_call(ev["tool"], args, task_id="hjr-replay",
+                                      tool_call_id=f"r{i}")
     text = result if isinstance(result, str) else json.dumps(result)
     out.append({"tool": ev["tool"], "cmd": ev["cmd"], "exit": exit_code(text),
                 "out_tail": text[-TAIL:]})
@@ -264,3 +281,44 @@ def build(
             f"{len(part.excluded)} exclusions"
         )
     return result
+
+
+VOLATILE = re.compile(r'"(duration_seconds|duration_ms|elapsed[a-z_]*|execution_count)": [0-9.]+')
+
+
+def diagnose(boundaries: Sequence, workdir: Path, jobs: Path | None = None) -> list[dict]:
+    """Per boundary, how each of the last three calls compares on an unmutated replay:
+    exact, equal once volatile timing fields are masked, or different."""
+    from hjr import regrade
+
+    executor = DockerReplay()
+    rows = []
+    for b in boundaries:
+        events = b.recent_tool_events[-3:]
+        tgz = regrade.snapshot_path(b.boundary_id, jobs or regrade.JOBS).read_bytes()
+        snap = workdir / b.boundary_id.replace("/", "__")
+        if not snap.exists():
+            extract(tgz, snap)
+        executor.modes = snapshot_modes(tgz)
+        executor.task = b.task_id.removeprefix("hjr/")
+        with tempfile.TemporaryDirectory(prefix="hjr-diag-") as tmp:
+            ws = Path(tmp) / "ws"
+            shutil.copytree(snap, ws)
+            got = executor.replay(ws, events)
+        kinds = []
+        for i, a in enumerate(events):
+            r = got[i] if i < len(got) else None
+            if r is None:
+                kinds.append("failed")
+            elif r == a:
+                kinds.append("exact")
+            elif (a.tool, a.cmd, a.exit) == (r.tool, r.cmd, r.exit) and VOLATILE.sub(
+                "", a.out_tail
+            ) == VOLATILE.sub("", r.out_tail):
+                kinds.append("timing-only")
+            else:
+                kinds.append("different")
+        rows.append(
+            {"boundary_id": b.boundary_id, "tools": [e.tool for e in events], "kinds": kinds}
+        )
+    return rows
