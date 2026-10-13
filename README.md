@@ -9,7 +9,7 @@ against deterministic state verifiers and human labels, then measures judge-side
 frozen held-out set. Hypotheses and analysis rules are fixed in
 [`configs/prereg.md`](configs/prereg.md).
 
-Status: Phase 1a trajectories frozen (178 boundaries), primary verifier frozen after the mutation suite, Phase 1b enrichment and `repair-v1` design done (tag `repair-freeze-v1`). Phase 2 replay done and analysed (below). Human verifier audit, controlled counterfactual pairs and the write-up remain.
+Status: Phase 1a trajectories frozen (178 boundaries), primary verifier frozen after the mutation suite, Phase 1b enrichment and `repair-v1` design done (tag `repair-freeze-v1`). Phase 2 replay done and analysed (below). Human verifier audit done (1 verifier error in 49 audited boundaries). Controlled counterfactual pairs and the rest of the write-up remain.
 
 ## Pilot findings (M0.5, constructed items)
 
@@ -104,9 +104,22 @@ frozen at Phase 1: [`summary-v1.md`](results/runs/phase2/summary-v1.md).
 Measured spend on paid Phase 2 calls: $5.46 of the $20 stop. The 1,108 Codex CLI calls are
 unbilled ([`results/runs/phase2/spend.md`](results/runs/phase2/spend.md)).
 
-TODO (human audit): verifier error rate per stratum (A, B, C) with Wilson intervals and inclusion
-probabilities, and any sensitivity rerun the prereg's *Truth* rules call for. Pending the owner's
-blind audit (`hjr audit`).
+- **Human verifier audit.** The owner audited 49 boundaries blind, without the judge verdict or
+  the stratum ([`results/audit/report.md`](results/audit/report.md)). As the prereg sets out, the
+  strata are formed over the 178 Phase 1a boundaries of both arms.
+
+  | Stratum | Population | Audited | Verifier errors | Wilson 95% |
+  |---|---:|---:|---:|---|
+  | A, verifier and judge disagree | 9 | 9 | 0 | 0 to 29.9% |
+  | B, both say DONE | 145 | 30 | 0 | 0 to 11.4% |
+  | C, both say not DONE | 24 | 10 | 1 | 1.8 to 40.4% |
+
+  - The one error is in a `c5-03` (missing package) boundary from the weak arm. The agent pinned an
+    available substitute, and its tests passed in its own environment. The verifier's
+    `tests_pass` check failed only because its image lacks the agent's installed packages. The
+    boundary is still correctly `blocked`, because the requested package is infeasible to install.
+  - No verifier fix has been made, so there is no sensitivity rerun under the prereg's *Truth*
+    rules.
 
 TODO (controlled pairs, H6–H8, E1): truncation flip rates before and after the cut, claim effect,
 evidence-view sensitivity on state pairs, and inertness of meaning-preserving edits. Pending the
