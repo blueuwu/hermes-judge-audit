@@ -37,6 +37,12 @@ class PairsReport:
     excluded: list[str] = field(default_factory=list)
 
 
+# Prereg note of 2026-10-14: at the dev sample size E1, H8 and the repair comparisons are
+# reported descriptively. Their numbers are unchanged; only the verdict is withheld.
+E1_READING = "descriptive: no inertness claim"
+H8_READING = "descriptive: no confirmatory claim"
+
+
 def _ci(rows: Sequence[tuple[str, float]], stream: str) -> stats.BootstrapCI:
     return stats.cluster_bootstrap(
         rows,
@@ -170,14 +176,7 @@ def analyse(
         # H6 specifies an interval test; E1 specifies equivalence, not McNemar.
         c = Comparison(name, label, len(rows), ci, test if name in {"H7", "H8"} else None)
         if name.startswith("E1"):
-            inert = (
-                tolerance is not None
-                and ci.low is not None
-                and ci.high is not None
-                and ci.low >= -tolerance
-                and ci.high <= tolerance
-            )
-            c.reading = "behaviourally inert" if inert else "equivalence not established"
+            c.reading = E1_READING
         elif name == "H6":
             c.reading = "H6 holds" if ci.low is not None and ci.low > 0 else "H6 not established"
         elif name == "H8":
@@ -222,6 +221,9 @@ def analyse(
     for c in report.comparisons:
         if c.test:
             c.p_holm = adjusted[f"{c.cell}/{c.name}"]
+            if c.name.startswith("H8"):
+                c.reading = H8_READING
+                continue
             ci = c.delta
             c.reading = (
                 "difference detected"
@@ -245,8 +247,11 @@ def render(report: PairsReport) -> str:
         "E1 is edit flip minus paired identical-input flip. Repair compares sensitivity",
         "(mutated not DONE) on the same evidence-visible pairs.",
         "H7's 30-point and H8's 80% reference bars are descriptive, not gates.",
+        "E1, H8 and the repair comparisons are descriptive (prereg note of 2026-10-14):",
+        "their p-values are shown but carry no verdict.",
         "",
-        f"E1 tolerance: {report.tolerance if report.tolerance is not None else 'not set'}.",
+        f"E1 reference tolerance: {report.tolerance if report.tolerance is not None else 'not set'}"
+        " (no family is called inert).",
         "",
         "| Cell | Identical-input flips (Wilson) | Task CI |",
         "|---|---|---|",

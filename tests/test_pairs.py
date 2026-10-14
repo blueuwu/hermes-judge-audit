@@ -262,14 +262,13 @@ def test_h6_h7_e1_and_noise_use_item_majorities_and_paired_clusters():
     assert h7.p_holm == h7.test.p
     assert h7.delta.estimate == 1
     assert all(
-        comparisons[f"E1/{f}"].reading == "behaviourally inert" for f in ("paraphrase", "tone")
+        comparisons[f"E1/{f}"].reading == pairs_analysis.E1_READING for f in ("paraphrase", "tone")
     )
     assert pairs_analysis.analyse(items, verdicts(items, decision), tolerance=0.01) == report
     unset = pairs_analysis.analyse(items, verdicts(items, decision), tolerance=None)
+    assert [c.delta for c in unset.comparisons] == [c.delta for c in report.comparisons]
     assert all(
-        c.reading == "equivalence not established"
-        for c in unset.comparisons
-        if c.name.startswith("E1")
+        c.reading == pairs_analysis.E1_READING for c in unset.comparisons if c.name.startswith("E1")
     )
 
 
@@ -287,7 +286,7 @@ def test_e1_subtracts_each_items_noise_instead_of_unpaired_global_rate():
     e1 = {c.name: c for c in report.comparisons if c.name.startswith("E1")}
     assert e1["E1/paraphrase"].delta.estimate == -1
     assert e1["E1/tone"].delta.estimate == 0
-    assert e1["E1/paraphrase"].reading == "equivalence not established"
+    assert e1["E1/paraphrase"].reading == pairs_analysis.E1_READING
 
 
 def test_h8_mcnemar_holm_and_invisible_exclusion(tmp_path):
@@ -314,6 +313,7 @@ def test_h8_mcnemar_holm_and_invisible_exclusion(tmp_path):
     assert (h8.test.b, h8.test.c) == (20, 0)
     assert h8.p_holm == stats.mcnemar_exact([True] * 20, [False] * 20).p
     assert next(iter(report.sensitivity.values()))[:2] == (20, 20)
+    assert h8.reading == pairs_analysis.H8_READING
 
 
 def test_repair_comparison_uses_shared_visible_pairs_and_pairs_only_holm(tmp_path, monkeypatch):
@@ -341,6 +341,7 @@ def test_repair_comparison_uses_shared_visible_pairs_and_pairs_only_holm(tmp_pat
     assert (comparison.test.b, comparison.test.c) == (0, 16)
     expected = stats.holm({f"{c.cell}/{c.name}": c.test.p for c in report.comparisons if c.test})
     assert all(c.p_holm == expected[f"{c.cell}/{c.name}"] for c in report.comparisons if c.test)
+    assert all(c.reading == pairs_analysis.H8_READING for c in report.comparisons)
 
 
 def test_task_bootstrap_keeps_repeated_boundaries_in_their_task_clusters():
