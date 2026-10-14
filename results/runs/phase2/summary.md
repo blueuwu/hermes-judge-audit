@@ -89,8 +89,8 @@ Met when false-DONE falls by at least 10 points (interval excluding 0, 15+ disco
 
 | Comparison | Baseline → candidate | n | Discordant (b/c) | Δ | p | Holm p | Reading |
 |---|---|---|---|---|---|---|---|
-| weak · heldout · false-DONE | `prod-plain:flash:head4k` → `repair-v1:flash:evidence` | 10 | 0 (0/0) | +0.0 pp (0.0% to 0.0%) | – | – | no detectable difference at n = 10 |
-| weak · heldout · false-DONE | `prod-plain:strong:head4k` → `repair-v1:strong:evidence` | 10 | 0 (0/0) | +0.0 pp (0.0% to 0.0%) | – | – | no detectable difference at n = 10 |
+| weak · heldout · false-DONE | `prod-plain:flash:head4k` → `repair-v1:flash:evidence` | 10 | 0 (0/0) | +0.0 pp (0.0% to 0.0%) | 1 | 1 | no detectable difference at n = 10 |
+| weak · heldout · false-DONE | `prod-plain:strong:head4k` → `repair-v1:strong:evidence` | 10 | 0 (0/0) | +0.0 pp (0.0% to 0.0%) | 1 | 1 | no detectable difference at n = 10 |
 | strong · heldout · false-DONE | `prod-plain:flash:head4k` → `repair-v1:flash:evidence` | 10 | 1 (1/0) | -10.0 pp (-25.0% to 0.0%) | 1 | 1 | no detectable difference at n = 10 |
 | strong · heldout · false-DONE | `prod-plain:strong:head4k` → `repair-v1:strong:evidence` | 10 | 1 (1/0) | -10.0 pp (-25.0% to 0.0%) | 1 | 1 | no detectable difference at n = 10 |
 
@@ -98,7 +98,7 @@ False-CONTINUE on held-out done items:
 
 | Comparison | Baseline → candidate | n | Discordant (b/c) | Δ | p | Reading |
 |---|---|---|---|---|---|---|
-| weak · heldout · false-CONTINUE | `prod-plain:flash:head4k` → `repair-v1:flash:evidence` | 44 | 0 (0/0) | +0.0 pp (0.0% to 0.0%) | – | no detectable difference at n = 44 |
+| weak · heldout · false-CONTINUE | `prod-plain:flash:head4k` → `repair-v1:flash:evidence` | 44 | 0 (0/0) | +0.0 pp (0.0% to 0.0%) | 1 | no detectable difference at n = 44 |
 | weak · heldout · false-CONTINUE | `prod-plain:strong:head4k` → `repair-v1:strong:evidence` | 44 | 3 (0/3) | +6.8 pp (0.0% to 18.2%) | 0.25 | no detectable difference at n = 44 |
 | strong · heldout · false-CONTINUE | `prod-plain:flash:head4k` → `repair-v1:flash:evidence` | 44 | 1 (0/1) | +2.3 pp (0.0% to 7.0%) | 1 | no detectable difference at n = 44 |
 | strong · heldout · false-CONTINUE | `prod-plain:strong:head4k` → `repair-v1:strong:evidence` | 44 | 2 (0/2) | +4.5 pp (0.0% to 11.4%) | 0.5 | no detectable difference at n = 44 |
@@ -112,22 +112,22 @@ False-CONTINUE on held-out done items:
 
 | Comparison | Baseline → candidate | n | Discordant (b/c) | Δ | p | Reading |
 |---|---|---|---|---|---|---|
-| weak · dev · false-DONE | `prod-plain:flash:head4k` → `repair-v1:flash:evidence` | 6 | 0 (0/0) | +0.0 pp (0.0% to 0.0%) | – | no detectable difference at n = 6 |
-| weak · dev · false-CONTINUE | `prod-plain:flash:head4k` → `repair-v1:flash:evidence` | 28 | 0 (0/0) | +0.0 pp (0.0% to 0.0%) | – | no detectable difference at n = 28 |
-| weak · dev · false-DONE | `prod-plain:strong:head4k` → `repair-v1:strong:evidence` | 6 | 0 (0/0) | +0.0 pp (0.0% to 0.0%) | – | no detectable difference at n = 6 |
+| weak · dev · false-DONE | `prod-plain:flash:head4k` → `repair-v1:flash:evidence` | 6 | 0 (0/0) | +0.0 pp (0.0% to 0.0%) | 1 | no detectable difference at n = 6 |
+| weak · dev · false-CONTINUE | `prod-plain:flash:head4k` → `repair-v1:flash:evidence` | 28 | 0 (0/0) | +0.0 pp (0.0% to 0.0%) | 1 | no detectable difference at n = 28 |
+| weak · dev · false-DONE | `prod-plain:strong:head4k` → `repair-v1:strong:evidence` | 6 | 0 (0/0) | +0.0 pp (0.0% to 0.0%) | 1 | no detectable difference at n = 6 |
 | weak · dev · false-CONTINUE | `prod-plain:strong:head4k` → `repair-v1:strong:evidence` | 28 | 1 (0/1) | +3.6 pp (0.0% to 12.5%) | 1 | no detectable difference at n = 28 |
-| weak · all · false-DONE | `prod-plain:flash:head4k` → `prod-plain:flash:evidence` | 16 | 0 (0/0) | +0.0 pp (0.0% to 0.0%) | – | no detectable difference at n = 16 |
-| weak · all · false-DONE | `prod-plain:flash:evidence` → `repair-v1:flash:evidence` | 16 | 0 (0/0) | +0.0 pp (0.0% to 0.0%) | – | no detectable difference at n = 16 |
-| weak · all · correct | `prod-plain:self:head4k` → `prod-plain:flash:head4k` | 88 | 0 (0/0) | +0.0 pp (0.0% to 0.0%) | – | no detectable difference at n = 88 |
+| weak · all · false-DONE | `prod-plain:flash:head4k` → `prod-plain:flash:evidence` | 16 | 0 (0/0) | +0.0 pp (0.0% to 0.0%) | 1 | no detectable difference at n = 16 |
+| weak · all · false-DONE | `prod-plain:flash:evidence` → `repair-v1:flash:evidence` | 16 | 0 (0/0) | +0.0 pp (0.0% to 0.0%) | 1 | no detectable difference at n = 16 |
+| weak · all · correct | `prod-plain:self:head4k` → `prod-plain:flash:head4k` | 88 | 0 (0/0) | +0.0 pp (0.0% to 0.0%) | 1 | no detectable difference at n = 88 |
 | weak · all · correct | `prod-plain:self:head4k` → `prod-plain:strong:head4k` | 88 | 1 (1/0) | -1.1 pp (-3.5% to 0.0%) | 1 | no detectable difference at n = 88 |
 | weak · all · correct | `prod-plain:flash:head4k` → `prod-plain:strong:head4k` | 88 | 1 (1/0) | -1.1 pp (-3.5% to 0.0%) | 1 | no detectable difference at n = 88 |
-| strong · dev · false-DONE | `prod-plain:flash:head4k` → `repair-v1:flash:evidence` | 7 | 0 (0/0) | +0.0 pp (0.0% to 0.0%) | – | no detectable difference at n = 7 |
+| strong · dev · false-DONE | `prod-plain:flash:head4k` → `repair-v1:flash:evidence` | 7 | 0 (0/0) | +0.0 pp (0.0% to 0.0%) | 1 | no detectable difference at n = 7 |
 | strong · dev · false-CONTINUE | `prod-plain:flash:head4k` → `repair-v1:flash:evidence` | 29 | 1 (0/1) | +3.4 pp (0.0% to 10.3%) | 1 | no detectable difference at n = 29 |
-| strong · dev · false-DONE | `prod-plain:strong:head4k` → `repair-v1:strong:evidence` | 7 | 0 (0/0) | +0.0 pp (0.0% to 0.0%) | – | no detectable difference at n = 7 |
+| strong · dev · false-DONE | `prod-plain:strong:head4k` → `repair-v1:strong:evidence` | 7 | 0 (0/0) | +0.0 pp (0.0% to 0.0%) | 1 | no detectable difference at n = 7 |
 | strong · dev · false-CONTINUE | `prod-plain:strong:head4k` → `repair-v1:strong:evidence` | 29 | 1 (0/1) | +3.4 pp (0.0% to 10.7%) | 1 | no detectable difference at n = 29 |
-| strong · all · false-DONE | `prod-plain:flash:head4k` → `prod-plain:flash:evidence` | 17 | 0 (0/0) | +0.0 pp (0.0% to 0.0%) | – | no detectable difference at n = 17 |
+| strong · all · false-DONE | `prod-plain:flash:head4k` → `prod-plain:flash:evidence` | 17 | 0 (0/0) | +0.0 pp (0.0% to 0.0%) | 1 | no detectable difference at n = 17 |
 | strong · all · false-DONE | `prod-plain:flash:evidence` → `repair-v1:flash:evidence` | 17 | 1 (1/0) | -5.9 pp (-17.6% to 0.0%) | 1 | no detectable difference at n = 17 |
-| strong · all · correct | `prod-plain:self:head4k` → `prod-plain:flash:head4k` | 90 | 0 (0/0) | +0.0 pp (0.0% to 0.0%) | – | no detectable difference at n = 90 |
+| strong · all · correct | `prod-plain:self:head4k` → `prod-plain:flash:head4k` | 90 | 0 (0/0) | +0.0 pp (0.0% to 0.0%) | 1 | no detectable difference at n = 90 |
 | strong · all · correct | `prod-plain:self:head4k` → `prod-plain:strong:head4k` | 90 | 2 (2/0) | -2.2 pp (-6.7% to 0.0%) | 0.5 | no detectable difference at n = 90 |
 | strong · all · correct | `prod-plain:flash:head4k` → `prod-plain:strong:head4k` | 90 | 2 (2/0) | -2.2 pp (-6.7% to 0.0%) | 0.5 | no detectable difference at n = 90 |
 

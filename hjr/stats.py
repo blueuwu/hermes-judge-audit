@@ -148,7 +148,7 @@ class McNemar:
     # b: only the first condition has the property; c: only the second
     b: int
     c: int
-    p: float | None
+    p: float
 
     @property
     def discordant(self) -> int:
@@ -164,7 +164,8 @@ def mcnemar_exact(first: Sequence[bool], second: Sequence[bool]) -> McNemar:
         raise ValueError("McNemar needs paired observations")
     b = sum(x and not y for x, y in zip(first, second, strict=True))
     c = sum(y and not x for x, y in zip(first, second, strict=True))
-    p = binomtest(b, b + c, 0.5).pvalue if b + c else None
+    # With no discordant pairs the exact test is a binomial on 0 trials, whose p is 1.
+    p = binomtest(b, b + c, 0.5).pvalue if b + c else 1.0
     return McNemar(b, c, p)
 
 

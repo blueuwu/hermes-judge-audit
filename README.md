@@ -156,6 +156,8 @@ test, E1, H8 and the repair comparisons are descriptive. Full tables:
   the mutated arm DONE in every pair (0/7, 0/2). Both `repair-v1` cells caught 3/7 and 1/2. The
   smallest McNemar p is 0.25 (weak) and 1.0 (strong), 1.0 after Holm, so these are counts, not a
   detected difference. 8 weak and 6 strong state pairs were evidence-invisible and are excluded.
+  Weak-arm `prod-plain` H8 had no discordant pairs and entered Holm at p = 1 per the prereg's
+  k = 5 (strong-arm `prod-plain` H8 likewise, 0 of 2).
 - **H7 not run.** No dev not-done base has a claim-free account.
 - **Limits.** These are dev pilot numbers on 12 tasks per arm. A confirmatory pairs run needs
   held-out boundaries and its own amendment. State pairs cover only boundaries whose last three
