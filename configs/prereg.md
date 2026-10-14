@@ -819,3 +819,7 @@ test.
 
 *Unchanged.* Dev boundaries only; arms are never pooled; the $20 stop on paid Phase 2 calls,
 which these calls count toward.
+
+**2026-10-14. Amendment: exploratory per-class precision/recall.** Per-class precision/recall
+was not pre-registered and is added as an exploratory, descriptive table for Phase 1a endpoints
+only, with Phase 1b excluded entirely. No hypothesis test uses this table.
