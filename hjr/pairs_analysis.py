@@ -367,8 +367,7 @@ def render(report: PairsReport) -> str:
                 else "undefined"
             )
         )
-        lines.append(
-            f"| {c.name} | {c.cell} | {c.n} | {effect} | {_p(c)} | {c.p_holm} | {c.reading} |"
-        )
+        holm = "n/a" if c.p_holm is None else c.p_holm
+        lines.append(f"| {c.name} | {c.cell} | {c.n} | {effect} | {_p(c)} | {holm} | {c.reading} |")
     lines += ["", "Exclusions:", ""] + [f"- {x}" for x in report.excluded]
     return "\n".join(lines) + "\n"

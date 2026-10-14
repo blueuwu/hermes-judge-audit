@@ -23,33 +23,18 @@ prereg wins.
 
 ## Next steps, in order
 
-1. **Human audit.** It must be done by the project owner, not an agent. Its records are the
-   human labels. Two parts can't run in a cloud checkout:
-   - `hjr audit run` reads the Harbor job directories under `jobs/`. Those are about 4 GB, stay
-     on the owner's machine and are gitignored.
-   - It opens files with `os.startfile`, which is Windows-only.
+The human audit, the Phase 2 analysis, the controlled pairs on dev and the README results are
+done. What remains:
 
-   An agent may prepare the draw if the owner asks. The draw needs only committed files:
+1. **Report.** Draft `reports/report.md` from the README results, `results/runs/phase2/` and
+   `results/runs/pairs/`, with numbers per agent arm and no pooling.
+2. **Confirmatory pairs (optional).** The dev pairs run is a pilot. A confirmatory run on
+   held-out boundaries needs its own dated amendment before any of its calls (prereg note of
+   2026-10-14, *Scope*). Its paid calls count toward the $20 stop; measured spend is in
+   `results/runs/phase2/spend.md`.
 
-   ```bash
-   uv run hjr audit draw \
-     --boundaries data/frozen/phase1-weak.jsonl --boundaries data/frozen/phase1-strong.jsonl \
-     --verdicts results/runs/phase2-weak/judge/prod-plain__self-weak__head4k.jsonl \
-     --verdicts results/runs/phase2-strong/judge/prod-plain__self-strong__head4k.jsonl \
-     --primary-verifier 63ce540
-   ```
-
-   Check the flags against `hjr audit draw --help` and the prereg before running. The draw is
-   seeded and logged once to `data/audit/draw.json`, so it can't be redrawn: commit it as is.
-2. **Phase 2 analysis.** `uv run hjr phase2-summary` writes `results/runs/phase2/summary.md`,
-   and `--truth v1` writes the sensitivity tables to `summary-v1.md`. Neither makes model calls.
-   Audit findings never change the primary analysis. The prereg's *Truth* rules say how a
-   verifier error found in the audit becomes a sensitivity rerun.
-3. **Controlled pairs.** These run on dev boundaries only. Measure the noise floor first, then
-   commit the dated tolerance note to the prereg before any perturbation call. The builder's
-   inputs, and three proposed prereg clarifications the owner has not adopted, are in
-   `docs/pairs-design-draft.md`.
-4. **Write-up.** Update the README status line and add results.
+Regenerating tables needs no model calls: `uv run hjr phase2-summary` (and `--truth v1`) writes
+`results/runs/phase2/`, and `results/runs/pairs/README.md` gives the `hjr pairs-summary` command.
 
 ## Setting up a fresh checkout
 
