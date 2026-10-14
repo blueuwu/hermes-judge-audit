@@ -148,7 +148,9 @@ Per-class precision/recall: Phase 1a endpoints only; Phase 1b excluded. Descript
 
 WAIT is merged into CONTINUE before voting; DONE ↔ truth done, BLOCKED ↔ truth blocked, CONTINUE(+WAIT) ↔ truth not_done.
 
-Item decision requires at least 2 of 3 parsed samples to agree. Failed or missing samples cast no vote; items without a majority are ties. Ties are counted by truth class and excluded from precision/recall denominators. All precision/recall cells show k/n and Wilson 95% intervals, including denominators below 20. 3-sample unanimity counts agreement after the WAIT merge among all endpoints, requiring all three samples to be parsed.
+Item decision requires at least 2 matching parsed votes out of the 3 scheduled samples; a failed sample is not a vote. Missing samples cast no vote; items without a majority are ties. Ties are counted by truth class and excluded from precision/recall denominators. All precision/recall cells show k/n and Wilson 95% intervals, including denominators below 20. 3-sample unanimity counts agreement after the WAIT merge among all endpoints, requiring all three samples to be parsed.
+
+Parse failures count any sample whose outcome is not "parsed", plus missing samples. Failed samples are reported as k/n, where n = items × 3 scheduled samples, with the number of items with at least one failed sample, per agent arm and judge cell.
 
 ### Per-class precision/recall, arm: weak
 
@@ -173,6 +175,17 @@ Item decision requires at least 2 of 3 parsed samples to agree. Failed or missin
 |  | BLOCKED ↔ blocked | 12/12 (Wilson 95% 75.8%–100.0%) | 12/12 (Wilson 95% 75.8%–100.0%) | 0 |  |
 |  | CONTINUE(+WAIT) ↔ not_done | 0/5 (Wilson 95% 0.0%–43.4%) | 0/7 (Wilson 95% 0.0%–35.4%) | 0 |  |
 
+#### Parse failures, arm: weak
+
+| Cell | Failed samples / scheduled samples | Items with at least one failed sample |
+|---|---|---|
+| `prod-plain:self-weak:head4k` | 2/264 | 2 |
+| `prod-plain:flash:head4k` | 0/264 | 0 |
+| `prod-plain:strong:head4k` | 0/264 | 0 |
+| `prod-plain:flash:evidence` | 0/264 | 0 |
+| `repair-v1:flash:evidence` | 0/264 | 0 |
+| `repair-v1:strong:evidence` | 0/264 | 0 |
+
 ### Per-class precision/recall, arm: strong
 
 | Cell | Class ↔ truth | Precision (Wilson 95%) | Recall (Wilson 95%) | Ties (truth class) | 3-sample unanimity |
@@ -195,3 +208,14 @@ Item decision requires at least 2 of 3 parsed samples to agree. Failed or missin
 | `repair-v1:strong:evidence` | DONE ↔ done | 64/72 (Wilson 95% 79.6%–94.3%) | 64/69 (Wilson 95% 84.1%–96.9%) | 0 | 88/90 |
 |  | BLOCKED ↔ blocked | 12/12 (Wilson 95% 75.8%–100.0%) | 12/12 (Wilson 95% 75.8%–100.0%) | 0 |  |
 |  | CONTINUE(+WAIT) ↔ not_done | 1/6 (Wilson 95% 3.0%–56.4%) | 1/9 (Wilson 95% 2.0%–43.5%) | 0 |  |
+
+#### Parse failures, arm: strong
+
+| Cell | Failed samples / scheduled samples | Items with at least one failed sample |
+|---|---|---|
+| `prod-plain:self-strong:head4k` | 0/270 | 0 |
+| `prod-plain:flash:head4k` | 0/270 | 0 |
+| `prod-plain:strong:head4k` | 0/270 | 0 |
+| `prod-plain:flash:evidence` | 0/270 | 0 |
+| `repair-v1:flash:evidence` | 0/270 | 0 |
+| `repair-v1:strong:evidence` | 0/270 | 0 |
