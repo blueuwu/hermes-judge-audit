@@ -5,16 +5,19 @@
   resampled with replacement, and every boundary of a drawn task comes along. The same draws
   give task-macro intervals (the mean of per-task means).
 * Exact McNemar (two-sided binomial on the discordant pairs) and Holm's step-down correction.
+* Exact one-sided sign-flip test on per-task differences.
 * Cohen's kappa, always reported next to prevalence and PABAK.
 """
 
 from __future__ import annotations
 
+import itertools
 import math
 import random
 from collections import defaultdict
 from collections.abc import Callable, Hashable, Iterable, Mapping, Sequence
 from dataclasses import dataclass
+from fractions import Fraction
 
 from scipy.stats import binomtest
 
@@ -156,6 +159,31 @@ def mcnemar_exact(first: Sequence[bool], second: Sequence[bool]) -> McNemar:
     c = sum(y and not x for x, y in zip(first, second, strict=True))
     p = binomtest(b, b + c, 0.5).pvalue if b + c else None
     return McNemar(b, c, p)
+
+
+@dataclass(frozen=True)
+class SignFlip:
+    positive: int  # clusters with a positive difference
+    nonzero: int  # clusters with a nonzero difference; zeros carry no sign
+    p: float | None
+
+
+def sign_flip_exact(values: Sequence[Fraction]) -> SignFlip:
+    """One-sided exact sign-flip test of mean > 0: the share of the 2^m sign assignments to the
+    m nonzero values whose sum is at least the observed sum. Exact arithmetic, no sampling."""
+    nonzero = [abs(v) for v in values if v != 0]
+    if len(nonzero) > 20:
+        raise ValueError("exact sign-flip enumeration is limited to 20 nonzero clusters")
+    positive = sum(v > 0 for v in values)
+    if not nonzero:
+        return SignFlip(0, 0, None)
+    observed = sum(values, Fraction(0))
+    hits = sum(
+        sum((v if keep else -v for v, keep in zip(nonzero, signs, strict=True)), Fraction(0))
+        >= observed
+        for signs in itertools.product((True, False), repeat=len(nonzero))
+    )
+    return SignFlip(positive, len(nonzero), hits / 2 ** len(nonzero))
 
 
 def holm(pvalues: Mapping[str, float | None]) -> dict[str, float | None]:

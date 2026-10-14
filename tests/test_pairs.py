@@ -543,3 +543,36 @@ def test_execute_code_timing_is_masked_for_replay_and_visibility(tmp_path):
         "non-replayable"
         in state_pairs(b, ws, [m], [EVIDENCE], OutputExecutor()).excluded[0]["reason"]
     )
+
+
+def test_sign_flip_exact_matches_enumeration_and_rejects_at_five_tasks():
+    from fractions import Fraction
+
+    four = stats.sign_flip_exact([Fraction(1)] * 4 + [Fraction(0)] * 8)
+    five = stats.sign_flip_exact([Fraction(1, 2)] * 5 + [Fraction(0)] * 7)
+    assert (four.positive, four.nonzero, four.p) == (4, 4, 1 / 16)
+    assert (five.positive, five.nonzero, five.p) == (5, 5, 1 / 32)
+    mixed = stats.sign_flip_exact([Fraction(1), Fraction(1, 3), Fraction(-1, 3)])
+    # Sums of the 8 sign assignments of (1, 1/3, 1/3): 5/3, 1, 1, 1/3, -1/3, -1, -1, -5/3.
+    assert mixed.p == 3 / 8
+    assert stats.sign_flip_exact([Fraction(0)] * 3).p is None
+
+
+def test_h6_reading_uses_sign_flip_not_bootstrap():
+    items = synthetic_response_items()
+    tasks = sorted({i.boundary.task_id for i in items if i.family == "h6"})
+
+    def decision(flipping):
+        def f(i, sample):
+            if i.family == "h6" and i.arm == "pre" and i.boundary.task_id in flipping:
+                return "continue"
+            return "done"
+
+        return f
+
+    for k, holds in ((4, False), (5, True)):
+        report = pairs_analysis.analyse(items, verdicts(items, decision(tasks[:k])), tolerance=None)
+        h6 = next(c for c in report.comparisons if c.name == "H6")
+        assert (h6.sign_flip.positive, h6.sign_flip.nonzero) == (k, k)
+        assert (h6.reading == "H6 holds") is holds
+        assert h6.test is None and h6.p_holm is None

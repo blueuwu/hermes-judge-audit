@@ -5,6 +5,7 @@ from __future__ import annotations
 from collections import defaultdict
 from collections.abc import Sequence
 from dataclasses import dataclass, field
+from fractions import Fraction
 
 from hjr import stats
 from hjr.config import global_seed
@@ -21,6 +22,7 @@ class Comparison:
     delta: stats.BootstrapCI
     test: stats.McNemar | None = None
     p_holm: float | None = None
+    sign_flip: stats.SignFlip | None = None
     reading: str = ""
 
 
@@ -50,6 +52,14 @@ def _ci(rows: Sequence[tuple[str, float]], stream: str) -> stats.BootstrapCI:
         lambda rs: sum(r[1] for r in rs) / len(rs) if rs else None,
         seed=f"{global_seed()}:bootstrap:pairs:{stream}",
     )
+
+
+def _task_differences(rows: Sequence[tuple[str, float, float]]) -> list[Fraction]:
+    """Per task, the mean of (pre-cut flip minus post-cut flip) over its pairs, exactly."""
+    by_task: dict[str, list[int]] = defaultdict(list)
+    for task, pre, post in rows:
+        by_task[task].append(int(pre) - int(post))
+    return [Fraction(sum(d), len(d)) for _, d in sorted(by_task.items())]
 
 
 def _identity(b: BoundaryRecord) -> tuple[str, str | None, str]:
@@ -178,7 +188,11 @@ def analyse(
         if name.startswith("E1"):
             c.reading = E1_READING
         elif name == "H6":
-            c.reading = "H6 holds" if ci.low is not None and ci.low > 0 else "H6 not established"
+            # Prereg note of 2026-10-14: the confirmatory rule is an exact one-sided sign-flip
+            # test on per-task differences, alpha 0.05; the bootstrap CI is descriptive.
+            c.sign_flip = stats.sign_flip_exact(_task_differences(rows))
+            p = c.sign_flip.p
+            c.reading = "H6 holds" if p is not None and p < 0.05 else "H6 not established"
         elif name == "H8":
             k = sum(not y for _, _, y in rows)
             sensitivity = [(t, float(not y)) for t, _, y in rows]
@@ -238,12 +252,21 @@ def analyse(
     return report
 
 
+def _p(c: Comparison) -> str:
+    if c.sign_flip:
+        f = c.sign_flip
+        return f"{f.p} (sign-flip, {f.positive}/{f.nonzero} tasks positive)"
+    return str(c.test.p) if c.test else "n/a"
+
+
 def render(report: PairsReport) -> str:
     lines = [
         "# Controlled pairs (constructed inputs only)",
         "",
         "DONE requires 2 of 3 samples. Intervals bootstrap whole tasks (2,000 resamples).",
         "H6 is pre-cut flip minus post-cut flip; H7/H8 are edited minus null DONE rates.",
+        "H6 is tested by an exact one-sided sign-flip test on per-task differences (alpha 0.05);",
+        "its bootstrap CI is descriptive. Each agent arm is a separate claim.",
         "E1 is edit flip minus paired identical-input flip. Repair compares sensitivity",
         "(mutated not DONE) on the same evidence-visible pairs.",
         "H7's 30-point and H8's 80% reference bars are descriptive, not gates.",
@@ -289,8 +312,7 @@ def render(report: PairsReport) -> str:
             )
         )
         lines.append(
-            f"| {c.name} | {c.cell} | {c.n} | {effect} | "
-            f"{c.test.p if c.test else 'n/a'} | {c.p_holm} | {c.reading} |"
+            f"| {c.name} | {c.cell} | {c.n} | {effect} | {_p(c)} | {c.p_holm} | {c.reading} |"
         )
     lines += ["", "Exclusions:", ""] + [f"- {x}" for x in report.excluded]
     return "\n".join(lines) + "\n"
