@@ -153,9 +153,16 @@ def precision_recall_items(
 
 
 def parsed_majority(item: Item) -> str:
-    """At least two matching parsed votes, even when another sample failed."""
+    """At least 2 matching parsed votes out of the 3 scheduled samples."""
     counts = Counter(d for d in item.decisions if d in DECISIONS)
     return next((d for d, n in counts.items() if n >= 2), "tie")
+
+
+def parse_failure_counts(items: Sequence[Item]) -> tuple[int, int, int]:
+    """Failed scheduled samples, scheduled total, and items with any failure (Phase 1a)."""
+    items = [i for i in items if i.phase == "1a"]
+    failures = [sum(d == "" for d in i.decisions) for i in items]
+    return sum(failures), len(items) * 3, sum(n > 0 for n in failures)
 
 
 def _wilson_cell(k: int, n: int) -> str:
@@ -720,12 +727,17 @@ def _render_precision_recall(report: Report) -> str:
         "WAIT is merged into CONTINUE before voting; DONE ↔ truth done, BLOCKED ↔ truth blocked, "
         "CONTINUE(+WAIT) ↔ truth not_done.",
         "",
-        "Item decision requires at least 2 of 3 parsed samples to agree. Failed or missing "
-        "samples cast no vote; items without a majority are ties. Ties are counted by truth "
+        "Item decision requires at least 2 matching parsed votes out of the 3 scheduled samples; "
+        "a failed sample is not a vote. Missing samples cast no vote; items without a majority "
+        "are ties. Ties are counted by truth "
         "class and excluded from precision/recall denominators. All precision/recall cells "
         "show k/n and Wilson 95% intervals, including denominators below 20. "
         "3-sample unanimity counts agreement after the WAIT merge among all endpoints, "
         "requiring all three samples to be parsed.",
+        "",
+        'Parse failures count any sample whose outcome is not "parsed", plus missing samples. '
+        "Failed samples are reported as k/n, where n = items × 3 scheduled samples, "
+        "with the number of items with at least one failed sample, per agent arm and judge cell.",
     ]
     for arm in report.plan.arms:
         lines += [
@@ -739,6 +751,17 @@ def _render_precision_recall(report: Report) -> str:
         for name in report.plan.cells:
             c = report.cells[(arm, name)]
             lines += precision_recall_block(c.precision_recall, c.variant)
+        lines += [
+            "",
+            f"#### Parse failures, arm: {arm}",
+            "",
+            "| Cell | Failed samples / scheduled samples | Items with at least one failed sample |",
+            "|---|---|---|",
+        ]
+        for name in report.plan.cells:
+            c = report.cells[(arm, name)]
+            failed, scheduled, affected = parse_failure_counts(c.precision_recall)
+            lines.append(f"| `{c.variant}` | {failed}/{scheduled} | {affected} |")
     return "\n".join(lines) + "\n"
 
 
