@@ -287,6 +287,11 @@ def test_e1_subtracts_each_items_noise_instead_of_unpaired_global_rate():
     assert e1["E1/paraphrase"].delta.estimate == -1
     assert e1["E1/tone"].delta.estimate == 0
     assert e1["E1/paraphrase"].reading == pairs_analysis.E1_READING
+    edits = {family: v for (_, family), v in report.edits.items()}
+    assert edits["paraphrase"][:2] == (0, 4) and edits["paraphrase"][3] == 4
+    assert edits["tone"][:2] == (4, 4)
+    assert "| tone |" in pairs_analysis.render(report)
+    assert stats.clopper_pearson(0, 12)[1] == pytest.approx(1 - 0.025 ** (1 / 12))
 
 
 def test_h8_mcnemar_holm_and_invisible_exclusion(tmp_path):
@@ -533,6 +538,12 @@ def test_execute_code_timing_is_masked_for_replay_and_visibility(tmp_path):
     result = state_pairs(b, ws, [m], [EVIDENCE], TimingExecutor())
     assert not result.excluded
     assert all(i.evidence_invisible for i in result.items)
+    assert len({i.prompt_sha256 for i in result.items}) == 2
+    report = pairs_analysis.analyse(
+        result.items, verdicts(result.items, lambda i, s: "done"), tolerance=None
+    )
+    assert not report.comparisons
+    assert any("evidence_invisible" in reason for reason in report.excluded)
     other = [e.model_copy(update={"out_tail": tail.replace('"ok"', '"changed"')}) for e in events]
 
     class OutputExecutor(FakeExecutor):
