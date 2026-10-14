@@ -4,7 +4,7 @@ Read this before changing anything. `README.md` describes the study and how to r
 `configs/prereg.md` holds the pre-registered rules. Where this file and the prereg disagree, the
 prereg wins.
 
-## Where the project stands (2026-10-13)
+## Where the project stands (2026-10-14)
 
 | Stage | State | Where |
 |---|---|---|
@@ -12,22 +12,22 @@ prereg wins.
 | Phase 1a trajectories (178 boundaries: weak 88, strong 90) | frozen | `data/frozen/phase1-{weak,strong}.jsonl` |
 | Mutation suite and frozen primary verifier | done | prereg note of 2026-10-05, `results/mutants/` |
 | Primary truth (regrade) | done | `data/truth/phase1-{weak,strong}.jsonl`, `results/regrade/` |
-| Phase 1b (weak, enrichment) | done | `results/phase1b/` |
+| Phase 1b (weak, enrichment) | done; full pools after `repair-freeze-v1` done, in-loop judge DONE on 44/45 not-done boundaries over 5 tasks | `results/phase1b/`, `results/phase1b/analysis.md` |
 | repair-v1 design and freeze | done, tag `repair-freeze-v1` | `results/repair/`, prereg Amendment 3 |
 | Phase 2 replay, 6 cells × 3 samples | **done**, 1,584 + 1,620 parsed | `results/runs/phase2-{weak,strong}/` |
 | Strong-judge sanity (paid API) | **done**, 60 + 60 parsed | `results/runs/phase2-sanity-{weak,strong}/` |
-| Human verifier audit | **done**, 49 audited, 1 verifier error | `data/audit/`, `results/audit/report.md` |
+| Human verifier audit | **done**, 49 audited, no endpoint label errors, 1 requirement-level error | `data/audit/`, `results/audit/report.md` |
 | Phase 2 analysis tables | **done** | `results/runs/phase2/` |
 | Controlled counterfactual pairs (H6–H8, E1) | **done** on dev: noise, H6, edits and three state cells judged, all parsed; H6 not established in either arm | `results/runs/pairs/summary-{weak,strong}.md`, `results/runs/pairs-*/`, prereg note of 2026-10-14 |
-| Write-up (README results, report) | README results done; report remains | `README.md` |
+| Write-up (README results, report) | **done**, in PR #14 | `README.md`, `reports/report.md` |
 
 ## Next steps, in order
 
-The human audit, the Phase 2 analysis, the controlled pairs on dev and the README results are
-done. What remains:
+The human audit, the Phase 2 analysis, the controlled pairs on dev, the Phase 1b full pools, the
+README results and the report are done. What remains:
 
-1. **Report.** Draft `reports/report.md` from the README results, `results/runs/phase2/` and
-   `results/runs/pairs/`, with numbers per agent arm and no pooling.
+1. **Merge PR #14.** It holds the report (`reports/report.md`), the Phase 1b full pools, the
+   prereg erratum and the README fixes. The owner merges it, by rebase.
 2. **Confirmatory pairs (optional).** The dev pairs run is a pilot. A confirmatory run on
    held-out boundaries needs its own dated amendment before any of its calls (prereg note of
    2026-10-14, *Scope*). Its paid calls count toward the $20 stop; measured spend is in
