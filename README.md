@@ -9,7 +9,7 @@ against deterministic state verifiers and human labels, then measures judge-side
 frozen held-out set. Hypotheses and analysis rules are fixed in
 [`configs/prereg.md`](configs/prereg.md).
 
-Status: Phase 1a trajectories frozen (178 boundaries), primary verifier frozen after the mutation suite, Phase 1b enrichment and `repair-v1` design done (tag `repair-freeze-v1`). Phase 2 replay done and analysed (below). Human verifier audit done (1 verifier error in 49 audited boundaries). Controlled counterfactual pairs and the rest of the write-up remain.
+Status: Phase 1a trajectories frozen (178 boundaries), primary verifier frozen after the mutation suite, Phase 1b enrichment and `repair-v1` design done (tag `repair-freeze-v1`). Phase 2 replay done and analysed (below). Human verifier audit done (1 verifier error in 49 audited boundaries). Controlled counterfactual pairs run on dev boundaries (below); the report remains.
 
 ## Pilot findings (M0.5, constructed items)
 
@@ -122,24 +122,47 @@ unbilled ([`results/runs/phase2/spend.md`](results/runs/phase2/spend.md)).
     2026-10-13). A fix would change no truth label, so there is no sensitivity rerun under the
     prereg's *Truth* rules.
 
-TODO (controlled pairs, H6–H8, E1): truncation flip rates before and after the cut, claim effect,
-evidence-view sensitivity on state pairs, and inertness of meaning-preserving edits. Pending the
-noise-floor tolerance note and the paid pair calls.
+## Controlled pairs (dev boundaries, constructed inputs)
 
-Noise floor, measured 2026-10-13 on `prod-plain:flash:head4k` (each dev base judged twice on
-byte-identical input, 3 samples each; Flash judges at temperature 0):
-- Weak arm: 0/34 item flips (Wilson 0 to 10.2%), and no disagreement among any base's 6 samples.
-- Strong arm: 0/36 item flips (Wilson 0 to 9.6%), likewise no sample disagreement.
-- 420 calls, all parsed, $0.33 billed
-  ([`pairs-noise-weak`](results/runs/pairs-noise-weak/summary.md),
-  [`pairs-noise-strong`](results/runs/pairs-noise-strong/summary.md)).
-- The E1 equivalence tolerance is not set yet.
+Dev boundaries only, arms never pooled, decisions are the majority of 3 samples. Rules are the
+prereg's *Controlled counterfactual pairs* and its note of 2026-10-14: H6 is the only confirmatory
+test, E1, H8 and the repair comparisons are descriptive. Full tables:
+[`results/runs/pairs/summary-weak.md`](results/runs/pairs/summary-weak.md),
+[`summary-strong.md`](results/runs/pairs/summary-strong.md); inputs and build counts:
+[`data/pairs/README.md`](data/pairs/README.md).
 
-State pairs (H8), built 2026-10-14 without judge calls
-([`data/pairs/README.md`](data/pairs/README.md)): 10 pairs in the weak arm and 4 in the strong
-arm, of which 4 and 1 are evidence-visible. Most candidates fail exact replay of the last three
-calls, because the snapshot already holds those calls' effects. The evidence-view cells have no
-noise floor yet.
+| `prod-plain:flash` unless noted | weak (GLM-5.3-Flash) | strong (DeepSeek V4.1 Flash) |
+|---|---|---|
+| Identical-input flips, `head4k` (noise floor) | 0/34 (Wilson 0 to 10.2%) | 0/36 (Wilson 0 to 9.6%) |
+| H6 pairs: flips with the caveat before / after the 4,000-character cut | 2/34 / 0/34 | 4/36 / 0/36 |
+| H6 exact sign-flip test, per-task differences | p = 0.25 (2/2 tasks positive) | p = 0.25 (2/2 tasks positive) |
+| Edit flips per family (hedging, error, paraphrase, tone), exact 95% CI | 0/12 each (0 to 26.5%) | 0/12 each (0 to 26.5%) |
+| Evidence-visible state pairs, mutated arm not DONE: `prod-plain:flash:evidence` | 0/7 | 0/2 |
+| same, `repair-v1:flash:evidence` | 3/7 | 1/2 |
+| same, `repair-v1:strong:evidence` (Codex CLI) | 3/7 | 1/2 |
+
+- **H6 not established** in either arm. A caveat placed before the cut changed the decision on 2
+  (weak) and 4 (strong) pairs, and the same caveat after the cut on none. But the flips sit in only
+  2 tasks per arm (weak `c2-01`, `c6-03`; strong 3 of 3 pairs on `c2-05`, and `c6-04`). The exact
+  test needs at least 5 tasks with a difference, so p = 0.25 in both arms.
+- **E1 (descriptive).** `paraphrase` and `tone` edits flipped no decision in 12 bases per arm,
+  against 0 identical-input flips on the same bases. With 12 bases the exact upper bound is 26.5%,
+  so no family is called inert. The 10-point reference tolerance is recorded for later runs.
+- **Hedging and error (descriptive).** No flips either. In each arm 10 of the 12 bases are judged
+  DONE, and stay DONE after an inserted hedge or a separate paragraph reporting an error. The
+  judge's decision did not respond to an explicit error report appended to a DONE account.
+- **H8 (descriptive).** On evidence-visible state pairs, where one required file or record was
+  mutated after the run and the replayed tool output shows it, `prod-plain:flash:evidence` judged
+  the mutated arm DONE in every pair (0/7, 0/2). Both `repair-v1` cells caught 3/7 and 1/2. The
+  smallest McNemar p is 0.25 (weak) and 1.0 (strong), 1.0 after Holm, so these are counts, not a
+  detected difference. 8 weak and 6 strong state pairs were evidence-invisible and are excluded.
+- **H7 not run.** No dev not-done base has a claim-free account.
+- **Limits.** These are dev pilot numbers on 12 tasks per arm. A confirmatory pairs run needs
+  held-out boundaries and its own amendment. State pairs cover only boundaries whose last three
+  calls replay, which favours simple, deterministic endings.
+
+Spend: 1,752 billed calls, $1.72, bringing paid Phase 2 calls to $7.18 of the $20 stop; the
+207 Codex CLI calls are unbilled. Every call parsed.
 
 ## Setup
 

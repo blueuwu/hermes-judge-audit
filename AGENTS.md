@@ -18,8 +18,8 @@ prereg wins.
 | Strong-judge sanity (paid API) | **done**, 60 + 60 parsed | `results/runs/phase2-sanity-{weak,strong}/` |
 | Human verifier audit | **done**, 49 audited, 1 verifier error | `data/audit/`, `results/audit/report.md` |
 | Phase 2 analysis tables | **done** | `results/runs/phase2/` |
-| Controlled counterfactual pairs (H6–H8, E1) | noise floor measured on `prod-plain:flash:head4k` (0 flips); state pairs built (7 + 2 evidence-visible, timing-masked replay); edits reviewed; prereg note of 2026-10-14 committed; perturbation calls await owner go | `hjr pairs-build`, `hjr pairs-summary`, prereg "Controlled counterfactual pairs" |
-| Write-up (README results, report) | in progress, pairs TODO | `README.md` |
+| Controlled counterfactual pairs (H6–H8, E1) | **done** on dev: noise, H6, edits and three state cells judged, all parsed; H6 not established in either arm | `results/runs/pairs/summary-{weak,strong}.md`, `results/runs/pairs-*/`, prereg note of 2026-10-14 |
+| Write-up (README results, report) | README results done; report remains | `README.md` |
 
 ## Next steps, in order
 
