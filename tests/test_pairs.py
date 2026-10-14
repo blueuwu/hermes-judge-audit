@@ -635,3 +635,52 @@ def test_sign_flip_exact_matches_enumeration_beyond_twenty_clusters():
     assert stats.sign_flip_exact(values).p == hits / 2 ** len(nonzero)
     many = stats.sign_flip_exact([Fraction(1)] * 30)
     assert (many.positive, many.nonzero, many.p) == (30, 30, 1 / 2**30)
+
+
+def test_holm_families_are_per_agent_arm_and_repair_labels_join(tmp_path, monkeypatch):
+    b, ws, m = state_fixture(tmp_path)
+
+    def messages(boundary, *, prompt, view):
+        return build_messages(boundary, prompt="prod-plain", view=view)
+
+    monkeypatch.setattr(pairs, "build_messages", messages)
+    monkeypatch.setattr(pairs_analysis, "build_messages", messages)
+    repair = "repair-v1:flash:evidence"
+    items = []
+    for run in ("phase1-weak", "phase1-strong"):
+        for i in range(10):
+            base = b.model_copy(update={"boundary_id": f"{run}/b{i}", "run_id": run})
+            items.extend(state_pairs(base, ws, [m], [EVIDENCE, repair], FakeExecutor()).items)
+    vs = verdicts(items, lambda i, s: "continue" if i.arm == "mutated" else "done")
+    report = pairs_analysis.analyse(items, vs, tolerance=None)
+    tested = [c for c in report.comparisons if c.test]
+    assert len(tested) == 6
+    for run in ("phase1-weak", "phase1-strong"):
+        own = {f"{c.cell}/{c.name}": c.test.p for c in tested if c.cell.startswith(f"{run}:")}
+        assert len(own) == 3
+        expected = stats.holm(own)
+        assert all(
+            c.p_holm == expected[f"{c.cell}/{c.name}"]
+            for c in tested
+            if c.cell.startswith(f"{run}:")
+        )
+    repair_rows = [c for c in report.comparisons if c.name == "H8/repair sensitivity"]
+    assert sorted(c.cell for c in repair_rows) == sorted(
+        f"{run}:None:1a:{EVIDENCE}->{repair}" for run in ("phase1-weak", "phase1-strong")
+    )
+
+
+def test_h7_is_its_own_holm_family_and_stays_out_of_the_edit_table():
+    items = synthetic_response_items()
+
+    def decision(i, sample):
+        return "done" if i.family == "h7" else "continue"
+
+    report = pairs_analysis.analyse(items, verdicts(items, decision), tolerance=None)
+    h7 = next(c for c in report.comparisons if c.name == "H7")
+    assert h7.p_holm == h7.test.p
+    assert {family for _, family in report.edits} == {"paraphrase", "tone"}
+    h6 = next(c for c in report.comparisons if c.name == "H6")
+    assert h6.sign_flip.p is None
+    assert "None (sign-flip" not in pairs_analysis.render(report)
+    assert "n/a (no task has a nonzero difference)" in pairs_analysis.render(report)
