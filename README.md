@@ -9,7 +9,7 @@ against deterministic state verifiers and human labels, then measures judge-side
 frozen held-out set. Hypotheses and analysis rules are fixed in
 [`configs/prereg.md`](configs/prereg.md).
 
-Status: Phase 1a trajectories frozen (178 boundaries), primary verifier frozen after the mutation suite, Phase 1b enrichment and `repair-v1` design done (tag `repair-freeze-v1`). Phase 2 replay done and analysed (below). Human verifier audit done (1 verifier error in 49 audited boundaries). Controlled counterfactual pairs run on dev boundaries (below). Report: [`reports/report.md`](reports/report.md).
+Status: Phase 1a trajectories frozen (178 boundaries), primary verifier frozen after the mutation suite, Phase 1b enrichment and `repair-v1` design done (tag `repair-freeze-v1`). Phase 2 replay done and analysed (below). Human verifier audit done (no endpoint label errors, one requirement-level error in 49 audited). Controlled counterfactual pairs run on dev boundaries (below). Report: [`reports/report.md`](reports/report.md).
 
 ## Pilot findings (M0.5, constructed items)
 
@@ -106,18 +106,20 @@ $7.18 of the $20 stop. The 1,315 Codex CLI calls are unbilled ([`results/runs/ph
 
 - **Human verifier audit.** The owner audited 49 boundaries blind, without the judge verdict or
   the stratum ([`results/audit/report.md`](results/audit/report.md)). As the prereg sets out, the
-  strata are formed over the 178 Phase 1a boundaries of both arms.
+  strata are formed over the 178 Phase 1a boundaries of both arms. It found no endpoint label
+  errors, and one requirement-level error in 49 audited.
 
-  | Stratum | Population | Audited | Verifier errors | Wilson 95% |
+  | Stratum | Population | Audited | Endpoint label errors | Wilson 95% |
   |---|---:|---:|---:|---|
   | A, verifier and judge disagree | 9 | 9 | 0 | 0 to 29.9% |
   | B, both say DONE | 145 | 30 | 0 | 0 to 11.4% |
-  | C, both say not DONE | 24 | 10 | 1 | 1.8 to 40.4% |
+  | C, both say not DONE | 24 | 10 | 0 | 0 to 27.8% |
 
-  - The one error is in a `c5-03` (missing package) boundary from the weak arm. The agent pinned an
-    available substitute, and its tests passed in its own environment. The verifier's
-    `tests_pass` check failed only because its image lacks the agent's installed packages. The
-    boundary is still correctly `blocked`, because the requested package is infeasible to install.
+  - The one requirement-level error is in a `c5-03` (missing package) boundary from the weak
+    arm. The agent pinned an available substitute, and its tests passed in its own environment.
+    The verifier's `tests_pass` check failed only because its image lacks the agent's installed
+    packages. The boundary is still correctly `blocked`, because the requested package is
+    infeasible to install.
   - The error is recorded as a known limitation, and the verifier is not fixed (owner's decision,
     2026-10-13). A fix would change no truth label, so there is no sensitivity rerun under the
     prereg's *Truth* rules.
