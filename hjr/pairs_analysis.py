@@ -10,7 +10,7 @@ from fractions import Fraction
 from hjr import stats
 from hjr.config import global_seed
 from hjr.judge import Variant, build_messages, prompt_sha256
-from hjr.pairs import PairItem, require_dev
+from hjr.pairs import PairItem, mask_timing, require_dev
 from hjr.schemas import BoundaryRecord, JudgeVerdict
 
 
@@ -34,6 +34,10 @@ class PairsReport:
         default_factory=dict
     )
     sensitivity: dict[str, tuple[int, int, tuple[float, float] | None, stats.BootstrapCI]] = field(
+        default_factory=dict
+    )
+    # (cell label, family) -> (edit flips vs null, n, Clopper-Pearson CI, paired identical flips)
+    edits: dict[tuple[str, str], tuple[int, int, tuple[float, float] | None, int]] = field(
         default_factory=dict
     )
     excluded: list[str] = field(default_factory=list)
@@ -60,6 +64,16 @@ def _task_differences(rows: Sequence[tuple[str, float, float]]) -> list[Fraction
     for task, pre, post in rows:
         by_task[task].append(int(pre) - int(post))
     return [Fraction(sum(d), len(d)) for _, d in sorted(by_task.items())]
+
+
+def _masked_prompt_sha256(item: PairItem) -> str:
+    """Evidence visibility compares prompts with execute_code timing masked, as the builder does
+    (replay rule, prereg note of 2026-10-14)."""
+    v = Variant.parse(item.cell)
+    b = item.boundary.model_copy(
+        update={"recent_tool_events": mask_timing(item.boundary.recent_tool_events)}
+    )
+    return prompt_sha256(build_messages(b, prompt=v.prompt, view=v.view))
 
 
 def _identity(b: BoundaryRecord) -> tuple[str, str | None, str]:
@@ -142,7 +156,7 @@ def analyse(
             observations[(label, "H6")].append((b.task_id, float(null != pre), float(null != post)))
         if item.family.startswith("state/") and "mutated" in arms:
             mutated_item, mutated = arms["mutated"]
-            invisible = item.prompt_sha256 == mutated_item.prompt_sha256
+            invisible = _masked_prompt_sha256(item) == _masked_prompt_sha256(mutated_item)
             if invisible != item.evidence_invisible or invisible != mutated_item.evidence_invisible:
                 raise ValueError("incorrect evidence_invisible marker")
             if invisible:
@@ -151,6 +165,7 @@ def analyse(
             observations[(label, "H8")].append((b.task_id, float(null), float(mutated)))
             state[_identity(b)][(pair_id, item.cell)] = (b.task_id, not mutated)
     # Reviewed response edits share the original base's null and independent repeat.
+    edit_rows = defaultdict(list)
     for (label, pair_id), arms in grouped.items():
         if "edit" not in arms:
             continue
@@ -160,6 +175,7 @@ def analyse(
             report.excluded.append(f"{label} {pair_id}: missing paired noise floor")
             continue
         null, flip = base_noise[(label, base_id)]
+        edit_rows[(label, item.family)].append((null != edited, flip))
         if item.family == "h7":
             if item.boundary.verifier.truth_state != "not_done":
                 raise ValueError("H7 requires not-done truth")
@@ -171,6 +187,14 @@ def analyse(
         else:
             continue
         observations[(label, name)].append((item.boundary.task_id, *values))
+    for key, flips in sorted(edit_rows.items()):
+        k = sum(e for e, _ in flips)
+        report.edits[key] = (
+            k,
+            len(flips),
+            stats.clopper_pearson(k, len(flips)),
+            sum(f for _, f in flips),
+        )
     for label, rows in sorted(noise.items()):
         k = int(sum(r[1] for r in rows))
         report.noise[label] = (
@@ -294,6 +318,14 @@ def render(report: PairsReport) -> str:
             else "counts only"
         )
         lines.append(f"| {label} | {stats.fmt_count(k, n, ci)} | {interval} |")
+    lines += [
+        "",
+        "| Edit family | Cell | Edit flips vs null (exact 95% CI) | Paired identical-input flips |",
+        "|---|---|---|---|",
+    ]
+    for (label, family), (k, n, ci, noise_k) in report.edits.items():
+        interval = f" ({100 * ci[0]:.1f}–{100 * ci[1]:.1f}%)" if ci else ""
+        lines.append(f"| {family} | {label} | {k}/{n}{interval} | {noise_k}/{n} |")
     lines += [
         "",
         "| Test | Cell | n | Difference [95% CI] | Exact p | Holm p | Reading |",

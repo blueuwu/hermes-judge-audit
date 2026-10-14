@@ -39,6 +39,14 @@ def wilson(k: int, n: int, z: float = Z95) -> tuple[float, float] | None:
     return max(0.0, centre - half), min(1.0, centre + half)
 
 
+def clopper_pearson(k: int, n: int) -> tuple[float, float] | None:
+    """Exact two-sided 95% binomial interval."""
+    if n == 0:
+        return None
+    ci = binomtest(k, n).proportion_ci(confidence_level=0.95, method="exact")
+    return float(ci.low), float(ci.high)
+
+
 @dataclass(frozen=True)
 class BootstrapCI:
     estimate: float | None
