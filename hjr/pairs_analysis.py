@@ -24,6 +24,8 @@ class Comparison:
     p_holm: float | None = None
     sign_flip: stats.SignFlip | None = None
     reading: str = ""
+    # Holm family: the agent arm's identity and its test family (prereg note of 2026-10-14)
+    holm_family: tuple = ()
 
 
 @dataclass
@@ -122,10 +124,12 @@ def analyse(
         raise ValueError("pairs summary refuses to pool serving arms or sub-arms")
     report = PairsReport(tolerance=tolerance)
     grouped = defaultdict(dict)
+    arm_of = {}
     for key, item in by_key.items():
         b = item.boundary
         identity = (*_identity(b), item.cell)
         label = ":".join(str(x) for x in identity)
+        arm_of[label] = _identity(b)
         if len(samples[key]) != 3:
             report.excluded.append(f"{label} {item.pair_id}/{item.arm}: incomplete samples")
             continue
@@ -175,7 +179,6 @@ def analyse(
             report.excluded.append(f"{label} {pair_id}: missing paired noise floor")
             continue
         null, flip = base_noise[(label, base_id)]
-        edit_rows[(label, item.family)].append((null != edited, flip))
         if item.family == "h7":
             if item.boundary.verifier.truth_state != "not_done":
                 raise ValueError("H7 requires not-done truth")
@@ -184,7 +187,11 @@ def analyse(
         elif item.family in {"paraphrase", "tone"}:
             values = (float(flip), float(null != edited))
             name = f"E1/{item.family}"
-        else:
+        if item.family != "h7":
+            # The edit table is for edits meant to leave the decision alone; h7's flip is the
+            # effect H7 tests, so it is reported only as H7.
+            edit_rows[(label, item.family)].append((null != edited, flip))
+        if item.family not in {"h7", "paraphrase", "tone"}:
             continue
         observations[(label, name)].append((item.boundary.task_id, *values))
     for key, flips in sorted(edit_rows.items()):
@@ -209,6 +216,7 @@ def analyse(
         test = stats.mcnemar_exact([bool(r[1]) for r in rows], [bool(r[2]) for r in rows])
         # H6 specifies an interval test; E1 specifies equivalence, not McNemar.
         c = Comparison(name, label, len(rows), ci, test if name in {"H7", "H8"} else None)
+        c.holm_family = (arm_of[label], name)
         if name.startswith("E1"):
             c.reading = E1_READING
         elif name == "H6":
@@ -243,7 +251,7 @@ def analyse(
                 )
                 for pid in ids
             ]
-            label = f"{identity}:{baseline}->{candidate}"
+            label = ":".join(str(x) for x in (*identity, f"{baseline}->{candidate}"))
             report.comparisons.append(
                 Comparison(
                     "H8/repair sensitivity",
@@ -253,9 +261,16 @@ def analyse(
                     stats.mcnemar_exact(
                         [bool(x) for _, x, _ in paired], [bool(y) for _, _, y in paired]
                     ),
+                    holm_family=(identity, "H8"),
                 )
             )
-    adjusted = stats.holm({f"{c.cell}/{c.name}": c.test.p for c in report.comparisons if c.test})
+    # Holm per agent arm (prereg note of 2026-10-14): one family of H8 in each evidence cell and
+    # the repair-v1 comparisons, and H7 alone. Arms and phases never share a family.
+    families = defaultdict(dict)
+    for c in report.comparisons:
+        if c.test:
+            families[c.holm_family][f"{c.cell}/{c.name}"] = c.test.p
+    adjusted = {k: v for family in families.values() for k, v in stats.holm(family).items()}
     for c in report.comparisons:
         if c.test:
             c.p_holm = adjusted[f"{c.cell}/{c.name}"]
@@ -279,6 +294,8 @@ def analyse(
 def _p(c: Comparison) -> str:
     if c.sign_flip:
         f = c.sign_flip
+        if f.p is None:
+            return "n/a (no task has a nonzero difference)"
         return f"{f.p} (sign-flip, {f.positive}/{f.nonzero} tasks positive)"
     return str(c.test.p) if c.test else "n/a"
 
