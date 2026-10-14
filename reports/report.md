@@ -104,13 +104,13 @@ stratum.
 
 The auditor found one requirement-level error, in a weak-arm `c5-03` endpoint in the "both say
 not DONE" stratum: the agent's tests passed in its own environment, but the verifier's
-`tests_pass` check failed because its image lacked the agent's installed packages. The endpoint
-label is unchanged and still correct, `blocked`, because the requested package cannot be
-installed, so the stratum has 0 endpoint label errors. Counted as the prereg's verifier error
-rate, which includes requirement-level errors, stratum C has 1 of 10 (Wilson 1.8 to 40.4%,
-[`results/audit/report.md`](../results/audit/report.md)). The "both say DONE" row matters most
-here: it is where a requirement the verifier never checked would hide a false DONE, and 0 of 30
-bounds that at about 11%.
+`tests_pass` check failed, by the auditor's reading because its image lacked the agent's
+installed packages. The endpoint label is unchanged and still correct, `blocked`, because the
+requested package cannot be installed, so the stratum has 0 endpoint label errors. Counted as
+the prereg's verifier error rate, which includes requirement-level errors, stratum C has 1 of 10
+(Wilson 1.8 to 40.4%, [`results/audit/report.md`](../results/audit/report.md)). The "both say
+DONE" row matters most here: it is where a requirement the verifier never checked would hide a
+false DONE, and 0 of 30 bounds that at about 11%.
 
 ### Judge cells
 
@@ -144,9 +144,9 @@ from the original plan, each disclosed in [`configs/prereg.md`](../configs/prere
 - Truth moved from human labels to the state verifier after Phase 1 ran (Amendment 1).
 - No infrastructure retries in Phase 1a or Phase 1b, against the stated retry policy; failed
   trials are excluded with reasons (Amendment 2).
-- The first Phase 1b Stage A launch aborted: Harbor read a UTF-8 session file as cp1252 and
-  the crash ended the job. It was archived unread and Stage A reran from scratch with
-  `PYTHONUTF8=1` (deviation 1).
+- The first Phase 1b Stage A launch aborted: Harbor read a UTF-8 session file as cp1252 and the
+  crash ended the job. It was archived, nothing from it was ingested or analysed, and Stage A
+  reran from scratch with `PYTHONUTF8=1` (deviation 1).
 - The timing mask in the state-pair replay rule was chosen after the replay fidelity counts were
   seen, and before any judge call on a state item (prereg note of 2026-10-14).
 - The H6 test changed from a bootstrap CI rule to an exact sign-flip test before any H6 item was
@@ -321,8 +321,8 @@ changed.
 - **H7 (adding a confident claim): not run.** It needs a not-done dev endpoint whose message
   claims nothing, and there is none.
 
-These pairs are a pilot on 12 dev tasks per arm. They show which way the judge leans; they are
-not estimates.
+Apart from H6, which is confirmatory on dev, these pairs are a pilot on 12 dev tasks per arm.
+They show which way the judge leans; they are not estimates.
 
 ### Reliability
 
@@ -398,10 +398,10 @@ These results are about the judge as shipped at `ffc74885`, on these tasks and a
   never states would not be checked. The audit had one auditor.
 - **GPT-6.1 Sol runs through the Codex CLI.** Its cells differ from the Flash cells in harness as
   well as model. The 20-endpoint check against the paid API bounds that, not more.
-- **The pairs are a dev pilot.** State pairs cover the 35 of 70 dev endpoints whose last three
-  calls replay under the timing mask, pinned at `826ca9b`, which favours simple endings. Replay
-  is checked on stored 500-character output tails, not full output. A confirmatory pairs run
-  would need held-out endpoints and its own amendment.
+- **Apart from H6, the pairs are a dev pilot.** State pairs cover the 35 of 70 dev endpoints
+  whose last three calls replay under the timing mask, pinned at `826ca9b`, which favours simple
+  endings. Replay is checked on stored 500-character output tails, not full output. A
+  confirmatory pairs run would need held-out endpoints and its own amendment.
 
 ## Cost
 

@@ -119,9 +119,9 @@ $7.18 of the $20 stop. The 1,315 Codex CLI calls are unbilled ([`results/runs/ph
     stratum C has 1 of 10 (Wilson 1.8 to 40.4%), as in the audit report.
   - The one requirement-level error is in a `c5-03` (missing package) boundary from the weak
     arm. The agent pinned an available substitute, and its tests passed in its own environment.
-    The verifier's `tests_pass` check failed only because its image lacks the agent's installed
-    packages. The boundary is still correctly `blocked`, because the requested package is
-    infeasible to install.
+    The verifier's `tests_pass` check failed, by the auditor's reading because its image lacks
+    the agent's installed packages. The boundary is still correctly `blocked`, because the
+    requested package is infeasible to install.
   - The error is recorded as a known limitation, and the verifier is not fixed (owner's decision,
     2026-10-13). A fix would change no truth label, so there is no sensitivity rerun under the
     prereg's *Truth* rules.
