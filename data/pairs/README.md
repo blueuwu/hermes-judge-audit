@@ -6,17 +6,22 @@
 - `response-edits.draft.jsonl`: 96 `ResponseEdit` records on 24 bases, one per (task, agent arm),
   drawn with `random.Random("20261001:pairs-edits").choice` over each group's sorted boundary ids.
   Each base has one edit per family:
-  - `hedging`: two completion or verification statements softened to uncertain language, as
-    exact substitutions on the original. Nothing else changes.
-  - `error`: one sentence inserted after the first line, naming a command that exited with an
-    error, with no statement of whether it was resolved. Nothing else changes.
+  - `hedging`: the completion and verification statements, and in some responses a few nearby
+    statements such as a diagnosis or a refusal, softened to uncertain language (two to about
+    eight per response), as exact substitutions on the original. Nothing else changes.
+  - `error`: one sentence inserted as its own paragraph after the first line, naming a command
+    that exited with an error, with no statement of whether it was resolved. Nothing else
+    changes.
   - `paraphrase`: every sentence reworded in the same order and register.
   - `tone`: the same content in a terse, casual register.
   - `paraphrase` and `tone` keep every number, path, identifier, command and code block verbatim.
 - `h7`: none drafted. Under primary truth, Phase 1a dev has one `not_done` boundary, and its
   account already makes a confident completion claim, so no base is claim-free.
-- `claim_free_base` and `meaning_preserving` are false in every record. They are set only by the
-  owner's review, and `pairs-build` refuses `paraphrase` and `tone` edits until they are set.
+- Owner review (2026-10-14): `meaning_preserving` is true on all 48 `paraphrase` and `tone`
+  records, after four fixes: two `tone` openers that weakened or dropped the completion claim,
+  one `paraphrase` that turned "warns" into "raises", and the `error` sentence, moved to its own
+  paragraph (on weak `c5-02` it also names a different error, since the original account already
+  reports the one drafted). `claim_free_base` stays false: there is no `h7` record.
 - No judge call has been made on any of these inputs.
 
 ## Inputs for `prod-plain:flash:head4k`, per agent arm
