@@ -115,6 +115,8 @@ $7.18 of the $20 stop. The 1,315 Codex CLI calls are unbilled ([`results/runs/ph
   | B, both say DONE | 145 | 30 | 0 | 0 to 11.4% |
   | C, both say not DONE | 24 | 10 | 0 | 0 to 27.8% |
 
+  - Counted as the prereg's verifier error rate, which includes requirement-level errors,
+    stratum C has 1 of 10 (Wilson 1.8 to 40.4%), as in the audit report.
   - The one requirement-level error is in a `c5-03` (missing package) boundary from the weak
     arm. The agent pinned an available substitute, and its tests passed in its own environment.
     The verifier's `tests_pass` check failed only because its image lacks the agent's installed
