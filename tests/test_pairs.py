@@ -619,3 +619,19 @@ def test_state_items_split_per_cell_without_change():
             assert cells == {part.name.split(".")[1].replace("__", ":")}
             lines += chunk
         assert sorted(lines) == sorted(built)
+
+
+def test_sign_flip_exact_matches_enumeration_beyond_twenty_clusters():
+    import itertools
+    from fractions import Fraction
+
+    values = [Fraction(k % 3 - 1, 1 + k % 4) for k in range(14)]
+    nonzero = [abs(v) for v in values if v]
+    observed = sum(values, Fraction(0))
+    hits = sum(
+        sum((v if s else -v for v, s in zip(nonzero, signs, strict=True)), Fraction(0)) >= observed
+        for signs in itertools.product((True, False), repeat=len(nonzero))
+    )
+    assert stats.sign_flip_exact(values).p == hits / 2 ** len(nonzero)
+    many = stats.sign_flip_exact([Fraction(1)] * 30)
+    assert (many.positive, many.nonzero, many.p) == (30, 30, 1 / 2**30)

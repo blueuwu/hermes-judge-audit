@@ -11,10 +11,9 @@
 
 from __future__ import annotations
 
-import itertools
 import math
 import random
-from collections import defaultdict
+from collections import Counter, defaultdict
 from collections.abc import Callable, Hashable, Iterable, Mapping, Sequence
 from dataclasses import dataclass
 from fractions import Fraction
@@ -178,19 +177,21 @@ class SignFlip:
 
 def sign_flip_exact(values: Sequence[Fraction]) -> SignFlip:
     """One-sided exact sign-flip test of mean > 0: the share of the 2^m sign assignments to the
-    m nonzero values whose sum is at least the observed sum. Exact arithmetic, no sampling."""
+    m nonzero values whose sum is at least the observed sum. Exact arithmetic, no sampling: the
+    distribution of signed sums is built one value at a time, so m has no enumeration limit."""
     nonzero = [abs(v) for v in values if v != 0]
-    if len(nonzero) > 20:
-        raise ValueError("exact sign-flip enumeration is limited to 20 nonzero clusters")
     positive = sum(v > 0 for v in values)
     if not nonzero:
         return SignFlip(0, 0, None)
     observed = sum(values, Fraction(0))
-    hits = sum(
-        sum((v if keep else -v for v, keep in zip(nonzero, signs, strict=True)), Fraction(0))
-        >= observed
-        for signs in itertools.product((True, False), repeat=len(nonzero))
-    )
+    sums: Counter[Fraction] = Counter({Fraction(0): 1})
+    for v in nonzero:
+        step: Counter[Fraction] = Counter()
+        for total, count in sums.items():
+            step[total + v] += count
+            step[total - v] += count
+        sums = step
+    hits = sum(count for total, count in sums.items() if total >= observed)
     return SignFlip(positive, len(nonzero), hits / 2 ** len(nonzero))
 
 
