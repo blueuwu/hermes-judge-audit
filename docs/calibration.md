@@ -25,9 +25,16 @@ any future live use, replace stub prices with defensible estimates, update the s
 ledger, and commit any required dated preregistration amendment. This scaffold branch
 exercises live dispatch only with replay and clients mocked. It makes no live calls.
 
-Live preflight checks all task-specific prompt material before constructing clients.
+Live execution first checks the SHA256 of `configs/subgoals.toml` against the latest
+dated entry in `configs/prereg.md` that records a hash. It hashes LF-normalised bytes
+so Windows line endings do not change the result. A missing or mismatched hash refuses
+execution before any client is constructed or replay is invoked. The latest date wins;
+when dates tie, the later entry wins. Dry run reports whether the hash matches and
+continues even if no hash is recorded or the hashes differ.
+Drafted subgoals require a new dated entry with their hash, committed before any live call.
+Live preflight also checks all task-specific prompt material before constructing clients.
 Outputs go to new `calibrate-<batch>-<index>` directories per source arm and variant,
-with the config snapshot, its hash, source run, estimate and cap recorded.
+with the config and subgoals snapshots, their hashes, source run, estimate and cap recorded.
 Credentials must already be supplied by the caller; calibration does not load `.env`.
 
 All new model, endpoint, sampling, price and variant definitions live in
@@ -42,8 +49,11 @@ The completion-contract variant requires a per-task contract. Its contracts tabl
 empty with a TODO. Someone who has seen the verifier could leak truth into the judge
 by writing contracts from those checks, so this scaffold supplies none and never
 substitutes the boundary's existing contract. Live execution refuses missing contracts.
-The subgoals variant likewise leaves its per-task criteria empty for later user input
-and refuses live execution without them. Both variants are still priced in dry run.
+Per-task subgoals live in `configs/subgoals.toml`, which ships as an empty placeholder.
+Draft subgoals from the task spec and verifier predicates only. While drafting, there
+is no access to trajectories, judge outputs or fault-injection configs. Subgoals must
+contain no fault-specific wording. Live execution refuses missing per-task criteria.
+Both variants are still priced in dry run.
 
 To add a variant, add a uniquely named `[variants.<name>]` table with a template,
 model key, supported view and positive sample count. Add its model and endpoint in the
@@ -51,7 +61,7 @@ same config and a stub USD per-call price under `stub_prices`. The supported tem
 are the two named Hermes templates. A new template requires a reviewed extension to
 the calibration template registry and prompt builder, with parity tests. Contracts
 are keyed by task ID under the variant's `contracts` table, using Hermes contract
-fields. Subgoals are lists of criteria keyed by task ID under `subgoals`.
+fields. In `configs/subgoals.toml`, each top-level task ID maps to a list of criteria.
 
 `hjr.calibrate.compute_metrics(decisions, truth)` returns `NotImplemented`. The per-class precision/recall
 table code from PR #11 will plug into that interface once merged. Calibration implements no metrics.

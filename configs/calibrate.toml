@@ -37,5 +37,4 @@ template = "JUDGE_USER_PROMPT_WITH_SUBGOALS_TEMPLATE"
 model = "flash"
 view = "head4k"
 samples = 3
-# TODO: user-supplied per-task subgoals. Do not infer them from verifier truth.
-[variants.hermes-subgoals.subgoals]
+# Per-task criteria are stored separately in configs/subgoals.toml.

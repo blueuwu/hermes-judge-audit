@@ -19,6 +19,8 @@ from hjr.replay import replay
 from hjr.schemas import BoundaryRecord, read_jsonl, require_single_phase
 
 CONFIG = CONFIGS / "calibrate.toml"
+SUBGOALS = CONFIGS / "subgoals.toml"
+PREREG = CONFIGS / "prereg.md"
 STOP_USD = Decimal("20")
 TEMPLATES = {
     name: getattr(hg, name)
@@ -134,7 +136,24 @@ def guard_spend(estimate: Decimal, cap, spend_path: Path) -> None:
         raise ValueError("cumulative spend plus estimate exceeds the pre-registered $20 stop")
 
 
-def messages(boundary, *, prompt, view, specs):
+def latest_subgoals_hash(path: Path) -> str | None:
+    """Use the newest dated entry with a hash, breaking date ties by entry order."""
+    text = path.read_text(encoding="utf-8")
+    entries = list(re.finditer(r"^\*\*(\d{4}-\d{2}-\d{2})\.", text, re.M))
+    recorded = []
+    for i, entry in enumerate(entries):
+        end = entries[i + 1].start() if i + 1 < len(entries) else len(text)
+        hashes = re.findall(
+            r"^configs/subgoals\.toml sha256: ([^\n]+)$", text[entry.end() : end], re.M
+        )
+        if hashes:
+            if len(hashes) != 1 or not re.fullmatch(r"[0-9a-f]{64}", hashes[0]):
+                raise ValueError("invalid subgoals hash in dated prereg entry")
+            recorded.append((entry[1], i, hashes[0]))
+    return max(recorded)[2] if recorded else None
+
+
+def messages(boundary, *, prompt, view, specs, subgoals):
     spec = specs[prompt]
     common = dict(
         goal=hg._truncate(boundary.goal, judge.GOAL_CHARS),
@@ -152,8 +171,12 @@ def messages(boundary, *, prompt, view, specs):
             raise ValueError(f"{prompt} needs an independently authored per-task contract")
         common["contract_block"] = hg._truncate(block, judge.CONTRACT_CHARS)
     else:
-        criteria = spec.get("subgoals", {}).get(boundary.task_id, [])
-        if not criteria or not all(isinstance(c, str) and c.strip() for c in criteria):
+        criteria = subgoals.get(boundary.task_id, [])
+        if (
+            not isinstance(criteria, list)
+            or not criteria
+            or not all(isinstance(c, str) and c.strip() for c in criteria)
+        ):
             raise ValueError(f"{prompt} needs per-task subgoals")
         common["subgoals_block"] = hg._truncate(
             "\n".join(f"{i}. {c}" for i, c in enumerate(criteria, 1)), 2000
@@ -165,6 +188,21 @@ def messages(boundary, *, prompt, view, specs):
 
 
 def execute(args, runs: Path) -> int:
+    subgoals_raw = SUBGOALS.read_bytes()
+    subgoals_hash = hashlib.sha256(subgoals_raw.replace(b"\r\n", b"\n")).hexdigest()
+    recorded_hash = latest_subgoals_hash(PREREG)
+    matches = recorded_hash == subgoals_hash
+    print(
+        "Subgoals prereg hash: "
+        + ("MATCH" if matches else "MISMATCH" if recorded_hash else "NOT RECORDED")
+    )
+    if args.live and not matches:
+        raise ValueError(
+            "subgoals hash differs from latest dated prereg entry"
+            if recorded_hash
+            else "no subgoals hash recorded in a dated prereg entry"
+        )
+    subgoals = tomllib.loads(subgoals_raw.decode("utf-8"))
     raw = CONFIG.read_bytes()
     data = tomllib.loads(raw.decode("utf-8"))
     names = [n for value in args.variants for n in value.split(",")] if args.variants else None
@@ -187,7 +225,9 @@ def execute(args, runs: Path) -> int:
 
     # Preflight every prompt before constructing any client or writing output.
     def builder(boundary, *, prompt, view):
-        return messages(boundary, prompt=prompt, view=view, specs=data["variants"])
+        return messages(
+            boundary, prompt=prompt, view=view, specs=data["variants"], subgoals=subgoals
+        )
 
     for p in schedule:
         for b in p.boundaries:
@@ -226,6 +266,7 @@ def execute(args, runs: Path) -> int:
                     agent_arm=p.agent_arm,
                     variant=p.name,
                     config_sha256=cfg.sha256,
+                    subgoals_sha256=subgoals_hash,
                     estimate_usd=str(p.estimate),
                     confirm_spend=str(args.confirm_spend),
                     counts=dict(counts),
@@ -236,5 +277,6 @@ def execute(args, runs: Path) -> int:
             encoding="utf-8",
         )
         (out / "calibrate.toml").write_bytes(raw)
+        (out / "subgoals.toml").write_bytes(subgoals_raw)
         status |= bool(counts["transport_failed"] or counts["drift_incidents"] or counts["halted"])
     return int(status)
