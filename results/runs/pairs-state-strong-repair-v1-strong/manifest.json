@@ -1,0 +1,60 @@
+{
+  "run_id": "pairs-state-strong-repair-v1-strong",
+  "kind": "judge-replay",
+  "git_sha": "af82d9f56ea9e6ded7716fa32a0c3065192035aa",
+  "git_dirty": false,
+  "hermes_sha": "ffc74885c5f6eb75f6c134fb4eef86d734066623",
+  "uv_lock_sha256": "42e8c0f532edbdad795d459d5f933af34d4b7b6923f895a35ffc50040be73697",
+  "inputs": {
+    "results/runs/pairs-state-strong-repair-v1-strong/inputs.jsonl": "0da715d0a94734c82d2095bfeac3ebc548a8c206d96c3bbeec9c94167daf28d9"
+  },
+  "variants": [
+    "repair-v1:strong:evidence"
+  ],
+  "samples": 3,
+  "judge_config_sha256": "f5d81d280093c7e0272072a5aa396419232c99053b3dfb0b4fda55c0c934f526",
+  "models": {
+    "strong": {
+      "model_id": "gpt-6.1-sol",
+      "base_url": "codex-cli://exec",
+      "provider": "openai-codex",
+      "temperature": "None",
+      "max_tokens": "None",
+      "reasoning": "medium",
+      "harness": "codex",
+      "arm_id": "76367f6e9355",
+      "dev_only": "false",
+      "source": "Independent strong judge, prereg amendment 2026-10-02 (Phase 2 design)"
+    }
+  },
+  "observed_identities": {
+    "76367f6e9355": [
+      {
+        "sub_arm_id": "3fe34b6a363f",
+        "model": "",
+        "provider": "codex-cli 0.159.3",
+        "calls": 72
+      }
+    ]
+  },
+  "seed": 20261001,
+  "started_at": "2026-10-14T11:42:52.318107Z",
+  "finished_at": "2026-10-14T11:59:48.579043Z",
+  "counts": {
+    "boundaries": 24,
+    "parsed": 72,
+    "attempts": 75,
+    "attempt_errors": 3
+  },
+  "usage": {
+    "repair-v1:strong:evidence": {
+      "calls": 72.0,
+      "tokens_in": 797126.0,
+      "tokens_out": 6332.0,
+      "reasoning_tokens": 1194.0,
+      "cost_usd": 0.0,
+      "calls_without_cost": 72.0
+    }
+  },
+  "notes": ""
+}
