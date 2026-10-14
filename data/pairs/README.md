@@ -47,17 +47,19 @@ call has been made on them.
   task's image. Grades come from the frozen verifier.
 - Every snapshot graded back to its recorded primary truth, so no pair was lost to the grading
   path.
-- The builder's replay rule is exact equality of each replayed ToolEvent (tool, command, exit,
-  output tail). That is the wording of the third proposed clarification in
-  `docs/pairs-design-draft.md`, which has not been adopted.
+- The replay rule is that of the prereg note of 2026-10-14: each replayed ToolEvent (tool,
+  command, exit, output tail) equals the record, with the `execute_code` timing fields
+  `duration_seconds` and `execution_count` masked. The same mask applies to the visibility
+  check. Under exact equality, the first build gave weak 10 pairs (4 evidence-visible) and
+  strong 4 (1); the masked rule keeps all of them and adds 5 weak and 4 strong.
 
 | | weak | strong |
 |---|---:|---:|
-| Pairs built | 10 | 4 |
-| of which evidence-visible | 4 | 1 |
-| Excluded: null replay differs from the record | 69 | 87 |
+| Pairs built | 15 | 8 |
+| of which evidence-visible | 7 | 2 |
+| Excluded: null replay differs from the record | 41 | 64 |
 | Excluded: mutant does not flip exactly its requirement | 40 | 46 |
-| Excluded: replay changes the requirement contrast | 29 | 14 |
+| Excluded: replay changes the requirement contrast | 52 | 33 |
 | Excluded: mutant does not apply to this snapshot | 9 | 15 |
 | Excluded: target requirement not satisfied in the base | 3 | 2 |
 
@@ -68,8 +70,8 @@ Replay fidelity, measured on an unmutated copy of all 70 dev boundaries (210 cal
 - Exact: `terminal` 67/95, `read_file` 37/38, `execute_code` 17/43, `write_file` 15/15,
   `clarify` 6/6, `patch` 0/10, `search_files` 0/2, `tool_search` 0/1.
 - 16 `execute_code` calls differ only in the timing fields `duration_seconds` and
-  `execution_count`. Under the exact rule these boundaries are non-replayable; masking
-  those fields would make 12 more boundaries fully replayable (35 instead of 23 of 70).
+  `execution_count`. Masking those fields, as the replay rule now does, makes 12 more
+  boundaries fully replayable (35 instead of 23 of 70).
 - Most other differences are not adapter faults. The snapshot is taken after the last three calls
   ran, so a replay meets the state those calls left behind. A patch applies again, a test that
   failed before the fix now passes, a file the agent moved is gone.

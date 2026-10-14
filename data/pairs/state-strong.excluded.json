@@ -82,22 +82,17 @@
   {
     "boundary_id": "phase1-strong/c1-01-csv-to-json__EShEedS/b01",
     "mutant": "c1-01-csv-to-json/req:values",
-    "reason": "non-replayable: null outputs differ"
+    "reason": "replay changed the requirement contrast"
   },
   {
     "boundary_id": "phase1-strong/c1-01-csv-to-json__EShEedS/b01",
     "mutant": "c1-01-csv-to-json/req:sorted",
-    "reason": "non-replayable: null outputs differ"
+    "reason": "replay changed the requirement contrast"
   },
   {
     "boundary_id": "phase1-strong/c1-01-csv-to-json__EShEedS/b01",
     "mutant": "c1-01-csv-to-json/req:totals",
-    "reason": "non-replayable: null outputs differ"
-  },
-  {
-    "boundary_id": "phase1-strong/c1-01-csv-to-json__EShEedS/b01",
-    "mutant": "c1-01-csv-to-json/req:input_unchanged",
-    "reason": "non-replayable: null outputs differ"
+    "reason": "replay changed the requirement contrast"
   },
   {
     "boundary_id": "phase1-strong/c1-05-dedupe-contacts__dVSyFuC/b01",
@@ -107,7 +102,7 @@
   {
     "boundary_id": "phase1-strong/c1-05-dedupe-contacts__dVSyFuC/b01",
     "mutant": "c1-05-dedupe-contacts/req:header",
-    "reason": "non-replayable: null outputs differ"
+    "reason": "replay changed the requirement contrast"
   },
   {
     "boundary_id": "phase1-strong/c1-05-dedupe-contacts__dVSyFuC/b01",
@@ -117,22 +112,17 @@
   {
     "boundary_id": "phase1-strong/c1-05-dedupe-contacts__dVSyFuC/b01",
     "mutant": "c1-05-dedupe-contacts/req:kept_first",
-    "reason": "non-replayable: null outputs differ"
+    "reason": "replay changed the requirement contrast"
   },
   {
     "boundary_id": "phase1-strong/c1-05-dedupe-contacts__dVSyFuC/b01",
     "mutant": "c1-05-dedupe-contacts/req:order",
-    "reason": "non-replayable: null outputs differ"
+    "reason": "replay changed the requirement contrast"
   },
   {
     "boundary_id": "phase1-strong/c1-05-dedupe-contacts__dVSyFuC/b01",
     "mutant": "c1-05-dedupe-contacts/req:emails_normalised",
-    "reason": "non-replayable: null outputs differ"
-  },
-  {
-    "boundary_id": "phase1-strong/c1-05-dedupe-contacts__dVSyFuC/b01",
-    "mutant": "c1-05-dedupe-contacts/req:input_unchanged",
-    "reason": "non-replayable: null outputs differ"
+    "reason": "replay changed the requirement contrast"
   },
   {
     "boundary_id": "phase1-strong/c1-05-dedupe-contacts__jS5uQFR/b01",
@@ -742,7 +732,7 @@
   {
     "boundary_id": "phase1-strong/c6-04-data-quality-report__8mQMusT/b01",
     "mutant": "c6-04-data-quality-report/req:report_valid",
-    "reason": "non-replayable: null outputs differ"
+    "reason": "replay changed the requirement contrast"
   },
   {
     "boundary_id": "phase1-strong/c6-04-data-quality-report__8mQMusT/b01",
@@ -752,37 +742,32 @@
   {
     "boundary_id": "phase1-strong/c6-04-data-quality-report__8mQMusT/b01",
     "mutant": "c6-04-data-quality-report/req:formats",
-    "reason": "non-replayable: null outputs differ"
+    "reason": "replay changed the requirement contrast"
   },
   {
     "boundary_id": "phase1-strong/c6-04-data-quality-report__8mQMusT/b01",
     "mutant": "c6-04-data-quality-report/req:enums_and_ranges",
-    "reason": "non-replayable: null outputs differ"
+    "reason": "replay changed the requirement contrast"
   },
   {
     "boundary_id": "phase1-strong/c6-04-data-quality-report__8mQMusT/b01",
     "mutant": "c6-04-data-quality-report/req:foreign_keys",
-    "reason": "non-replayable: null outputs differ"
+    "reason": "replay changed the requirement contrast"
   },
   {
     "boundary_id": "phase1-strong/c6-04-data-quality-report__8mQMusT/b01",
     "mutant": "c6-04-data-quality-report/req:cross_table",
-    "reason": "non-replayable: null outputs differ"
+    "reason": "replay changed the requirement contrast"
   },
   {
     "boundary_id": "phase1-strong/c6-04-data-quality-report__8mQMusT/b01",
     "mutant": "c6-04-data-quality-report/req:no_false_positives",
-    "reason": "non-replayable: null outputs differ"
-  },
-  {
-    "boundary_id": "phase1-strong/c6-04-data-quality-report__8mQMusT/b01",
-    "mutant": "c6-04-data-quality-report/req:data_unchanged",
-    "reason": "non-replayable: null outputs differ"
+    "reason": "replay changed the requirement contrast"
   },
   {
     "boundary_id": "phase1-strong/c6-04-data-quality-report__G2CxNVZ/b01",
     "mutant": "c6-04-data-quality-report/req:report_valid",
-    "reason": "non-replayable: null outputs differ"
+    "reason": "replay changed the requirement contrast"
   },
   {
     "boundary_id": "phase1-strong/c6-04-data-quality-report__G2CxNVZ/b01",
@@ -792,31 +777,26 @@
   {
     "boundary_id": "phase1-strong/c6-04-data-quality-report__G2CxNVZ/b01",
     "mutant": "c6-04-data-quality-report/req:formats",
-    "reason": "non-replayable: null outputs differ"
+    "reason": "replay changed the requirement contrast"
   },
   {
     "boundary_id": "phase1-strong/c6-04-data-quality-report__G2CxNVZ/b01",
     "mutant": "c6-04-data-quality-report/req:enums_and_ranges",
-    "reason": "non-replayable: null outputs differ"
+    "reason": "replay changed the requirement contrast"
   },
   {
     "boundary_id": "phase1-strong/c6-04-data-quality-report__G2CxNVZ/b01",
     "mutant": "c6-04-data-quality-report/req:foreign_keys",
-    "reason": "non-replayable: null outputs differ"
+    "reason": "replay changed the requirement contrast"
   },
   {
     "boundary_id": "phase1-strong/c6-04-data-quality-report__G2CxNVZ/b01",
     "mutant": "c6-04-data-quality-report/req:cross_table",
-    "reason": "non-replayable: null outputs differ"
+    "reason": "replay changed the requirement contrast"
   },
   {
     "boundary_id": "phase1-strong/c6-04-data-quality-report__G2CxNVZ/b01",
     "mutant": "c6-04-data-quality-report/req:no_false_positives",
-    "reason": "non-replayable: null outputs differ"
-  },
-  {
-    "boundary_id": "phase1-strong/c6-04-data-quality-report__G2CxNVZ/b01",
-    "mutant": "c6-04-data-quality-report/req:data_unchanged",
-    "reason": "non-replayable: null outputs differ"
+    "reason": "replay changed the requirement contrast"
   }
 ]
