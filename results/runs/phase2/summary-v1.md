@@ -141,3 +141,57 @@ GPT-6.1 Sol via Codex CLI (harness prompt and sampling params not controllable) 
 | strong | `repair-v1:strong:evidence` | 9/10 |
 | weak | `prod-plain:strong:head4k` | 10/10 |
 | weak | `repair-v1:strong:evidence` | 10/10 |
+
+## Exploratory (not pre-registered), see Amendment 2026-10-14
+
+Per-class precision/recall: Phase 1a endpoints only; Phase 1b excluded. Descriptive only; no hypothesis test uses this table.
+
+WAIT is merged into CONTINUE before voting; DONE ↔ truth done, BLOCKED ↔ truth blocked, CONTINUE(+WAIT) ↔ truth not_done.
+
+Item decision requires at least 2 of 3 parsed samples to agree. Failed or missing samples cast no vote; items without a majority are ties. Ties are counted by truth class and excluded from precision/recall denominators. All precision/recall cells show k/n and Wilson 95% intervals, including denominators below 20. 3-sample unanimity counts agreement after the WAIT merge among all endpoints, requiring all three samples to be parsed.
+
+### Per-class precision/recall, arm: weak
+
+| Cell | Class ↔ truth | Precision (Wilson 95%) | Recall (Wilson 95%) | Ties (truth class) | 3-sample unanimity |
+|---|---|---|---|---|---|
+| `prod-plain:self-weak:head4k` | DONE ↔ done | 69/76 (Wilson 95% 82.2%–95.5%) | 69/69 (Wilson 95% 94.7%–100.0%) | 0 | 85/88 |
+|  | BLOCKED ↔ blocked | 12/12 (Wilson 95% 75.8%–100.0%) | 12/12 (Wilson 95% 75.8%–100.0%) | 0 |  |
+|  | CONTINUE(+WAIT) ↔ not_done | 0/0 (Wilson 95% undefined) | 0/7 (Wilson 95% 0.0%–35.4%) | 0 |  |
+| `prod-plain:flash:head4k` | DONE ↔ done | 69/76 (Wilson 95% 82.2%–95.5%) | 69/69 (Wilson 95% 94.7%–100.0%) | 0 | 88/88 |
+|  | BLOCKED ↔ blocked | 12/12 (Wilson 95% 75.8%–100.0%) | 12/12 (Wilson 95% 75.8%–100.0%) | 0 |  |
+|  | CONTINUE(+WAIT) ↔ not_done | 0/0 (Wilson 95% undefined) | 0/7 (Wilson 95% 0.0%–35.4%) | 0 |  |
+| `prod-plain:strong:head4k` | DONE ↔ done | 68/75 (Wilson 95% 82.0%–95.4%) | 68/69 (Wilson 95% 92.2%–99.7%) | 0 | 85/88 |
+|  | BLOCKED ↔ blocked | 12/12 (Wilson 95% 75.8%–100.0%) | 12/12 (Wilson 95% 75.8%–100.0%) | 0 |  |
+|  | CONTINUE(+WAIT) ↔ not_done | 0/1 (Wilson 95% 0.0%–79.3%) | 0/7 (Wilson 95% 0.0%–35.4%) | 0 |  |
+| `prod-plain:flash:evidence` | DONE ↔ done | 69/76 (Wilson 95% 82.2%–95.5%) | 69/69 (Wilson 95% 94.7%–100.0%) | 0 | 88/88 |
+|  | BLOCKED ↔ blocked | 12/12 (Wilson 95% 75.8%–100.0%) | 12/12 (Wilson 95% 75.8%–100.0%) | 0 |  |
+|  | CONTINUE(+WAIT) ↔ not_done | 0/0 (Wilson 95% undefined) | 0/7 (Wilson 95% 0.0%–35.4%) | 0 |  |
+| `repair-v1:flash:evidence` | DONE ↔ done | 69/76 (Wilson 95% 82.2%–95.5%) | 69/69 (Wilson 95% 94.7%–100.0%) | 0 | 88/88 |
+|  | BLOCKED ↔ blocked | 11/11 (Wilson 95% 74.1%–100.0%) | 11/12 (Wilson 95% 64.6%–98.5%) | 0 |  |
+|  | CONTINUE(+WAIT) ↔ not_done | 0/1 (Wilson 95% 0.0%–79.3%) | 0/7 (Wilson 95% 0.0%–35.4%) | 0 |  |
+| `repair-v1:strong:evidence` | DONE ↔ done | 64/71 (Wilson 95% 81.0%–95.1%) | 64/69 (Wilson 95% 84.1%–96.9%) | 0 | 83/88 |
+|  | BLOCKED ↔ blocked | 12/12 (Wilson 95% 75.8%–100.0%) | 12/12 (Wilson 95% 75.8%–100.0%) | 0 |  |
+|  | CONTINUE(+WAIT) ↔ not_done | 0/5 (Wilson 95% 0.0%–43.4%) | 0/7 (Wilson 95% 0.0%–35.4%) | 0 |  |
+
+### Per-class precision/recall, arm: strong
+
+| Cell | Class ↔ truth | Precision (Wilson 95%) | Recall (Wilson 95%) | Ties (truth class) | 3-sample unanimity |
+|---|---|---|---|---|---|
+| `prod-plain:self-strong:head4k` | DONE ↔ done | 69/78 (Wilson 95% 79.5%–93.8%) | 69/69 (Wilson 95% 94.7%–100.0%) | 0 | 90/90 |
+|  | BLOCKED ↔ blocked | 12/12 (Wilson 95% 75.8%–100.0%) | 12/12 (Wilson 95% 75.8%–100.0%) | 0 |  |
+|  | CONTINUE(+WAIT) ↔ not_done | 0/0 (Wilson 95% undefined) | 0/9 (Wilson 95% 0.0%–29.9%) | 0 |  |
+| `prod-plain:flash:head4k` | DONE ↔ done | 69/78 (Wilson 95% 79.5%–93.8%) | 69/69 (Wilson 95% 94.7%–100.0%) | 0 | 90/90 |
+|  | BLOCKED ↔ blocked | 12/12 (Wilson 95% 75.8%–100.0%) | 12/12 (Wilson 95% 75.8%–100.0%) | 0 |  |
+|  | CONTINUE(+WAIT) ↔ not_done | 0/0 (Wilson 95% undefined) | 0/9 (Wilson 95% 0.0%–29.9%) | 0 |  |
+| `prod-plain:strong:head4k` | DONE ↔ done | 67/76 (Wilson 95% 79.0%–93.6%) | 67/69 (Wilson 95% 90.0%–99.2%) | 0 | 88/90 |
+|  | BLOCKED ↔ blocked | 12/12 (Wilson 95% 75.8%–100.0%) | 12/12 (Wilson 95% 75.8%–100.0%) | 0 |  |
+|  | CONTINUE(+WAIT) ↔ not_done | 0/2 (Wilson 95% 0.0%–65.8%) | 0/9 (Wilson 95% 0.0%–29.9%) | 0 |  |
+| `prod-plain:flash:evidence` | DONE ↔ done | 69/78 (Wilson 95% 79.5%–93.8%) | 69/69 (Wilson 95% 94.7%–100.0%) | 0 | 90/90 |
+|  | BLOCKED ↔ blocked | 12/12 (Wilson 95% 75.8%–100.0%) | 12/12 (Wilson 95% 75.8%–100.0%) | 0 |  |
+|  | CONTINUE(+WAIT) ↔ not_done | 0/0 (Wilson 95% undefined) | 0/9 (Wilson 95% 0.0%–29.9%) | 0 |  |
+| `repair-v1:flash:evidence` | DONE ↔ done | 67/75 (Wilson 95% 80.3%–94.5%) | 67/69 (Wilson 95% 90.0%–99.2%) | 0 | 87/90 |
+|  | BLOCKED ↔ blocked | 10/10 (Wilson 95% 72.2%–100.0%) | 10/12 (Wilson 95% 55.2%–95.3%) | 0 |  |
+|  | CONTINUE(+WAIT) ↔ not_done | 1/5 (Wilson 95% 3.6%–62.4%) | 1/9 (Wilson 95% 2.0%–43.5%) | 0 |  |
+| `repair-v1:strong:evidence` | DONE ↔ done | 64/72 (Wilson 95% 79.6%–94.3%) | 64/69 (Wilson 95% 84.1%–96.9%) | 0 | 88/90 |
+|  | BLOCKED ↔ blocked | 12/12 (Wilson 95% 75.8%–100.0%) | 12/12 (Wilson 95% 75.8%–100.0%) | 0 |  |
+|  | CONTINUE(+WAIT) ↔ not_done | 1/6 (Wilson 95% 3.0%–56.4%) | 1/9 (Wilson 95% 2.0%–43.5%) | 0 |  |
