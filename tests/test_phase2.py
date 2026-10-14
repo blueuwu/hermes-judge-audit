@@ -3,6 +3,7 @@
 from __future__ import annotations
 
 import random
+from dataclasses import replace
 from datetime import UTC, datetime
 
 import pytest
@@ -245,6 +246,77 @@ def test_analysis_refuses_mixed_judge_arms_in_one_cell():
 )
 def test_exploratory_majority_counts_only_parsed_votes(decisions, expected):
     assert analysis.parsed_majority(_item("b", "t", "done", decisions)) == expected
+
+
+@pytest.mark.parametrize(
+    "votes, expected",
+    [
+        (("blocked", "blocked", None), "blocked"),
+        (("done", None, None), "tie"),
+        (("done", "blocked", None), "tie"),
+    ],
+    ids=["two-matching-one-failure", "one-parsed-two-failures", "one-vs-one-one-failure"],
+)
+def test_exploratory_scheduled_majority_with_failed_outcomes(votes, expected):
+    rows = [
+        _verdict("b", "v", s, vote or "done", "a").model_copy(
+            update={"outcome": "parsed" if vote else "parse_failed"}
+        )
+        for s, vote in enumerate(votes)
+    ]
+    (item,) = analysis.precision_recall_items(
+        rows, {"b": make_boundary(boundary_id="b")}, analysis.Truth("verifier", {"b": "done"})
+    )
+    assert analysis.parsed_majority(item) == expected
+
+
+def test_exploratory_parse_failure_counts_and_rendering():
+    # Four Phase 1a items: fully parsed, three non-parsed outcomes, one missing
+    # slot, and all three slots missing. The enrichment failures are excluded.
+    boundaries = {
+        bid: make_boundary(boundary_id=bid, phase=phase)
+        for bid, phase in (
+            ("parsed", "1a"),
+            ("failed", "1a"),
+            ("partial", "1a"),
+            ("absent", "1a"),
+            ("enriched", "1b-enrichment"),
+        )
+    }
+    rows = []
+    for bid, outcomes in (
+        ("parsed", ("parsed",) * 3),
+        ("failed", ("parse_failed", "format_violation", "no_call")),
+        ("partial", ("parsed",) * 2),
+        ("enriched", ("no_call",) * 3),
+    ):
+        for sample, outcome in enumerate(outcomes):
+            # The outcome, not the effective decision or parse_failed flag, governs failures.
+            rows.append(
+                _verdict(bid, "v", sample, "done", "a").model_copy(update={"outcome": outcome})
+            )
+    items = analysis.precision_recall_items(
+        rows, boundaries, analysis.Truth("verifier", dict.fromkeys(boundaries, "done"))
+    )
+    assert analysis.parse_failure_counts(items) == (7, 12, 3)
+    enriched = analysis.Item("enriched", "t", "C2", "dev", "done", ("",) * 3, "1b-enrichment")
+    assert analysis.parse_failure_counts([*items, enriched]) == (7, 12, 3)
+    assert analysis.parse_failure_counts([]) == (0, 0, 0)
+
+    arm_boundaries, verdicts = _synthetic()
+    truth = {a: analysis.truth_from_verifier(arm_boundaries[a]) for a in PLAN.arms}
+    report = analysis.analyse(PLAN, truth, arm_boundaries, verdicts, {})
+    key = ("weak", "prod-plain:self:head4k")
+    report.cells[key] = replace(report.cells[key], precision_recall=items)
+    section = analysis._render_precision_recall(report)
+    weak, strong = section.split("#### Parse failures, arm: weak")[1].split(
+        "### Per-class precision/recall, arm: strong"
+    )
+    assert "| `prod-plain:self-weak:head4k` | 7/12 | 3 |" in weak
+    assert "| `prod-plain:self-strong:head4k` | 0/18 | 0 |" in strong
+    assert 'outcome is not "parsed", plus missing samples' in section
+    assert "at least 2 matching parsed votes out of the 3 scheduled samples" in section
+    assert "a failed sample is not a vote" in section
 
 
 def test_exploratory_wait_merge_failures_and_phase1b_exclusion():
