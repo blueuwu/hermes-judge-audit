@@ -24,8 +24,9 @@ class Comparison:
     p_holm: float | None = None
     sign_flip: stats.SignFlip | None = None
     reading: str = ""
-    # Holm family: the agent arm's identity and its test family (prereg note of 2026-10-14)
-    holm_family: tuple = ()
+    # Holm family: the agent arm's identity and its test family (prereg note of 2026-10-14).
+    # Required, so no comparison can fall into a shared family across arms.
+    holm_family: tuple = field(kw_only=True)
 
 
 @dataclass
@@ -209,8 +210,14 @@ def analyse(
         ci = _ci([(task, sign * (y - x)) for task, x, y in rows], f"{label}:{name}")
         test = stats.mcnemar_exact([bool(r[1]) for r in rows], [bool(r[2]) for r in rows])
         # H6 specifies an interval test; E1 specifies equivalence, not McNemar.
-        c = Comparison(name, label, len(rows), ci, test if name in {"H7", "H8"} else None)
-        c.holm_family = (arm_of[label], name)
+        c = Comparison(
+            name,
+            label,
+            len(rows),
+            ci,
+            test if name in {"H7", "H8"} else None,
+            holm_family=(arm_of[label], name),
+        )
         if name.startswith("E1"):
             c.reading = E1_READING
         elif name == "H6":
