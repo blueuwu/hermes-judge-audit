@@ -16,11 +16,12 @@ the judge does when the evidence is in its input.
 
 ## Summary
 
-- **The bound holds: the judge judged all 9 not-done endpoints DONE.** Of 178 Phase 1a
-  trajectory endpoints from two agents, 9 were not done by the verifier: 4 weak, 5 strong.
-  Every production-prompt cell, with the agent's own model, Gemini 3 Flash Preview or GPT-6.1
+- **The bound holds: the judge accepted every unfinished task the agent called finished.**
+  Of 178 Phase 1a trajectory endpoints from two agents, 9 were not done by the verifier: 4 weak,
+  5 strong. Every production-prompt cell, with the agent's own model, Gemini 3 Flash Preview or GPT-6.1
   Sol as judge, judged all 9 DONE. Wilson 95% intervals: 4/4 weak, 51.0 to 100%; 5/5 strong,
-  56.6 to 100%; 9/9 across both arms, descriptive only, 70.1 to 100%.
+  56.6 to 100%; 9/9 across both arms, descriptive only, 70.1 to 100%. All 9 final messages open
+  by reporting the work done (appendix).
 - **Phase 1b (weak arm only): the in-loop judge judged 44 of 45 not-done endpoints DONE,
   across 5 tasks** (dev 23/23, held-out 21/22). The exception is a held-out `c2-03` endpoint
   whose final message opened "Release done." and closed by offering to bump one more version
@@ -172,9 +173,9 @@ one task (`c6-02`), so the real uncertainty is wider.
 Accuracy looks good and says little. The production self judge is right on 95.0% (weak) and
 94.4% (strong) of parsed calls, and Cohen's κ is 0.83 and 0.80 (PABAK 0.91 and 0.89). But 72 of
 88 and 73 of 90 endpoints are done, and blocked endpoints are easy, because a blocked agent says
-so. With this input the judge can only be right when the agent's account is right. The agent's
-own completion claim was not labelled per endpoint, so this study has no table of claim against
-truth to show that link directly.
+so. With this input the judge can only be right when the agent's account is right. Completion
+claims were not labelled across all 178 endpoints, so there is no table of claim against truth,
+but the appendix shows the claims for the 9 not-done ones.
 
 - **H1 (false-DONE below false-CONTINUE): reversed.** The docs state this as the prompt's aim
   ([`goals.md:291`](https://github.com/NousResearch/hermes-agent/blob/ffc74885c5f6eb75f6c134fb4eef86d734066623/website/docs/user-guide/features/goals.md#L291)). FD minus FC under the production self
@@ -395,8 +396,8 @@ These results are about the judge as shipped at `ffc74885`, on these tasks and a
   well as model. The 20-endpoint check against the paid API bounds that, not more.
 - **The pairs are a dev pilot.** State pairs cover the 35 of 70 dev endpoints whose last three
   calls replay under the timing mask, pinned at `826ca9b`, which favours simple endings. Replay
-  is checked on stored 500-character output tails, not full output. A confirmatory pairs run would need held-out endpoints and its own
-  amendment.
+  is checked on stored 500-character output tails, not full output. A confirmatory pairs run
+  would need held-out endpoints and its own amendment.
 
 ## Cost
 
@@ -407,9 +408,11 @@ iterations $3.44 and the controlled pairs $1.72. The 1,315 GPT-6.1 Sol calls ran
 subscription and are not billed per call.
 
 Phase 1b ran on a dedicated key with its own $20 cap and used $4.54: $0.04 for the aborted first
-Stage A launch, $2.57 for Stage A and $1.93 for Stage B, covering agent, auxiliary and in-loop
+Stage A launch, $2.56 for Stage A and $1.93 for Stage B, covering agent, auxiliary and in-loop
 judge calls ([Stage A](../results/phase1b/stage-a-report.md) and
-[Stage B](../results/phase1b/stage-b-report.md) reports). The pilot cost $1.65. Billed agent
+[Stage B](../results/phase1b/stage-b-report.md) reports). The other $0.010487 was billed between
+the Stage A end reading and the Stage B baseline and is not attributed to any recorded call; the
+Stage B report counts it as late Stage A billing because no other job ran on the key. The pilot cost $1.65. Billed agent
 spend for Phase 1a and the soak runs was not recorded.
 
 ## Reproducing
