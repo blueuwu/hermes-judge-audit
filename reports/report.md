@@ -10,17 +10,18 @@ the judge sees the goal, cut to 2,000 characters, and the first 4,000 characters
 message. It sees no tool output and no workspace, and by default it is the agent's own model.
 
 That input sets a bound. When the agent says it is done and is wrong, nothing the judge sees
-says otherwise, so no judge model can tell a true done claim from a false one, and changing
-the model cannot help. This study measures what that bound costs on real tasks, then asks what
-the judge does when the evidence is in its input.
+says otherwise, so from that input no judge model can tell a true done claim from a false one,
+and changing the model cannot help. This study measures what that bound costs on real tasks,
+then asks what the judge does when the evidence is in its input.
 
 ## Summary
 
 - **The bound holds: the judge accepted every unfinished task the agent called finished.** Of
   178 Phase 1a trajectory endpoints from two agents, 9 were not done by the verifier: 4 weak, 5
   strong. Every production-prompt cell, with the agent's own model, Gemini 3 Flash Preview or
-  GPT-6.1 Sol as judge, judged all 9 DONE. Wilson 95% intervals: 4/4 weak, 51.0 to 100%; 5/5
-  strong, 56.6 to 100%. All 9 final messages open by reporting the work done (appendix).
+  GPT-6.1 Sol as judge, judged all 9 DONE: 4/4 weak and 5/5 strong, counts only, since cells
+  under 20 items report no rates. All 9 final messages open by reporting the work done
+  (appendix).
 - **Phase 1b (weak arm only): the in-loop judge judged 44 of 45 not-done endpoints DONE,
   across 5 tasks** (dev 23/23, held-out 21/22). The exception is a held-out `c2-03` endpoint
   whose final message opened "Release done." and closed by offering to bump one more version
@@ -170,9 +171,8 @@ endpoints judged anything else (false CONTINUE).
 | `repair-v1:strong:evidence` | 4/4 | 0/12 | 5/72 | 4/5 | 0/12 | 5/73 |
 
 The pre-registered false-DONE rate combines the two DONE columns per arm (4/16 weak, 5/17
-strong under production cells), which hides that every error is `not_done`. The Summary's Wilson
-intervals treat endpoints as independent; three of each arm's not-done endpoints are trials of
-one task (`c6-02`), so the real uncertainty is wider.
+strong under production cells), which hides that every error is `not_done`. Three of each arm's
+not-done endpoints are trials of one task (`c6-02`), so the endpoints are not independent.
 
 Accuracy looks good and says little. The production self judge is right on 95.0% (weak) and
 94.4% (strong) of parsed calls, and Cohen's κ is 0.83 and 0.80 (PABAK 0.91 and 0.89). But 72 of
@@ -417,7 +417,7 @@ judge calls ([Stage A](../results/phase1b/stage-a-report.md) and
 [Stage B](../results/phase1b/stage-b-report.md) reports). The other $0.010487 was billed between
 the Stage A end reading and the Stage B baseline and is not attributed to any recorded call; the
 Stage B report counts it as late Stage A billing because no other job ran on the key. The pilot
-cost $1.65. Billed agent spend for Phase 1a and the soak runs was not recorded.
+cost $1.65. No billed agent spend for Phase 1a or the soak runs is in the repository.
 
 ## Reproducing
 
