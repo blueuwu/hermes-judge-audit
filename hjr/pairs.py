@@ -15,7 +15,6 @@ from pydantic import BaseModel, ConfigDict, Field
 
 from hjr import regrade
 from hjr.config import ROOT
-from hjr.goalloop import TOOL_OUTPUT_TAIL
 from hjr.judge import Variant, apply_view, build_messages, prompt_sha256
 from hjr.mutants import Mutant
 from hjr.schemas import BoundaryRecord, ToolEvent, VerifierResult
@@ -238,20 +237,17 @@ def mask_timing(events: Sequence[ToolEvent]) -> list[ToolEvent]:
 
 
 def same_event(recorded: ToolEvent, replayed: ToolEvent) -> bool:
-    """Replay rule: same tool, command, exit and output tail, with execute_code timing masked.
-    A tail is the last TOOL_OUTPUT_TAIL characters of the output, so a timing value of another
-    width moves where a cut tail starts; then only the text both tails cover is compared."""
-    if (recorded.tool, recorded.cmd, recorded.exit) != (replayed.tool, replayed.cmd, replayed.exit):
-        return False
-    a, b = recorded.out_tail, replayed.out_tail
-    if recorded.tool != "execute_code" or a == b:
-        return a == b
-    x, y = _mask(a), _mask(b)
-    return (
-        x == y
-        or (len(a) >= TOOL_OUTPUT_TAIL and y.endswith(x))
-        or (len(b) >= TOOL_OUTPUT_TAIL and x.endswith(y))
-    )
+    """Replay rule (prereg note of 2026-10-14): same tool, command and exit, and the same output
+    tail exactly once execute_code timing fields are masked.
+
+    Only the last TOOL_OUTPUT_TAIL (500) characters of each output are stored, which limits the
+    rule in two ways. Text before the stored tail is invisible: a replay that prints extra text
+    ahead of the same last 500 characters passes. And a timing-only difference can still fail
+    when the output was cut: a value of another width moves where the tail starts, and a cut
+    inside a timing field leaves a partial field that TIMING does not match. That direction is
+    conservative; it excludes a pair rather than admitting one.
+    """
+    return mask_timing([recorded]) == mask_timing([replayed])
 
 
 def masked_prompt_sha256(boundary: BoundaryRecord, cell: str) -> str:

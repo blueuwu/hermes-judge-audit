@@ -690,31 +690,30 @@ def test_h7_is_its_own_holm_family_and_stays_out_of_the_edit_table():
     assert "n/a (no task has a nonzero difference)" in pairs_analysis.render(report)
 
 
-def test_replay_rule_compares_cut_tails_where_both_cover_the_output():
+def test_replay_rule_is_strict_on_the_stored_tail():
     from hjr.goalloop import TOOL_OUTPUT_TAIL
 
-    def event(output):
-        return ToolEvent(
-            tool="execute_code", cmd="run", exit=0, out_tail=output[-TOOL_OUTPUT_TAIL:]
-        )
+    def event(output, tool="execute_code"):
+        return ToolEvent(tool=tool, cmd="run", exit=0, out_tail=output[-TOOL_OUTPUT_TAIL:])
 
-    def output(seconds, body="ok"):
-        return "x" * 600 + f'{{"output": "{body}", "duration_seconds": {seconds}}}'
+    def output(seconds, body="ok", pad=600):
+        return "x" * pad + f'{{"output": "{body}", "duration_seconds": {seconds}}}'
 
-    recorded = event(output("0.0"))
-    # A wider timing value moves the start of the cut tail by one character.
-    shifted = event(output("0.04"))
-    assert recorded.out_tail != shifted.out_tail
-    assert pairs.mask_timing([recorded]) != pairs.mask_timing([shifted])
-    assert pairs.same_event(recorded, shifted) and pairs.same_event(shifted, recorded)
-    assert not pairs.same_event(recorded, event(output("0.04", body="no")))
-    # An uncut tail is the whole output: a cut replay must end with all of it.
-    whole = ToolEvent(tool="execute_code", cmd="run", exit=0, out_tail='{"duration_seconds": 0.0}')
-    assert not pairs.same_event(whole, event("y" * 600 + '{"duration_seconds": 0.04}'))
-    assert pairs.same_event(
-        whole, whole.model_copy(update={"out_tail": '{"duration_seconds": 0.04}'})
+    same = pairs.same_event
+    # Timing masked, everything else exact.
+    assert same(event(output("0.03", pad=10)), event(output("0.04", pad=10)))
+    assert not same(event(output("0.03", pad=10)), event(output("0.03", "no", pad=10)))
+    assert not same(
+        event(output("0.03", pad=10)), event(output("0.03", pad=10)).model_copy(update={"exit": 1})
     )
-    terminal = ToolEvent(tool="terminal", cmd="t", exit=0, out_tail='"duration_seconds": 1')
-    assert not pairs.same_event(
-        terminal, terminal.model_copy(update={"out_tail": '"duration_seconds": 2'})
-    )
+    terminal = event('"duration_seconds": 1', tool="terminal")
+    assert not same(terminal, terminal.model_copy(update={"out_tail": '"duration_seconds": 2'}))
+    # A wider timing value moves the start of a cut tail; the strict rule rejects it.
+    assert not same(event(output("0.0")), event(output("0.04")))
+    # An output of exactly 500 characters, and a replay that prints extra text before the same
+    # 500: both store the same tail, so the rule passes it (a tail-only storage limit).
+    recorded = output("0.0", pad=0)
+    recorded = "x" * (TOOL_OUTPUT_TAIL - len(recorded)) + recorded
+    assert len(recorded) == TOOL_OUTPUT_TAIL
+    assert same(event(recorded), event("WARN extra " + recorded))
+    assert not same(event(recorded), event(recorded[1:]))

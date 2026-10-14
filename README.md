@@ -161,7 +161,10 @@ test, E1, H8 and the repair comparisons are descriptive. Full tables:
 - **H7 not run.** No dev not-done base has a claim-free account.
 - **Limits.** These are dev pilot numbers on 12 tasks per arm. A confirmatory pairs run needs
   held-out boundaries and its own amendment. State pairs cover only boundaries whose last three
-  calls replay, which favours simple, deterministic endings.
+  calls replay, which favours simple, deterministic endings. Replay is checked on the stored
+  output tails only (the last 500 characters): a replay that printed extra text before the same
+  tail would pass, and a timing-only difference fails when the cut moves with a timing value's
+  width or lands inside a timing field, which excludes the pair.
 
 Spend: 1,752 billed calls, $1.72, bringing paid Phase 2 calls to $7.18 of the $20 stop; the
 207 Codex CLI calls are unbilled. Every call parsed.

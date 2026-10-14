@@ -179,7 +179,9 @@ class SignFlip:
 def sign_flip_exact(values: Sequence[Fraction]) -> SignFlip:
     """One-sided exact sign-flip test of mean > 0: the share of the 2^m sign assignments to the
     m nonzero values whose sum is at least the observed sum. Exact arithmetic, no sampling: the
-    distribution of signed sums is built one value at a time, so m has no enumeration limit."""
+    distribution of signed sums is built one value at a time. Its size is the number of distinct
+    sums, which stays small when per-task differences share small denominators (means of a few
+    0/±1 flips) but can reach 2^m when they do not."""
     nonzero = [abs(v) for v in values if v != 0]
     positive = sum(v > 0 for v in values)
     if not nonzero:
