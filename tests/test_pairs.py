@@ -576,3 +576,20 @@ def test_h6_reading_uses_sign_flip_not_bootstrap():
         assert (h6.sign_flip.positive, h6.sign_flip.nonzero) == (k, k)
         assert (h6.reading == "H6 holds") is holds
         assert h6.test is None and h6.p_holm is None
+
+
+def test_reviewed_edits_split_per_arm_without_change():
+    data = pairs.ROOT / "data" / "pairs"
+    reviewed = (data / "response-edits.draft.jsonl").read_bytes().splitlines(keepends=True)
+    split = {
+        arm: (data / f"response-edits-{arm}.jsonl").read_bytes().splitlines(keepends=True)
+        for arm in ("weak", "strong")
+    }
+    bases = {}
+    for arm, lines in split.items():
+        assert len(lines) == 48
+        ids = [json.loads(line)["boundary_id"] for line in lines]
+        assert all(i.startswith(f"phase1-{arm}/") for i in ids)
+        bases[arm] = set(ids)
+    assert not bases["weak"] & bases["strong"]
+    assert sorted(split["weak"] + split["strong"]) == sorted(reviewed)
