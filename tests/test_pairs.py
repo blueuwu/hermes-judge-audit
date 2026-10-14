@@ -14,6 +14,8 @@ from tests.factories import make_boundary
 
 CELL = "prod-plain:flash:head4k"
 EVIDENCE = "prod-plain:flash:evidence"
+# The prereg's three evidence cells; with the two repair comparisons, Holm's k = 5 per arm.
+EVIDENCE_CELLS = [EVIDENCE, "repair-v1:flash:evidence", "repair-v1:strong:evidence"]
 
 
 def verdicts(items, decide):
@@ -303,7 +305,7 @@ def test_h8_mcnemar_holm_and_invisible_exclusion(tmp_path):
                 b.model_copy(update={"boundary_id": f"b{i}", "task_id": m.task}),
                 ws,
                 [m],
-                [EVIDENCE],
+                EVIDENCE_CELLS,
                 FakeExecutor(),
             ).items
         )
@@ -316,28 +318,24 @@ def test_h8_mcnemar_holm_and_invisible_exclusion(tmp_path):
     assert h8.name == "H8"
     assert h8.delta.estimate == -1
     assert (h8.test.b, h8.test.c) == (20, 0)
-    assert h8.p_holm == stats.mcnemar_exact([True] * 20, [False] * 20).p
+    # Three equal H8 p-values and two repair comparisons with no discordant pairs (p = 1).
+    assert h8.p_holm == pytest.approx(5 * stats.mcnemar_exact([True] * 20, [False] * 20).p)
+    repair = [c for c in report.comparisons if c.name == "H8/repair sensitivity"]
+    assert [(c.test.discordant, c.test.p, c.p_holm) for c in repair] == [(0, 1.0, 1.0)] * 2
     assert next(iter(report.sensitivity.values()))[:2] == (20, 20)
     assert h8.reading == pairs_analysis.H8_READING
 
 
-def test_repair_comparison_uses_shared_visible_pairs_and_pairs_only_holm(tmp_path, monkeypatch):
+def test_repair_comparison_uses_shared_visible_pairs_and_pairs_only_holm(tmp_path):
     b, ws, m = state_fixture(tmp_path)
-
-    def messages(boundary, *, prompt, view):
-        return build_messages(boundary, prompt="prod-plain", view=view)
-
-    # A synthetic future repair prompt exercises the comparison without designing repair-v1.
-    monkeypatch.setattr(pairs, "build_messages", messages)
-    monkeypatch.setattr(pairs_analysis, "build_messages", messages)
-    repair = "repair-v1:flash:evidence"
     items = []
     for i in range(20):
         base = b.model_copy(update={"boundary_id": f"b{i}"})
-        cells = [EVIDENCE, repair] if i < 16 else [EVIDENCE]
+        cells = EVIDENCE_CELLS if i < 16 else [EVIDENCE]
         items.extend(state_pairs(base, ws, [m], cells, FakeExecutor()).items)
     vs = verdicts(
-        items, lambda i, s: "continue" if i.cell == repair and i.arm == "mutated" else "done"
+        items,
+        lambda i, s: "continue" if i.cell != EVIDENCE and i.arm == "mutated" else "done",
     )
     report = pairs_analysis.analyse(items, vs, tolerance=None)
     comparison = next(c for c in report.comparisons if c.name == "H8/repair sensitivity")
@@ -637,27 +635,20 @@ def test_sign_flip_exact_matches_enumeration_beyond_twenty_clusters():
     assert (many.positive, many.nonzero, many.p) == (30, 30, 1 / 2**30)
 
 
-def test_holm_families_are_per_agent_arm_and_repair_labels_join(tmp_path, monkeypatch):
+def test_holm_families_are_per_agent_arm_and_repair_labels_join(tmp_path):
     b, ws, m = state_fixture(tmp_path)
-
-    def messages(boundary, *, prompt, view):
-        return build_messages(boundary, prompt="prod-plain", view=view)
-
-    monkeypatch.setattr(pairs, "build_messages", messages)
-    monkeypatch.setattr(pairs_analysis, "build_messages", messages)
-    repair = "repair-v1:flash:evidence"
     items = []
     for run in ("phase1-weak", "phase1-strong"):
         for i in range(10):
             base = b.model_copy(update={"boundary_id": f"{run}/b{i}", "run_id": run})
-            items.extend(state_pairs(base, ws, [m], [EVIDENCE, repair], FakeExecutor()).items)
+            items.extend(state_pairs(base, ws, [m], EVIDENCE_CELLS, FakeExecutor()).items)
     vs = verdicts(items, lambda i, s: "continue" if i.arm == "mutated" else "done")
     report = pairs_analysis.analyse(items, vs, tolerance=None)
     tested = [c for c in report.comparisons if c.test]
-    assert len(tested) == 6
+    assert len(tested) == 10
     for run in ("phase1-weak", "phase1-strong"):
         own = {f"{c.cell}/{c.name}": c.test.p for c in tested if c.cell.startswith(f"{run}:")}
-        assert len(own) == 3
+        assert len(own) == 5
         expected = stats.holm(own)
         assert all(
             c.p_holm == expected[f"{c.cell}/{c.name}"]
@@ -666,8 +657,21 @@ def test_holm_families_are_per_agent_arm_and_repair_labels_join(tmp_path, monkey
         )
     repair_rows = [c for c in report.comparisons if c.name == "H8/repair sensitivity"]
     assert sorted(c.cell for c in repair_rows) == sorted(
-        f"{run}:None:1a:{EVIDENCE}->{repair}" for run in ("phase1-weak", "phase1-strong")
+        f"{run}:None:1a:{EVIDENCE}->{cell}"
+        for run in ("phase1-weak", "phase1-strong")
+        for cell in EVIDENCE_CELLS[1:]
     )
+
+
+def test_holm_family_with_a_dropped_cell_fails_instead_of_shrinking_k(tmp_path):
+    b, ws, m = state_fixture(tmp_path)
+    items = []
+    for i in range(10):
+        base = b.model_copy(update={"boundary_id": f"b{i}"})
+        items.extend(state_pairs(base, ws, [m], EVIDENCE_CELLS[:2], FakeExecutor()).items)
+    vs = verdicts(items, lambda i, s: "continue" if i.arm == "mutated" else "done")
+    with pytest.raises(ValueError, match="has 3 tests, expected 5"):
+        pairs_analysis.analyse(items, vs, tolerance=None)
 
 
 def test_h7_is_its_own_holm_family_and_stays_out_of_the_edit_table():

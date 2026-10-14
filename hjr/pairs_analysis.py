@@ -49,6 +49,8 @@ class PairsReport:
 # reported descriptively. Their numbers are unchanged; only the verdict is withheld.
 E1_READING = "descriptive: no inertness claim"
 H8_READING = "descriptive: no confirmatory claim"
+# Holm family per agent arm: H8 in the three evidence cells and the two repair-v1 comparisons.
+H8_FAMILY_SIZE = 5
 
 
 def _ci(rows: Sequence[tuple[str, float]], stream: str) -> stats.BootstrapCI:
@@ -262,6 +264,12 @@ def analyse(
     for c in report.comparisons:
         if c.test:
             families[c.holm_family][f"{c.cell}/{c.name}"] = c.test.p
+    for (arm, name), family in families.items():
+        # k is fixed by the prereg; a dropped cell must fail, not shrink the correction.
+        if name == "H8" and len(family) != H8_FAMILY_SIZE:
+            raise ValueError(
+                f"Holm family {arm} has {len(family)} tests, expected {H8_FAMILY_SIZE}"
+            )
     adjusted = {k: v for family in families.values() for k, v in stats.holm(family).items()}
     for c in report.comparisons:
         if c.test:

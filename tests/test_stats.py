@@ -20,7 +20,8 @@ def test_mcnemar_counts_discordant_pairs_and_flags_low_power():
     assert (m.b, m.c, m.discordant) == (6, 0, 6)
     assert m.p == pytest.approx(0.03125)
     assert not m.detectable
-    assert stats.mcnemar_exact([True], [True]).p is None
+    none = stats.mcnemar_exact([True], [True])
+    assert (none.p, none.discordant) == (1.0, 0)
     with pytest.raises(ValueError):
         stats.mcnemar_exact([True], [])
 
