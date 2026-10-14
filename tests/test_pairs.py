@@ -505,3 +505,40 @@ def test_cli_pairs_run_replays_noise_and_refuses_perturbations_before_note(tmp_p
     assert main([*args, "--family", "noise"]) == 0
     with pytest.raises(SystemExit, match="different pair inputs"):
         main([*args, "--family", "h6", "--after-tolerance-note"])
+
+
+def test_execute_code_timing_is_masked_for_replay_and_visibility(tmp_path):
+    b, ws, m = state_fixture(tmp_path)
+    tail = '{"status": "success", "output": "ok", "duration_seconds": 0.03, "execution_count": 1}'
+    events = [
+        ToolEvent(tool="execute_code", cmd=f"run {i}", exit=0, out_tail=tail) for i in range(3)
+    ]
+    b = b.model_copy(update={"recent_tool_events": events})
+
+    class TimingExecutor(FakeExecutor):
+        def replay(self, workspace, events):
+            n = 2 if (workspace / "answer").read_text() == "bad" else 1
+            return [
+                e.model_copy(
+                    update={
+                        "out_tail": e.out_tail.replace("0.03", f"0.0{n + 5}").replace(
+                            '"execution_count": 1', f'"execution_count": {n}'
+                        )
+                    }
+                )
+                for e in events
+            ]
+
+    result = state_pairs(b, ws, [m], [EVIDENCE], TimingExecutor())
+    assert not result.excluded
+    assert all(i.evidence_invisible for i in result.items)
+    other = [e.model_copy(update={"out_tail": tail.replace('"ok"', '"changed"')}) for e in events]
+
+    class OutputExecutor(FakeExecutor):
+        def replay(self, workspace, events):
+            return other
+
+    assert (
+        "non-replayable"
+        in state_pairs(b, ws, [m], [EVIDENCE], OutputExecutor()).excluded[0]["reason"]
+    )

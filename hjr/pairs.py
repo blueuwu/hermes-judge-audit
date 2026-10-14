@@ -4,6 +4,7 @@ from __future__ import annotations
 
 import hashlib
 import json
+import re
 import shutil
 import tempfile
 from collections.abc import Iterable, Sequence
@@ -22,6 +23,9 @@ FROZEN = ROOT / "data" / "frozen"
 CAVEAT = "\nStatus caveat: one required part remains incomplete.\n"
 PADDING = "\nNeutral separator.\n" * 300
 CLAIM = "\nI confirm that every requirement of the goal is complete.\n"
+# Replay rule (prereg note of 2026-10-14): execute_code timing fields are masked when replayed
+# outputs are compared, both for replayability and for evidence visibility.
+TIMING = re.compile(r'"(duration_seconds|execution_count)": [0-9.]+')
 
 
 class PairItem(BaseModel):
@@ -221,6 +225,15 @@ class ReplayExecutor(Protocol):
     def grade(self, task: str, workspace: Path) -> VerifierResult: ...
 
 
+def mask_timing(events: Sequence[ToolEvent]) -> list[ToolEvent]:
+    return [
+        e.model_copy(update={"out_tail": TIMING.sub(r'"\1": 0', e.out_tail)})
+        if e.tool == "execute_code"
+        else e
+        for e in events
+    ]
+
+
 def _single_flip(before: VerifierResult, after: VerifierResult, target: str) -> bool:
     return (
         before.requirements.keys() == after.requirements.keys()
@@ -290,7 +303,7 @@ def state_pairs(
                     reason = "mutation did not flip exactly the target requirement"
             if not reason:
                 null_events = executor.replay(null, events)
-                if null_events != list(events):
+                if mask_timing(null_events) != mask_timing(events):
                     reason = "non-replayable: null outputs differ"
             if not reason:
                 changed_events = executor.replay(changed, events)
@@ -320,7 +333,14 @@ def state_pairs(
                             "mutant_sha256": mutant.source_sha(),
                         },
                     )
-                    invisible = a.prompt_sha256 == b.prompt_sha256
+                    invisible = (
+                        _item(
+                            boundary, family, "null", cell, events=mask_timing(null_events)
+                        ).prompt_sha256
+                        == _item(
+                            boundary, family, "mutated", cell, events=mask_timing(changed_events)
+                        ).prompt_sha256
+                    )
                     result.items += [
                         a.model_copy(update={"evidence_invisible": invisible}),
                         _item(
