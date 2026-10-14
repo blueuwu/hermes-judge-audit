@@ -53,5 +53,5 @@ the calibration template registry and prompt builder, with parity tests. Contrac
 are keyed by task ID under the variant's `contracts` table, using Hermes contract
 fields. Subgoals are lists of criteria keyed by task ID under `subgoals`.
 
-`hjr.calibrate.compute_metrics(decisions, truth)` returns `NotImplemented`. Agent A's
-table code will plug into that interface after merging. Calibration implements no metrics.
+`hjr.calibrate.compute_metrics(decisions, truth)` returns `NotImplemented`. The per-class precision/recall
+table code from PR #11 will plug into that interface once merged. Calibration implements no metrics.

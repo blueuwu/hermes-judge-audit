@@ -30,7 +30,7 @@ TEMPLATES = {
 
 
 def compute_metrics(decisions, truth):
-    """Integration point for Agent A's table code after it merges."""
+    """Integration point for the per-class precision/recall table code (PR #11) once merged."""
     return NotImplemented
 
 
