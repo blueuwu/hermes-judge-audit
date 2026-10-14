@@ -230,3 +230,92 @@ def test_analysis_refuses_mixed_judge_arms_in_one_cell():
     truth = {a: analysis.truth_from_verifier(boundaries[a]) for a in PLAN.arms}
     with pytest.raises(MixedArmError):
         analysis.analyse(PLAN, truth, boundaries, verdicts, {})
+
+
+@pytest.mark.parametrize(
+    "decisions, expected",
+    [
+        (("done", "continue", "blocked"), "tie"),
+        (("done", "continue", ""), "tie"),
+        (("continue", "", ""), "tie"),
+        (("", "", ""), "tie"),
+        (("done", "done", ""), "done"),
+        (("blocked", "blocked", "continue"), "blocked"),
+    ],
+)
+def test_exploratory_majority_counts_only_parsed_votes(decisions, expected):
+    assert analysis.parsed_majority(_item("b", "t", "done", decisions)) == expected
+
+
+def test_exploratory_wait_merge_failures_and_phase1b_exclusion():
+    boundaries = {
+        bid: make_boundary(boundary_id=bid, phase=phase)
+        for bid, phase in (
+            ("wait", "1a"),
+            ("failed", "1a"),
+            ("missing", "1a"),
+            ("enriched", "1b-enrichment"),
+        )
+    }
+    truth = analysis.Truth("verifier", dict.fromkeys(boundaries, "not_done"))
+    rows = []
+    for bid in ("wait", "failed", "enriched"):
+        for sample, decision in enumerate(("continue", "continue", "done")):
+            v = _verdict(bid, "v", sample, decision, "a")
+            if bid == "wait" and sample == 0:
+                v = v.model_copy(update={"verdict": "wait"})
+            if bid == "failed" and sample == 0:
+                v = v.model_copy(update={"outcome": "parse_failed", "parse_failed": True})
+            rows.append(v)
+    items = analysis.precision_recall_items(rows, boundaries, truth)
+    assert [i.boundary_id for i in items] == ["wait", "failed", "missing"]
+    assert [analysis.parsed_majority(i) for i in items] == ["continue", "tie", "tie"]
+    assert items[0].decisions == ("continue", "continue", "done")
+    block = analysis.precision_recall_block(items, "v")
+    assert "1/1 (Wilson 95% 20.7%–100.0%)" in block[2]
+    assert block[2].endswith("| 2 |  |")
+    assert block[0].endswith("| 0 | 0/3 |")
+
+
+def test_exploratory_precision_recall_wilson_and_tie_denominators():
+    # DONE: TP 1, predicted 2, actual non-ties 2; BLOCKED: TP 1, predicted 1,
+    # actual 2; CONTINUE: TP 1, predicted 2, actual 1. One done-truth tie.
+    rows = [
+        ("done", ("done",) * 3),
+        ("blocked", ("done", "done", "blocked")),
+        ("done", ("continue", "continue", "done")),
+        ("not_done", ("continue",) * 3),
+        ("blocked", ("blocked",) * 3),
+        ("done", ("done", "continue", "blocked")),
+    ]
+    items = [_item(str(k), "t", truth, votes) for k, (truth, votes) in enumerate(rows)]
+    block = analysis.precision_recall_block(items, "cell")
+    half = "1/2 (Wilson 95% 9.5%–90.5%)"
+    one = "1/1 (Wilson 95% 20.7%–100.0%)"
+    assert block == [
+        f"| `cell` | DONE ↔ done | {half} | {half} | 1 | 3/6 |",
+        f"|  | BLOCKED ↔ blocked | {one} | {half} | 0 |  |",
+        f"|  | CONTINUE(+WAIT) ↔ not_done | {half} | {one} | 0 |  |",
+    ]
+    assert analysis._wilson_cell(0, 1) == "0/1 (Wilson 95% 0.0%–79.3%)"
+    assert analysis._wilson_cell(0, 0) == "0/0 (Wilson 95% undefined)"
+    assert analysis._wilson_cell(20, 20) == "20/20 (Wilson 95% 83.9%–100.0%)"
+    enriched = items[0].__class__("extra", "t", "C2", "dev", "done", ("done",) * 3, "1b-enrichment")
+    assert analysis.precision_recall_block([*items, enriched], "cell") == block
+
+
+def test_exploratory_section_is_appended_and_arms_stay_separate():
+    boundaries, verdicts = _synthetic()
+    truth = {a: analysis.truth_from_verifier(boundaries[a]) for a in PLAN.arms}
+    report = analysis.analyse(PLAN, truth, boundaries, verdicts, {})
+    text = analysis.render(report)
+    heading = "## Exploratory (not pre-registered), see Amendment 2026-10-14"
+    assert text.count(heading) == 1
+    section = text.split(heading)[1]
+    assert section.count("| Cell | Class ↔ truth") == 2
+    assert "### Per-class precision/recall, arm: weak" in section
+    assert "### Per-class precision/recall, arm: strong" in section
+    assert section.count("| 0 | 6/6 |") == 12
+    assert "excluded from precision/recall denominators" in section
+    report.phase = "1b-enrichment"
+    assert heading not in analysis.render(report)

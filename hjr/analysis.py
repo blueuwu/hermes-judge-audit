@@ -128,6 +128,71 @@ def build_items(
 # ── Rates ─────────────────────────────────────────────────────────────
 
 
+def precision_recall_items(
+    verdicts: Sequence[JudgeVerdict],
+    boundaries: Mapping[str, BoundaryRecord],
+    truth: Truth,
+) -> list[Item]:
+    """Phase 1a only; failed or missing samples cast no semantic vote."""
+    votes = defaultdict(dict)
+    for v in verdicts:
+        if v.outcome == "parsed":
+            votes[v.boundary_id][v.sample] = "continue" if v.verdict == "wait" else v.decision
+    return [
+        Item(
+            bid,
+            b.task_id,
+            b.category,
+            b.split,
+            truth.states[bid],
+            tuple(votes[bid].get(s, "") for s in range(3)),
+        )
+        for bid, b in boundaries.items()
+        if b.phase == "1a" and bid in truth.states
+    ]
+
+
+def parsed_majority(item: Item) -> str:
+    """At least two matching parsed votes, even when another sample failed."""
+    counts = Counter(d for d in item.decisions if d in DECISIONS)
+    return next((d for d, n in counts.items() if n >= 2), "tie")
+
+
+def _wilson_cell(k: int, n: int) -> str:
+    interval = stats.wilson(k, n)
+    if interval is None:
+        return f"{k}/{n} (Wilson 95% undefined)"
+    return f"{k}/{n} (Wilson 95% {_pct(interval[0])}–{_pct(interval[1])})"
+
+
+def precision_recall_block(items: Sequence[Item], variant: str) -> list[str]:
+    """Three descriptive class rows; ties are counted by truth class."""
+    items = [i for i in items if i.phase == "1a"]
+    pairs = [(EXPECTED[i.truth], parsed_majority(i)) for i in items]
+    unanimous = sum(
+        len(i.decisions) == 3 and len(set(i.decisions)) == 1 and i.decisions[0] in DECISIONS
+        for i in items
+    )
+    lines = []
+    classes = (
+        ("done", "DONE", "done"),
+        ("blocked", "BLOCKED", "blocked"),
+        ("continue", "CONTINUE(+WAIT)", "not_done"),
+    )
+    for index, (decision, label, truth) in enumerate(classes):
+        correct = sum(t == d == decision for t, d in pairs)
+        predicted = sum(d == decision for _, d in pairs)
+        actual = sum(t == decision and d != "tie" for t, d in pairs)
+        ties = sum(t == decision and d == "tie" for t, d in pairs)
+        cell = f"`{variant}`" if index == 0 else ""
+        agreement = f"{unanimous}/{len(items)}" if index == 0 else ""
+        lines.append(
+            f"| {cell} | {label} ↔ {truth} | {_wilson_cell(correct, predicted)} | "
+            f"{_wilson_cell(correct, actual)} | {ties} | {agreement} |"
+        )
+    return lines
+
+
 @dataclass(frozen=True)
 class RateCI:
     k: int
@@ -260,6 +325,7 @@ class CellReport:
     # Codex arm only: replies that did not match the verdict schema exactly
     schema_invalid: tuple[int, int] | None
     kappa: stats.Agreement | None
+    precision_recall: list[Item] = field(default_factory=list)
 
 
 def cell_report(
@@ -302,6 +368,7 @@ def cell_report(
         unanimous=(sum(i.unanimous for i in items), len(items)),
         schema_invalid=invalid,
         kappa=stats.agreement(pairs, ["done", "not_done"]) if phase == "1a" else None,
+        precision_recall=precision_recall_items(verdicts, boundaries, truth),
     )
 
 
@@ -639,6 +706,39 @@ def render(report: Report) -> str:
         ]
         for (arm, name), (k, n) in sorted(report.sanity.items()):
             lines.append(f"| {arm} | `{name}` | {k}/{n} |")
+    return "\n".join(lines) + "\n" + _render_precision_recall(report)
+
+
+def _render_precision_recall(report: Report) -> str:
+    lines = [
+        "",
+        "## Exploratory (not pre-registered), see Amendment 2026-10-14",
+        "",
+        "Per-class precision/recall: Phase 1a endpoints only; Phase 1b excluded. "
+        "Descriptive only; no hypothesis test uses this table.",
+        "",
+        "WAIT is merged into CONTINUE before voting; DONE ↔ truth done, BLOCKED ↔ truth blocked, "
+        "CONTINUE(+WAIT) ↔ truth not_done.",
+        "",
+        "Item decision requires at least 2 of 3 parsed samples to agree. Failed or missing "
+        "samples cast no vote; items without a majority are ties. Ties are counted by truth "
+        "class and excluded from precision/recall denominators. All precision/recall cells "
+        "show k/n and Wilson 95% intervals, including denominators below 20. "
+        "3-sample unanimity counts agreement after the WAIT merge among all endpoints, "
+        "requiring all three samples to be parsed.",
+    ]
+    for arm in report.plan.arms:
+        lines += [
+            "",
+            f"### Per-class precision/recall, arm: {arm}",
+            "",
+            "| Cell | Class ↔ truth | Precision (Wilson 95%) | Recall (Wilson 95%) "
+            "| Ties (truth class) | 3-sample unanimity |",
+            "|---|---|---|---|---|---|",
+        ]
+        for name in report.plan.cells:
+            c = report.cells[(arm, name)]
+            lines += precision_recall_block(c.precision_recall, c.variant)
     return "\n".join(lines) + "\n"
 
 
