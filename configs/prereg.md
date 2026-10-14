@@ -735,3 +735,87 @@ frozen. Design may stop before three iterations; the rule then applies to the it
 
 *Spend.* Design calls count toward the $20 stop on paid Phase 2 calls. At the pilot's measured
 Flash cost an iteration is about $1.
+
+**2026-10-14. Controlled pairs: pre-perturbation decisions.**
+
+*Scope.* Apart from H6, which is confirmatory on dev, the pairs run on dev boundaries is a
+pilot: its flip rates and sensitivity estimates are used to size a confirmatory pairs run on
+held-out boundaries, which needs its own dated amendment before any of its calls.
+
+*Noise floor.* `hjr pairs-run --family noise` on `prod-plain:flash:head4k`, dev bases only, runs
+`pairs-noise-weak` and `pairs-noise-strong` (2026-10-13). Identical-input flip rate: weak 0 of
+34 bases, strong 0 of 36. No H6, edit or state item has been judged.
+
+*E1, descriptive.* E1 covers the `paraphrase` and `tone` families only, per agent arm. Its
+statistic is the edit flip rate minus the paired identical-input flip rate of the same bases.
+Each family has 12 bases per arm, one per task. At that size equivalence cannot be shown: with 0
+flips in 12 the exact (Clopper-Pearson) 95% upper bound is about 26%, and keeping it under 10
+points with 0 flips would take 36 bases (29 one-sided). So no family is called behaviourally
+inert. Each family is reported with its flip count, the exact 95% upper bound on its flip rate
+and the task-clustered CI of the difference. A percentile bootstrap on all-zero flips collapses
+to [0, 0]; that interval is an artefact of the method and is not read as evidence. A reference
+tolerance of 10 percentage points is recorded for comparison with later runs. Reason: the
+identical-input flip rate is 0 in both arms, and a 10-point change in item decisions is the
+smallest we would call practically meaningful for a completion judge.
+
+*H6, confirmatory.* H6 is the only confirmatory pairs test, on 34 weak and 36 strong pairs
+across 12 tasks per arm. Its rule changes from the CI-above-zero rule of *Hypotheses on pairs*,
+before any H6 item is judged. With 12 clusters, the task-clustered bootstrap CI clears 0 once
+pre-cut flips occur in 4 tasks, where an exact test gives p = 1/16 one-sided, so it is
+anti-conservative at this size. The confirmatory rule is now an exact one-sided sign-flip test
+of mean > 0 on the per-task differences: for each task, the mean over its pairs of pre-cut flip
+minus post-cut flip. The p-value is the share of the 2^m sign assignments to the m nonzero task
+differences whose sum is at least the observed sum. H6 holds in an arm if p < 0.05. Rejection
+needs at least 5 tasks with a nonzero difference; with exactly 5, all must be positive
+(p = 1/32). Each agent arm is a separate claim. The bootstrap CI is still reported, as
+description, with the count of positive and nonzero tasks.
+
+*H8 and the repair comparisons, descriptive.* Evidence-visible state pairs number 7 for weak
+(from 4 tasks, 3 of them on `c1-05`) and 2 for strong. Holm per agent arm runs over the McNemar
+p-values of H8 in the three evidence cells and the two `repair-v1` versus
+`prod-plain:flash:evidence` comparisons. The smallest exact two-sided p on 7 discordant pairs is
+0.0156, and 0.078 after Holm; on 2 pairs it is 0.5. McNemar also treats pairs from one task as
+independent. No H8 or repair test can reach significance in either arm, so both are reported
+descriptively. That means pair decisions, sensitivity with Wilson and task-clustered intervals,
+and the raw and Holm p-values, with no verdict. H8 sensitivity is the share of mutated arms
+judged not DONE among replayable, evidence-visible pairs. `repair-v1` sensitivity is compared
+with `prod-plain:flash:evidence` on their shared pairs. Null-arm decisions stay in each cell's
+H8 DONE-rate contrast. The 80% reference bar of *Hypotheses on pairs* is descriptive.
+
+*Test family.* H6 is the sole confirmatory test in the pairs family, one claim per agent arm,
+separate from H1 to H5. Holm (k = 5 per arm) applies to the descriptive McNemar p-values only.
+`hjr pairs-summary` at commit `4dde028` computes the H6 test and prints these readings; no other
+computed number differs from the code before this note.
+
+*Replay rule.* Frozen ToolEvents hold exit codes and output tails, not full output. "Reproduce
+the recorded outputs" therefore means the null replay reproduces each of the last three stored
+ToolEvents (tool, command, exit, output tail) exactly, except that the `execute_code` timing
+fields `duration_seconds` and `execution_count` are masked. Visibility is equality of the actual
+evidence-cell prompts after the evidence rule, with the same mask applied. A pair whose arms
+differ only in those fields, or only in output the evidence rule discards, is
+`evidence_invisible`. The mask was chosen after the replay fidelity counts were seen and after
+the exact-rule build (weak 10 pairs, 4 evidence-visible; strong 4, 1 evidence-visible), and
+before any judge call on a state item. On unmutated copies of the 70 dev boundaries, 23 replay
+exactly and 35 with the mask. The other 35 fail the replay check, so none of their pairs can be
+built; past that, exclusions are counted per boundary and mutant. State pairs under this rule:
+weak 15 (7 evidence-visible), strong 8 (2). No exact-rule pair is lost. State pairs are limited
+to boundaries whose last three calls replay. That selects for simple, deterministic endings,
+which limits what H8 can say about the rest.
+
+*Response edits.* On 2026-10-14 the owner reviewed the 96 drafted edits on 24 dev bases. There
+is one base per task and agent arm and one edit per base in each of `hedging`, `error`,
+`paraphrase` and `tone`. Review changed three edits and one family:
+- the weak `c1-01` and strong `c5-02` `tone` edits, whose openers weakened or dropped the
+  completion claim;
+- the strong `c2-01` `paraphrase`, which said "raises" for a warning;
+- every `error` edit: the inserted sentence moved to its own paragraph. On weak `c5-02` it names
+  a different error, since that account already reports the drafted one.
+
+The owner attests `meaning_preserving` for all 48 `paraphrase` and `tone` edits. This is a
+single rater's attestation. H7 has no eligible base: Phase 1a dev holds one primary-truth
+`not_done` boundary, and its account already claims completion. H7 is therefore not run and is
+reported as not run. `hedging` and `error` edits are run and reported descriptively, with no
+test.
+
+*Unchanged.* Dev boundaries only; arms are never pooled; the $20 stop on paid Phase 2 calls,
+which these calls count toward.
