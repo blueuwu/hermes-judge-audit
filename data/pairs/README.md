@@ -74,6 +74,8 @@ call has been made on them.
 
 Files: `state-{weak,strong}.jsonl` (items), `.excluded.json` (one row per boundary and mutant),
 `.log` (the build log).
+`state-<arm>.<cell>.jsonl`, with `:` in the cell name written as `__`, hold the same lines split
+by cell, because `hjr pairs-run` judges one cell at a time (checked by a test).
 
 Replay fidelity, measured on an unmutated copy of all 70 dev boundaries (210 calls):
 - Exact: `terminal` 67/95, `read_file` 37/38, `execute_code` 17/43, `write_file` 15/15,

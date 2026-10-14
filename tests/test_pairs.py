@@ -593,3 +593,18 @@ def test_reviewed_edits_split_per_arm_without_change():
         bases[arm] = set(ids)
     assert not bases["weak"] & bases["strong"]
     assert sorted(split["weak"] + split["strong"]) == sorted(reviewed)
+
+
+def test_state_items_split_per_cell_without_change():
+    data = pairs.ROOT / "data" / "pairs"
+    for arm in ("weak", "strong"):
+        built = (data / f"state-{arm}.jsonl").read_bytes().splitlines(keepends=True)
+        parts = sorted(data.glob(f"state-{arm}.*__evidence.jsonl"))
+        assert len(parts) == 3
+        lines = []
+        for part in parts:
+            chunk = part.read_bytes().splitlines(keepends=True)
+            cells = {json.loads(line)["cell"] for line in chunk}
+            assert cells == {part.name.split(".")[1].replace("__", ":")}
+            lines += chunk
+        assert sorted(lines) == sorted(built)
