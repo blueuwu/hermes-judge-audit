@@ -35,9 +35,9 @@ E1 reference tolerance: 0.1 (no family is called inert).
 | Test | Cell | n | Difference [95% CI] | Exact p | Holm p | Reading |
 |---|---|---|---|---|---|---|
 | H8 | phase1-strong:deepseek/deepseek-v4.1-flash:1a:prod-plain:flash:evidence | 2 | +0.00 items [+0.00, +0.00] (difference × n) | 1.0 | 1.0 | descriptive: no confirmatory claim |
-| E1/paraphrase | phase1-strong:deepseek/deepseek-v4.1-flash:1a:prod-plain:flash:head4k | 12 | +0.00 items [+0.00, +0.00] (difference × n) | n/a | None | descriptive: no inertness claim |
-| E1/tone | phase1-strong:deepseek/deepseek-v4.1-flash:1a:prod-plain:flash:head4k | 12 | +0.00 items [+0.00, +0.00] (difference × n) | n/a | None | descriptive: no inertness claim |
-| H6 | phase1-strong:deepseek/deepseek-v4.1-flash:1a:prod-plain:flash:head4k | 36 | 0.1111 [0.0000, 0.3056] | 0.25 (sign-flip, 2/2 tasks positive) | None | H6 not established |
+| E1/paraphrase | phase1-strong:deepseek/deepseek-v4.1-flash:1a:prod-plain:flash:head4k | 12 | +0.00 items [+0.00, +0.00] (difference × n) | n/a | n/a | descriptive: no inertness claim |
+| E1/tone | phase1-strong:deepseek/deepseek-v4.1-flash:1a:prod-plain:flash:head4k | 12 | +0.00 items [+0.00, +0.00] (difference × n) | n/a | n/a | descriptive: no inertness claim |
+| H6 | phase1-strong:deepseek/deepseek-v4.1-flash:1a:prod-plain:flash:head4k | 36 | 0.1111 [0.0000, 0.3056] | 0.25 (sign-flip, 2/2 tasks positive) | n/a | H6 not established |
 | H8 | phase1-strong:deepseek/deepseek-v4.1-flash:1a:repair-v1:flash:evidence | 2 | -1.00 items [-2.00, +0.00] (difference × n) | 1.0 | 1.0 | descriptive: no confirmatory claim |
 | H8 | phase1-strong:deepseek/deepseek-v4.1-flash:1a:repair-v1:strong:evidence | 2 | -1.00 items [-2.00, +0.00] (difference × n) | 1.0 | 1.0 | descriptive: no confirmatory claim |
 | H8/repair sensitivity | phase1-strong:deepseek/deepseek-v4.1-flash:1a:prod-plain:flash:evidence->repair-v1:flash:evidence | 2 | +1.00 items [+0.00, +2.00] (difference × n) | 1.0 | 1.0 | descriptive: no confirmatory claim |
