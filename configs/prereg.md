@@ -823,3 +823,13 @@ which these calls count toward.
 **2026-10-14. Amendment: exploratory per-class precision/recall.** Per-class precision/recall
 was not pre-registered and is added as an exploratory, descriptive table for Phase 1a endpoints
 only, with Phase 1b excluded entirely. No hypothesis test uses this table.
+
+**2026-10-14. Calibration subgoals drafting and hash gate.**
+
+Subgoals are drafted from task specs and verifier predicates only, without access to
+trajectories, judge outputs or fault-injection configs, and without fault-specific wording.
+`hjr calibrate --live` refuses unless the SHA256 of `configs/subgoals.toml`, computed
+from LF-normalised bytes, equals the hash in the latest dated prereg entry that records one.
+Drafted subgoals require a new dated entry with their hash, committed before any live call.
+
+configs/subgoals.toml sha256: 2ca6ef1189d3aa8431eb88f268e90a37ce144aabce516a3c408d2b4a5fdfd20f
