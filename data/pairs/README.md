@@ -28,10 +28,19 @@
 
 - `dev-weak.jsonl` (34) and `dev-strong.jsonl` (36): the same dev lines as `dev-boundaries.jsonl`,
   split by arm so that each arm is built, run and summarised on its own.
-- `response-weak.jsonl` (170 items) and `response-strong.jsonl` (180): `hjr pairs-build --cell
-  prod-plain:flash:head4k` on each, without `--edits`. Each base gets the noise-floor `null` and
-  `repeat` items and the H6 `null`, `pre` and `post` items. The `.excluded.json` files are empty.
-  The builder is deterministic, so a rebuild with the reviewed edits reproduces these items.
+- `response-edits-weak.jsonl` and `response-edits-strong.jsonl`: the reviewed edits split by arm,
+  48 each, byte-identical lines; their union is `response-edits.draft.jsonl` (checked by a test).
+- `response-weak.jsonl` (218 items) and `response-strong.jsonl` (228): `hjr pairs-build --cell
+  prod-plain:flash:head4k --edits response-edits-<arm>.jsonl` on each. Each base gets the
+  noise-floor `null` and `repeat` items and the H6 `null`, `pre` and `post` items. Each edit base
+  also gets one `edit` item per family, compared with its noise-floor `null`. The `.excluded.json`
+  files are empty.
+- Rebuilt 2026-10-14. The 170 weak and 180 strong items of the first build, on which the noise
+  floor was judged, are reproduced byte-for-byte. sha256:
+  - `response-weak.jsonl` `76e8a4d46fd1e3365e666b55427683a2bb70f99881a242bc9d89483a9a58659c`
+  - `response-strong.jsonl` `0f5e7eb698078a6fad09fd19dbb7b4454a2b0f91b7810357e4f503c1a8922d73`
+  - `response-edits-weak.jsonl` `b121460f391cd85363b26ab0b90156ccdb4047d4c467e0d85c8774ddd24eb7e1`
+  - `response-edits-strong.jsonl` `61e5c731dc863f147cea7e75eafe3b1479f14769bcbad330ead9a30144cc954c`
 - Noise floor judged on 2026-10-13 with `hjr pairs-run --family noise` (runs `pairs-noise-weak`
   and `pairs-noise-strong`). No H6 or edit item has been judged.
 
