@@ -823,3 +823,9 @@ which these calls count toward.
 **2026-10-14. Amendment: exploratory per-class precision/recall.** Per-class precision/recall
 was not pre-registered and is added as an exploratory, descriptive table for Phase 1a endpoints
 only, with Phase 1b excluded entirely. No hypothesis test uses this table.
+
+**2026-10-14. Erratum to the note "Controlled pairs: pre-perturbation decisions" (errata
+only).** Its *Replay rule* paragraph says that on unmutated copies of the 70 dev boundaries, 23
+replay exactly. The strict rule at `826ca9b` (`results/runs/pairs/replay-fidelity.json`) gives 22
+exactly: weak 13, strong 9. The 35 of 70 that replay under the timing mask and every pair count
+are unchanged. No rule, analysis or result changes.
