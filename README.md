@@ -9,7 +9,7 @@ against deterministic state verifiers and human labels, then measures judge-side
 frozen held-out set. Hypotheses and analysis rules are fixed in
 [`configs/prereg.md`](configs/prereg.md).
 
-Status: Phase 1a trajectories frozen (178 boundaries), primary verifier frozen after the mutation suite, Phase 1b enrichment and `repair-v1` design done (tag `repair-freeze-v1`). Phase 2 replay done and analysed (below). Human verifier audit done (1 verifier error in 49 audited boundaries). Controlled counterfactual pairs run on dev boundaries (below); the report remains.
+Status: Phase 1a trajectories frozen (178 boundaries), primary verifier frozen after the mutation suite, Phase 1b enrichment and `repair-v1` design done (tag `repair-freeze-v1`). Phase 2 replay done and analysed (below). Human verifier audit done (1 verifier error in 49 audited boundaries). Controlled counterfactual pairs run on dev boundaries (below). Report: [`reports/report.md`](reports/report.md).
 
 ## Pilot findings (M0.5, constructed items)
 
@@ -101,8 +101,8 @@ frozen at Phase 1: [`summary-v1.md`](results/runs/phase2/summary-v1.md).
 - **Small sample.** The 16 (weak) and 17 (strong) truth ≠ done boundaries come from few tasks.
   These are counts from a small natural sample, not precise rates.
 
-Measured spend on paid Phase 2 calls: $5.46 of the $20 stop. The 1,108 Codex CLI calls are
-unbilled ([`results/runs/phase2/spend.md`](results/runs/phase2/spend.md)).
+Measured spend on paid Phase 2 calls, including the repair design and the controlled pairs:
+$7.18 of the $20 stop. The 1,315 Codex CLI calls are unbilled ([`results/runs/phase2/spend.md`](results/runs/phase2/spend.md)).
 
 - **Human verifier audit.** The owner audited 49 boundaries blind, without the judge verdict or
   the stratum ([`results/audit/report.md`](results/audit/report.md)). As the prereg sets out, the
