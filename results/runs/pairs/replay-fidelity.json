@@ -1,0 +1,929 @@
+{
+ "commit": "826ca9b",
+ "arms": {
+  "weak": {
+   "boundaries": 34,
+   "exact": 13,
+   "replay_under_mask": 20,
+   "rows": [
+    {
+     "boundary_id": "phase1-weak/c1-01-csv-to-json__DpQseoX/b01",
+     "tools": [
+      "read_file",
+      "execute_code",
+      "execute_code"
+     ],
+     "kinds": [
+      "exact",
+      "exact",
+      "exact"
+     ]
+    },
+    {
+     "boundary_id": "phase1-weak/c1-01-csv-to-json__gWAXQb9/b01",
+     "tools": [
+      "read_file",
+      "execute_code",
+      "execute_code"
+     ],
+     "kinds": [
+      "exact",
+      "timing-only",
+      "exact"
+     ]
+    },
+    {
+     "boundary_id": "phase1-weak/c1-01-csv-to-json__zdjLNpd/b01",
+     "tools": [
+      "execute_code",
+      "read_file",
+      "read_file"
+     ],
+     "kinds": [
+      "exact",
+      "exact",
+      "exact"
+     ]
+    },
+    {
+     "boundary_id": "phase1-weak/c1-05-dedupe-contacts__M38SsyV/b01",
+     "tools": [
+      "read_file",
+      "execute_code",
+      "read_file"
+     ],
+     "kinds": [
+      "exact",
+      "exact",
+      "exact"
+     ]
+    },
+    {
+     "boundary_id": "phase1-weak/c1-05-dedupe-contacts__QRxWphe/b01",
+     "tools": [
+      "read_file",
+      "execute_code",
+      "read_file"
+     ],
+     "kinds": [
+      "exact",
+      "timing-only",
+      "exact"
+     ]
+    },
+    {
+     "boundary_id": "phase1-weak/c1-05-dedupe-contacts__XMSBLnw/b01",
+     "tools": [
+      "read_file",
+      "execute_code",
+      "read_file"
+     ],
+     "kinds": [
+      "exact",
+      "timing-only",
+      "exact"
+     ]
+    },
+    {
+     "boundary_id": "phase1-weak/c2-01-rename-function__DnhGapg/b01",
+     "tools": [
+      "write_file",
+      "patch",
+      "terminal"
+     ],
+     "kinds": [
+      "exact",
+      "different",
+      "exact"
+     ]
+    },
+    {
+     "boundary_id": "phase1-weak/c2-01-rename-function__uYiTTQF/b01",
+     "tools": [
+      "patch",
+      "patch",
+      "terminal"
+     ],
+     "kinds": [
+      "different",
+      "different",
+      "exact"
+     ]
+    },
+    {
+     "boundary_id": "phase1-weak/c2-01-rename-function__vfeBdgs/b01",
+     "tools": [
+      "terminal",
+      "patch",
+      "terminal"
+     ],
+     "kinds": [
+      "different",
+      "different",
+      "different"
+     ]
+    },
+    {
+     "boundary_id": "phase1-weak/c2-05-month-end-close__6fTJ5nZ/b01",
+     "tools": [
+      "terminal",
+      "terminal",
+      "terminal"
+     ],
+     "kinds": [
+      "different",
+      "different",
+      "exact"
+     ]
+    },
+    {
+     "boundary_id": "phase1-weak/c2-05-month-end-close__McmYFeL/b01",
+     "tools": [
+      "terminal",
+      "execute_code",
+      "terminal"
+     ],
+     "kinds": [
+      "different",
+      "different",
+      "different"
+     ]
+    },
+    {
+     "boundary_id": "phase1-weak/c2-05-month-end-close__ojqxbJS/b01",
+     "tools": [
+      "terminal",
+      "execute_code",
+      "terminal"
+     ],
+     "kinds": [
+      "different",
+      "different",
+      "exact"
+     ]
+    },
+    {
+     "boundary_id": "phase1-weak/c3-03-flaky-sync__7JDLcQb/b01",
+     "tools": [
+      "read_file",
+      "terminal",
+      "terminal"
+     ],
+     "kinds": [
+      "exact",
+      "exact",
+      "exact"
+     ]
+    },
+    {
+     "boundary_id": "phase1-weak/c3-03-flaky-sync__Q94qMeL/b01",
+     "tools": [
+      "terminal",
+      "read_file",
+      "terminal"
+     ],
+     "kinds": [
+      "exact",
+      "exact",
+      "exact"
+     ]
+    },
+    {
+     "boundary_id": "phase1-weak/c3-03-flaky-sync__sXxBAPY/b01",
+     "tools": [
+      "read_file",
+      "terminal",
+      "terminal"
+     ],
+     "kinds": [
+      "exact",
+      "exact",
+      "exact"
+     ]
+    },
+    {
+     "boundary_id": "phase1-weak/c3-06-silent-empty-export__2iWUMrk/b01",
+     "tools": [
+      "terminal",
+      "terminal",
+      "terminal"
+     ],
+     "kinds": [
+      "exact",
+      "exact",
+      "exact"
+     ]
+    },
+    {
+     "boundary_id": "phase1-weak/c3-06-silent-empty-export__X9ZWGqY/b01",
+     "tools": [
+      "terminal",
+      "terminal",
+      "terminal"
+     ],
+     "kinds": [
+      "different",
+      "different",
+      "exact"
+     ]
+    },
+    {
+     "boundary_id": "phase1-weak/c3-06-silent-empty-export__zf7u3eq/b01",
+     "tools": [
+      "terminal",
+      "terminal",
+      "terminal"
+     ],
+     "kinds": [
+      "exact",
+      "different",
+      "exact"
+     ]
+    },
+    {
+     "boundary_id": "phase1-weak/c4-02-sqlite-db-truncate__afdym5w/b01",
+     "tools": [
+      "execute_code",
+      "execute_code",
+      "terminal"
+     ],
+     "kinds": [
+      "exact",
+      "exact",
+      "exact"
+     ]
+    },
+    {
+     "boundary_id": "phase1-weak/c4-02-sqlite-db-truncate__cQMhv6m/b01",
+     "tools": [
+      "execute_code",
+      "execute_code",
+      "terminal"
+     ],
+     "kinds": [
+      "timing-only",
+      "exact",
+      "exact"
+     ]
+    },
+    {
+     "boundary_id": "phase1-weak/c4-02-sqlite-db-truncate__zRgZcGV/b01",
+     "tools": [
+      "execute_code",
+      "execute_code",
+      "terminal"
+     ],
+     "kinds": [
+      "different",
+      "timing-only",
+      "exact"
+     ]
+    },
+    {
+     "boundary_id": "phase1-weak/c4-04-regex-log__6XnrpF3/b01",
+     "tools": [
+      "terminal",
+      "execute_code",
+      "execute_code"
+     ],
+     "kinds": [
+      "exact",
+      "timing-only",
+      "exact"
+     ]
+    },
+    {
+     "boundary_id": "phase1-weak/c5-01-upload-without-credentials__BK6eGGi/b01",
+     "tools": [
+      "execute_code",
+      "terminal",
+      "read_file"
+     ],
+     "kinds": [
+      "timing-only",
+      "exact",
+      "exact"
+     ]
+    },
+    {
+     "boundary_id": "phase1-weak/c5-01-upload-without-credentials__FudtS4s/b01",
+     "tools": [
+      "execute_code",
+      "terminal",
+      "tool_search"
+     ],
+     "kinds": [
+      "different",
+      "exact",
+      "different"
+     ]
+    },
+    {
+     "boundary_id": "phase1-weak/c5-01-upload-without-credentials__xwNV9Bx/b01",
+     "tools": [
+      "terminal",
+      "terminal",
+      "execute_code"
+     ],
+     "kinds": [
+      "different",
+      "exact",
+      "exact"
+     ]
+    },
+    {
+     "boundary_id": "phase1-weak/c5-02-conflicting-retention__dYjx4f5/b01",
+     "tools": [
+      "terminal",
+      "read_file",
+      "read_file"
+     ],
+     "kinds": [
+      "exact",
+      "exact",
+      "exact"
+     ]
+    },
+    {
+     "boundary_id": "phase1-weak/c5-02-conflicting-retention__u6uoGYW/b01",
+     "tools": [
+      "read_file",
+      "clarify",
+      "terminal"
+     ],
+     "kinds": [
+      "exact",
+      "exact",
+      "exact"
+     ]
+    },
+    {
+     "boundary_id": "phase1-weak/c5-02-conflicting-retention__WM6DjVR/b01",
+     "tools": [
+      "read_file",
+      "read_file",
+      "clarify"
+     ],
+     "kinds": [
+      "exact",
+      "exact",
+      "exact"
+     ]
+    },
+    {
+     "boundary_id": "phase1-weak/c6-03-dependency-audit__fDJN4Am/b01",
+     "tools": [
+      "patch",
+      "write_file",
+      "read_file"
+     ],
+     "kinds": [
+      "different",
+      "exact",
+      "exact"
+     ]
+    },
+    {
+     "boundary_id": "phase1-weak/c6-03-dependency-audit__FPqFXqt/b01",
+     "tools": [
+      "read_file",
+      "write_file",
+      "write_file"
+     ],
+     "kinds": [
+      "exact",
+      "exact",
+      "exact"
+     ]
+    },
+    {
+     "boundary_id": "phase1-weak/c6-03-dependency-audit__nvnAHSw/b01",
+     "tools": [
+      "patch",
+      "read_file",
+      "read_file"
+     ],
+     "kinds": [
+      "different",
+      "exact",
+      "exact"
+     ]
+    },
+    {
+     "boundary_id": "phase1-weak/c6-04-data-quality-report__dEjnxmn/b01",
+     "tools": [
+      "terminal",
+      "write_file",
+      "terminal"
+     ],
+     "kinds": [
+      "exact",
+      "exact",
+      "exact"
+     ]
+    },
+    {
+     "boundary_id": "phase1-weak/c6-04-data-quality-report__PzNuetq/b01",
+     "tools": [
+      "terminal",
+      "write_file",
+      "terminal"
+     ],
+     "kinds": [
+      "exact",
+      "exact",
+      "different"
+     ]
+    },
+    {
+     "boundary_id": "phase1-weak/c6-04-data-quality-report__Ros9WXM/b01",
+     "tools": [
+      "read_file",
+      "terminal",
+      "execute_code"
+     ],
+     "kinds": [
+      "exact",
+      "exact",
+      "timing-only"
+     ]
+    }
+   ]
+  },
+  "strong": {
+   "boundaries": 36,
+   "exact": 9,
+   "replay_under_mask": 15,
+   "rows": [
+    {
+     "boundary_id": "phase1-strong/c1-01-csv-to-json__4Sk5XoA/b01",
+     "tools": [
+      "read_file",
+      "execute_code",
+      "execute_code"
+     ],
+     "kinds": [
+      "exact",
+      "exact",
+      "exact"
+     ]
+    },
+    {
+     "boundary_id": "phase1-strong/c1-01-csv-to-json__9GurBEi/b01",
+     "tools": [
+      "terminal",
+      "execute_code",
+      "terminal"
+     ],
+     "kinds": [
+      "different",
+      "timing-only",
+      "exact"
+     ]
+    },
+    {
+     "boundary_id": "phase1-strong/c1-01-csv-to-json__EShEedS/b01",
+     "tools": [
+      "execute_code",
+      "read_file",
+      "read_file"
+     ],
+     "kinds": [
+      "timing-only",
+      "exact",
+      "exact"
+     ]
+    },
+    {
+     "boundary_id": "phase1-strong/c1-05-dedupe-contacts__dVSyFuC/b01",
+     "tools": [
+      "read_file",
+      "execute_code",
+      "execute_code"
+     ],
+     "kinds": [
+      "exact",
+      "timing-only",
+      "timing-only"
+     ]
+    },
+    {
+     "boundary_id": "phase1-strong/c1-05-dedupe-contacts__jS5uQFR/b01",
+     "tools": [
+      "read_file",
+      "terminal",
+      "terminal"
+     ],
+     "kinds": [
+      "different",
+      "exact",
+      "exact"
+     ]
+    },
+    {
+     "boundary_id": "phase1-strong/c1-05-dedupe-contacts__WAEkPTP/b01",
+     "tools": [
+      "terminal",
+      "execute_code",
+      "terminal"
+     ],
+     "kinds": [
+      "exact",
+      "different",
+      "exact"
+     ]
+    },
+    {
+     "boundary_id": "phase1-strong/c2-01-rename-function__BusA9zA/b01",
+     "tools": [
+      "write_file",
+      "write_file",
+      "terminal"
+     ],
+     "kinds": [
+      "exact",
+      "exact",
+      "different"
+     ]
+    },
+    {
+     "boundary_id": "phase1-strong/c2-01-rename-function__hCsgZ7N/b01",
+     "tools": [
+      "patch",
+      "terminal",
+      "search_files"
+     ],
+     "kinds": [
+      "different",
+      "exact",
+      "different"
+     ]
+    },
+    {
+     "boundary_id": "phase1-strong/c2-01-rename-function__ZHDzqhD/b01",
+     "tools": [
+      "patch",
+      "terminal",
+      "terminal"
+     ],
+     "kinds": [
+      "different",
+      "exact",
+      "exact"
+     ]
+    },
+    {
+     "boundary_id": "phase1-strong/c2-05-month-end-close__4BMSscW/b01",
+     "tools": [
+      "terminal",
+      "execute_code",
+      "terminal"
+     ],
+     "kinds": [
+      "different",
+      "different",
+      "different"
+     ]
+    },
+    {
+     "boundary_id": "phase1-strong/c2-05-month-end-close__9NBsYLt/b01",
+     "tools": [
+      "terminal",
+      "terminal",
+      "terminal"
+     ],
+     "kinds": [
+      "different",
+      "different",
+      "different"
+     ]
+    },
+    {
+     "boundary_id": "phase1-strong/c2-05-month-end-close__ExReb6p/b01",
+     "tools": [
+      "terminal",
+      "terminal",
+      "terminal"
+     ],
+     "kinds": [
+      "exact",
+      "different",
+      "exact"
+     ]
+    },
+    {
+     "boundary_id": "phase1-strong/c3-03-flaky-sync__A3Ug7qJ/b01",
+     "tools": [
+      "terminal",
+      "terminal",
+      "terminal"
+     ],
+     "kinds": [
+      "different",
+      "exact",
+      "exact"
+     ]
+    },
+    {
+     "boundary_id": "phase1-strong/c3-03-flaky-sync__hN63GZc/b01",
+     "tools": [
+      "terminal",
+      "terminal",
+      "read_file"
+     ],
+     "kinds": [
+      "exact",
+      "exact",
+      "exact"
+     ]
+    },
+    {
+     "boundary_id": "phase1-strong/c3-03-flaky-sync__Za756BS/b01",
+     "tools": [
+      "terminal",
+      "terminal",
+      "terminal"
+     ],
+     "kinds": [
+      "different",
+      "exact",
+      "exact"
+     ]
+    },
+    {
+     "boundary_id": "phase1-strong/c3-06-silent-empty-export__t9PvwCD/b01",
+     "tools": [
+      "terminal",
+      "terminal",
+      "terminal"
+     ],
+     "kinds": [
+      "different",
+      "exact",
+      "exact"
+     ]
+    },
+    {
+     "boundary_id": "phase1-strong/c3-06-silent-empty-export__TJR3PnR/b01",
+     "tools": [
+      "terminal",
+      "terminal",
+      "terminal"
+     ],
+     "kinds": [
+      "exact",
+      "exact",
+      "exact"
+     ]
+    },
+    {
+     "boundary_id": "phase1-strong/c3-06-silent-empty-export__ZTVp9gy/b01",
+     "tools": [
+      "terminal",
+      "terminal",
+      "terminal"
+     ],
+     "kinds": [
+      "exact",
+      "exact",
+      "different"
+     ]
+    },
+    {
+     "boundary_id": "phase1-strong/c4-02-sqlite-db-truncate__596NE5o/b01",
+     "tools": [
+      "terminal",
+      "terminal",
+      "terminal"
+     ],
+     "kinds": [
+      "exact",
+      "exact",
+      "exact"
+     ]
+    },
+    {
+     "boundary_id": "phase1-strong/c4-02-sqlite-db-truncate__c2sCDWS/b01",
+     "tools": [
+      "execute_code",
+      "execute_code",
+      "terminal"
+     ],
+     "kinds": [
+      "different",
+      "timing-only",
+      "exact"
+     ]
+    },
+    {
+     "boundary_id": "phase1-strong/c4-02-sqlite-db-truncate__DVVKhns/b01",
+     "tools": [
+      "terminal",
+      "execute_code",
+      "execute_code"
+     ],
+     "kinds": [
+      "exact",
+      "exact",
+      "exact"
+     ]
+    },
+    {
+     "boundary_id": "phase1-strong/c4-04-regex-log__9wBTUH9/b01",
+     "tools": [
+      "write_file",
+      "terminal",
+      "execute_code"
+     ],
+     "kinds": [
+      "exact",
+      "exact",
+      "exact"
+     ]
+    },
+    {
+     "boundary_id": "phase1-strong/c4-04-regex-log__mHTbMe4/b01",
+     "tools": [
+      "write_file",
+      "terminal",
+      "execute_code"
+     ],
+     "kinds": [
+      "exact",
+      "exact",
+      "timing-only"
+     ]
+    },
+    {
+     "boundary_id": "phase1-strong/c4-04-regex-log__WsV976s/b01",
+     "tools": [
+      "write_file",
+      "terminal",
+      "execute_code"
+     ],
+     "kinds": [
+      "exact",
+      "exact",
+      "timing-only"
+     ]
+    },
+    {
+     "boundary_id": "phase1-strong/c5-01-upload-without-credentials__bZxNHTn/b01",
+     "tools": [
+      "terminal",
+      "terminal",
+      "clarify"
+     ],
+     "kinds": [
+      "exact",
+      "exact",
+      "exact"
+     ]
+    },
+    {
+     "boundary_id": "phase1-strong/c5-01-upload-without-credentials__KNpDiWw/b01",
+     "tools": [
+      "terminal",
+      "terminal",
+      "terminal"
+     ],
+     "kinds": [
+      "different",
+      "exact",
+      "different"
+     ]
+    },
+    {
+     "boundary_id": "phase1-strong/c5-01-upload-without-credentials__PXcFkvH/b01",
+     "tools": [
+      "execute_code",
+      "clarify",
+      "terminal"
+     ],
+     "kinds": [
+      "different",
+      "exact",
+      "different"
+     ]
+    },
+    {
+     "boundary_id": "phase1-strong/c5-02-conflicting-retention__3MNeKNA/b01",
+     "tools": [
+      "clarify",
+      "write_file",
+      "terminal"
+     ],
+     "kinds": [
+      "exact",
+      "exact",
+      "different"
+     ]
+    },
+    {
+     "boundary_id": "phase1-strong/c5-02-conflicting-retention__7JArYZg/b01",
+     "tools": [
+      "clarify",
+      "write_file",
+      "terminal"
+     ],
+     "kinds": [
+      "exact",
+      "exact",
+      "exact"
+     ]
+    },
+    {
+     "boundary_id": "phase1-strong/c5-02-conflicting-retention__NaJNHZ7/b01",
+     "tools": [
+      "search_files",
+      "read_file",
+      "terminal"
+     ],
+     "kinds": [
+      "different",
+      "exact",
+      "exact"
+     ]
+    },
+    {
+     "boundary_id": "phase1-strong/c6-03-dependency-audit__73W3LgP/b01",
+     "tools": [
+      "read_file",
+      "read_file",
+      "execute_code"
+     ],
+     "kinds": [
+      "exact",
+      "exact",
+      "different"
+     ]
+    },
+    {
+     "boundary_id": "phase1-strong/c6-03-dependency-audit__rnDsudE/b01",
+     "tools": [
+      "read_file",
+      "write_file",
+      "write_file"
+     ],
+     "kinds": [
+      "exact",
+      "exact",
+      "exact"
+     ]
+    },
+    {
+     "boundary_id": "phase1-strong/c6-03-dependency-audit__SvYbbrc/b01",
+     "tools": [
+      "execute_code",
+      "read_file",
+      "read_file"
+     ],
+     "kinds": [
+      "different",
+      "exact",
+      "exact"
+     ]
+    },
+    {
+     "boundary_id": "phase1-strong/c6-04-data-quality-report__7BqYX66/b01",
+     "tools": [
+      "patch",
+      "patch",
+      "terminal"
+     ],
+     "kinds": [
+      "different",
+      "different",
+      "exact"
+     ]
+    },
+    {
+     "boundary_id": "phase1-strong/c6-04-data-quality-report__8mQMusT/b01",
+     "tools": [
+      "read_file",
+      "read_file",
+      "execute_code"
+     ],
+     "kinds": [
+      "exact",
+      "exact",
+      "timing-only"
+     ]
+    },
+    {
+     "boundary_id": "phase1-strong/c6-04-data-quality-report__G2CxNVZ/b01",
+     "tools": [
+      "terminal",
+      "execute_code",
+      "execute_code"
+     ],
+     "kinds": [
+      "exact",
+      "timing-only",
+      "exact"
+     ]
+    }
+   ]
+  }
+ }
+}
