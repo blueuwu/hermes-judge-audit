@@ -98,16 +98,11 @@ call stack is insufficient evidence of ownership.
 
 ## Retry ownership and limits of the counts
 
-Observed: The in-loop judge client's retry mechanism belongs to **hjr**, not Harbor.
-The custom agent calls that client and writes its attempt metadata. Harbor trial retries
-are a separate mechanism; neither a repeated task nor a restarted job proves a retry.
-The Phase 1 policy intentionally did not retry infrastructure-failed trials.
-
-Measured: Every available job reports 0 Harbor retries, and the saved hjr judge attempt
-records contain 0 retry invocations in each job. Thus this jobs-only audit does not measure
-recovery by retry. It also cannot count later replay-client retries whose records live
-outside jobs. The counter reports hjr retry trials and retry attempts separately from
-terminal causes, because recovered attempts can occur in otherwise successful trials.
+Measured: The brief's assumption that retries in jobs/ belonged to hjr was wrong.
+There are no hjr retries in the available jobs/, and Harbor's own retry count is 0
+in every job too. The saved hjr judge attempt records contain 0 retry invocations
+in each job. These counts do not measure recovery by retry. The counter reports
+hjr retry trials and retry attempts separately from terminal causes.
 
 Inferred: Preserve that distinction in Harbor's reporting: expose retry owner, attempt
 number, terminal outcome, and whether a retry actually ran. A retryable flag alone should
