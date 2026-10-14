@@ -74,14 +74,6 @@ decoding failure should produce a structured trial error and allow unrelated que
 to continue. When the scheduler does stop, persist the cancellation reason and the final
 state of every scheduled trial so incomplete work can be distinguished from failed work.
 
-Measured: Explicit Harbor Docker command-timeout markers account for 2 failures in
-`phase1-weak`, 14 in `phase1b-weak-a`, and 5 in `phase1b-weak-b`. Inferred: These markers
-identify the execution layer that reported the timeout, but do not identify whether the
-underlying delay came from the model, the sandbox, or verification. Persist the operation,
-configured timeout, elapsed time, and cleanup outcome as structured fields. That would let
-maintainers separate slow commands from environment or orchestration stalls without reading
-private task content.
-
 Measured: `smoke-strong-1` has 2 trials with terminal provider errors, while
 `smoke-strong-2` has zero. `mech-1`, `mech-net`, and `mech-s0` each have 1 such trial.
 Inferred: These are integration failures, not evidence of a Harbor provider defect. Give
@@ -95,6 +87,19 @@ verifier handoff failure but does not prove who caused it. Validate the verifier
 contract early and include structured setup, execution, and collection stages in failures.
 The other exceptions remain unclassified because a generic exception with Harbor in its
 call stack is insufficient evidence of ownership.
+
+## Timeouts
+
+Measured: Re-running the counter on 2026-10-14 confirmed that all classified timeouts
+are in weak-arm jobs: `phase1b-weak-a` has 14/320, `phase1b-weak-b` has 5/200,
+and `phase1-weak` has 2/90. Every strong-arm job has 0 classified timeouts.
+The weak-arm failures match explicit Harbor Docker command-timeout markers.
+
+Inferred: These markers identify the execution layer that reported the timeout, but do
+not identify whether the underlying delay came from the model, the sandbox, or
+verification. Persist the operation, configured timeout, elapsed time, and cleanup
+outcome as structured fields. That would let maintainers separate slow commands from
+environment or orchestration stalls without reading private task content.
 
 ## Retry ownership and limits of the counts
 
