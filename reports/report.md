@@ -16,12 +16,11 @@ the judge does when the evidence is in its input.
 
 ## Summary
 
-- **The bound holds: the judge accepted every unfinished task the agent called finished.**
-  Of 178 Phase 1a trajectory endpoints from two agents, 9 were not done by the verifier: 4 weak,
-  5 strong. Every production-prompt cell, with the agent's own model, Gemini 3 Flash Preview or GPT-6.1
-  Sol as judge, judged all 9 DONE. Wilson 95% intervals: 4/4 weak, 51.0 to 100%; 5/5 strong,
-  56.6 to 100%; 9/9 across both arms, descriptive only, 70.1 to 100%. All 9 final messages open
-  by reporting the work done (appendix).
+- **The bound holds: the judge accepted every unfinished task the agent called finished.** Of
+  178 Phase 1a trajectory endpoints from two agents, 9 were not done by the verifier: 4 weak, 5
+  strong. Every production-prompt cell, with the agent's own model, Gemini 3 Flash Preview or
+  GPT-6.1 Sol as judge, judged all 9 DONE. Wilson 95% intervals: 4/4 weak, 51.0 to 100%; 5/5
+  strong, 56.6 to 100%. All 9 final messages open by reporting the work done (appendix).
 - **Phase 1b (weak arm only): the in-loop judge judged 44 of 45 not-done endpoints DONE,
   across 5 tasks** (dev 23/23, held-out 21/22). The exception is a held-out `c2-03` endpoint
   whose final message opened "Release done." and closed by offering to bump one more version
@@ -74,8 +73,9 @@ strong is DeepSeek V4.1 Flash on DeepSeek. Each ran every task 3 times with a si
 Every Phase 1a trial ended after its first turn: the agent worked, wrote a summary, and the
 in-loop judge stopped it. That gives one decision point per trial, 178 in all after two
 weak-arm trials timed out (88 weak, 90 strong). This is Phase 1a. Phase 1b reran the weak arm on
-the C2 to C4 tasks to find more failures: 506 boundaries from 501 trials, since 5 trials ran a
-second turn. It is an enriched sample, reported on its own and never as a prevalence.
+the C2 to C4 tasks to find more failures: 520 trials, of which 19 timed out before any boundary,
+and 506 boundaries from the other 501, since 5 trials ran a second turn. It is an enriched
+sample, reported on its own and never as a prevalence.
 
 ### Truth
 
@@ -105,7 +105,9 @@ The auditor found one requirement-level error, in a weak-arm `c5-03` endpoint in
 not DONE" stratum: the agent's tests passed in its own environment, but the verifier's
 `tests_pass` check failed because its image lacked the agent's installed packages. The endpoint
 label is unchanged and still correct, `blocked`, because the requested package cannot be
-installed, so the stratum has 0 endpoint label errors. The "both say DONE" row matters most
+installed, so the stratum has 0 endpoint label errors. Counted as the prereg's verifier error
+rate, which includes requirement-level errors, stratum C has 1 of 10 (Wilson 1.8 to 40.4%,
+[`results/audit/report.md`](../results/audit/report.md)). The "both say DONE" row matters most
 here: it is where a requirement the verifier never checked would hide a false DONE, and 0 of 30
 bounds that at about 11%.
 
@@ -130,8 +132,10 @@ agreed on 38 of 40 item decisions.
 
 ### Pre-registration
 
-Hypotheses, metrics, tests and stopping rules were tagged (`prereg-v1`) before the first judge
-call. Every later change is a dated amendment committed before the work it governs. Deviations
+The go/reframe rule, metrics and arm rules were committed (`d1eef3e`) before the first judge
+call. The tag `prereg-v1` was due then too, but was created after the pilot; it points at the
+commit every pilot call ran on (amendment of 2026-10-01). Later changes are dated amendments
+and notes; the list below says where one came after the data it concerns. Deviations
 from the original plan, each disclosed in [`configs/prereg.md`](../configs/prereg.md) or
 [`results/phase1b/deviation-1.md`](../results/phase1b/deviation-1.md) and
 [`deviation-2.md`](../results/phase1b/deviation-2.md):
@@ -173,7 +177,7 @@ one task (`c6-02`), so the real uncertainty is wider.
 Accuracy looks good and says little. The production self judge is right on 95.0% (weak) and
 94.4% (strong) of parsed calls, and Cohen's κ is 0.83 and 0.80 (PABAK 0.91 and 0.89). But 72 of
 88 and 73 of 90 endpoints are done, and blocked endpoints are easy, because a blocked agent says
-so. With this input the judge can only be right when the agent's account is right. Completion
+so. With this input the judge has only the agent's account to go on. Completion
 claims were not labelled across all 178 endpoints, so there is no table of claim against truth,
 but the appendix shows the claims for the 9 not-done ones.
 
@@ -373,13 +377,13 @@ These results are about the judge as shipped at `ffc74885`, on these tasks and a
 
 ## Limitations
 
-- **One turn per trial in Phase 1a.** Every Phase 1a trial ended after turn 1, so the loop
-  never iterated there, and a false CONTINUE was never acted on. In Phase 1b, 5 of 501 trials
-  ran a second turn. In 4 of them (3 `c3-05`, 1 `c4-04`) the judge said CONTINUE on a turn-1
-  endpoint the verifier graded done, and DONE after turn 2, also graded done: each false
-  CONTINUE cost one extra turn. In the fifth, a held-out `c2-03` trial, the judge said CONTINUE
-  on a not-done endpoint, the second turn left it not done, and the judge said DONE. Five trials
-  do not measure the cost of false CONTINUEs in general.
+- **One turn per trial in Phase 1a.** Every Phase 1a trial ended after turn 1, so the loop never
+  iterated there, and a false CONTINUE was never acted on. In Phase 1b, 5 of the 501 trials that
+  reached a boundary ran a second turn. In 4 of them (3 `c3-05`, 1 `c4-04`) the judge said
+  CONTINUE on a turn-1 endpoint the verifier graded done, and DONE after turn 2, also graded
+  done: each false CONTINUE cost one extra turn. In the fifth, a held-out `c2-03` trial, the
+  judge said CONTINUE on a not-done endpoint, the second turn left it not done, and the judge
+  said DONE. Five trials do not measure the cost of false CONTINUEs in general.
 - **Few failures.** The natural Phase 1a not-done endpoints number 4 and 5 per arm, from 2 tasks
   (weak) and 3 tasks (strong). Phase 1b adds 45 weak-arm not-done endpoints from 5 tasks, in an
   enriched sample. Every rate here comes with that caveat, and most are reported as counts.
@@ -412,8 +416,8 @@ Stage A launch, $2.56 for Stage A and $1.93 for Stage B, covering agent, auxilia
 judge calls ([Stage A](../results/phase1b/stage-a-report.md) and
 [Stage B](../results/phase1b/stage-b-report.md) reports). The other $0.010487 was billed between
 the Stage A end reading and the Stage B baseline and is not attributed to any recorded call; the
-Stage B report counts it as late Stage A billing because no other job ran on the key. The pilot cost $1.65. Billed agent
-spend for Phase 1a and the soak runs was not recorded.
+Stage B report counts it as late Stage A billing because no other job ran on the key. The pilot
+cost $1.65. Billed agent spend for Phase 1a and the soak runs was not recorded.
 
 ## Reproducing
 
