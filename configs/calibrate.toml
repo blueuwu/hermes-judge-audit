@@ -1,0 +1,41 @@
+# Calibration scaffold only. No variants have been run.
+# Templates are imported from third_party/hermes-agent/hermes_cli/goals.py
+# at ffc74885c5f6eb75f6c134fb4eef86d734066623.
+[judge_sampling]
+temperature = 0.0
+max_tokens = 4096
+reasoning = "provider-default"
+
+[endpoints.openrouter]
+base_url = "https://openrouter.ai/api/v1"
+api_key_env = "OPENROUTER_API_KEY"
+rpm = 120
+
+[models.flash]
+id = "google/gemini-3-flash-preview"
+endpoint = "openrouter"
+provider = "google-ai-studio"
+
+[source_runs]
+phase2 = ["phase2-weak", "phase2-strong"]
+
+# STUB PRICES: arbitrary USD per call, not current provider prices or a billing bound.
+[stub_prices]
+flash = "0.002"
+
+[variants.hermes-contract]
+template = "JUDGE_USER_PROMPT_WITH_CONTRACT_TEMPLATE"
+model = "flash"
+view = "head4k"
+samples = 3
+needs_per_task_contract = true
+# TODO: independently authored, per-task contracts. Never derive them from verifier truth.
+[variants.hermes-contract.contracts]
+
+[variants.hermes-subgoals]
+template = "JUDGE_USER_PROMPT_WITH_SUBGOALS_TEMPLATE"
+model = "flash"
+view = "head4k"
+samples = 3
+# TODO: user-supplied per-task subgoals. Do not infer them from verifier truth.
+[variants.hermes-subgoals.subgoals]

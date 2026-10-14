@@ -18,6 +18,17 @@ RUNS = ROOT / "results" / "runs"
 DEV_PREFIX = "dev-"
 
 
+def cmd_calibrate(args: argparse.Namespace) -> int:
+    from decimal import InvalidOperation
+
+    from hjr.calibrate import execute
+
+    try:
+        return execute(args, RUNS)
+    except (ValueError, KeyError, OSError, InvalidOperation) as exc:
+        raise SystemExit(f"calibrate refused: {exc}") from None
+
+
 def cmd_replay(args: argparse.Namespace) -> int:
     from hjr.client import JudgeClient
     from hjr.ratelimit import Limiters
@@ -669,6 +680,17 @@ def main(argv: list[str] | None = None) -> int:
     parser = argparse.ArgumentParser(prog="hjr", description=__doc__)
     parser.add_argument("-v", "--verbose", action="store_true")
     sub = parser.add_subparsers(dest="command", required=True)
+
+    p = sub.add_parser("calibrate", help="plan stored endpoints under new judge configurations")
+    p.add_argument("--from-run", required=True)
+    p.add_argument(
+        "--variants", nargs="+", help="names in calibrate.toml, space or comma separated"
+    )
+    mode = p.add_mutually_exclusive_group()
+    mode.add_argument("--dry-run", action="store_true", help="offline estimates (default)")
+    mode.add_argument("--live", action="store_true")
+    p.add_argument("--confirm-spend", help="explicit USD estimate cap required for --live")
+    p.set_defaults(func=cmd_calibrate)
 
     from hjr import audit
 

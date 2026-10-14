@@ -74,8 +74,10 @@ def judge_once(
     sample: int,
     arm: Arm,
     complete: Completion,
+    build_messages: Callable | None = None,
 ) -> tuple[JudgeVerdict, tuple]:
-    messages = judge.build_messages(boundary, prompt=variant.prompt, view=variant.view)
+    builder = build_messages or judge.build_messages
+    messages = builder(boundary, prompt=variant.prompt, view=variant.view)
     if not boundary.last_response.strip():
         # judge_goal returns CONTINUE without calling the model.
         result = CompletionResult(text="")
@@ -165,6 +167,7 @@ def replay(
     arms: Mapping[str, Arm],
     completions: Mapping[str, Completion],
     workers: int = 8,
+    build_messages: Callable | None = None,
 ) -> Counter[str]:
     """Judge every (boundary, variant, sample) not already on disk. Returns outcome counts."""
     boundaries = list(boundaries)
@@ -194,7 +197,9 @@ def replay(
     def task(b: BoundaryRecord, v: Variant, s: int):
         if states[v.model].halted.is_set():
             raise ArmHalted(v.model)
-        rec, attempts = judge_once(b, v, s, arms[v.model], completions[v.model])
+        rec, attempts = judge_once(
+            b, v, s, arms[v.model], completions[v.model], build_messages=build_messages
+        )
         # Checked in the worker, so the halt takes effect before the next queued call starts.
         return rec, attempts, check_identity(rec, v)
 
