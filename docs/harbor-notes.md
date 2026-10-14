@@ -95,6 +95,16 @@ are in weak-arm jobs: `phase1b-weak-a` has 14/320, `phase1b-weak-b` has 5/200,
 and `phase1-weak` has 2/90. Every strong-arm job has 0 classified timeouts.
 The weak-arm failures match explicit Harbor Docker command-timeout markers.
 
+Measured: By task, 14 of the 21 are on `c4-04-regex-log` (2 in `phase1-weak`, 12 in
+`phase1b-weak-a`) and 7 on `c4-03-cobol-modernization` (2 in `phase1b-weak-a`, 5 in
+`phase1b-weak-b`). Each timed out on its first turn, before any boundary.
+
+How the analysis treats them is defined, not open. The Phase 1b note
+(`results/phase1b/note.md`, frozen 2026-10-05) excludes turn timeouts like any other failed
+trial, and Amendment 2 of `configs/prereg.md` sets no retries with every exclusion listed with its
+reason. The exclusions are listed in `data/frozen/*.excluded.json` and in the Stage A and Stage B
+reports under `results/phase1b/`.
+
 Inferred: These markers identify the execution layer that reported the timeout, but do
 not identify whether the underlying delay came from the model, the sandbox, or
 verification. Persist the operation, configured timeout, elapsed time, and cleanup
