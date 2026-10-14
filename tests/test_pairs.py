@@ -684,3 +684,33 @@ def test_h7_is_its_own_holm_family_and_stays_out_of_the_edit_table():
     assert h6.sign_flip.p is None
     assert "None (sign-flip" not in pairs_analysis.render(report)
     assert "n/a (no task has a nonzero difference)" in pairs_analysis.render(report)
+
+
+def test_replay_rule_compares_cut_tails_where_both_cover_the_output():
+    from hjr.goalloop import TOOL_OUTPUT_TAIL
+
+    def event(output):
+        return ToolEvent(
+            tool="execute_code", cmd="run", exit=0, out_tail=output[-TOOL_OUTPUT_TAIL:]
+        )
+
+    def output(seconds, body="ok"):
+        return "x" * 600 + f'{{"output": "{body}", "duration_seconds": {seconds}}}'
+
+    recorded = event(output("0.0"))
+    # A wider timing value moves the start of the cut tail by one character.
+    shifted = event(output("0.04"))
+    assert recorded.out_tail != shifted.out_tail
+    assert pairs.mask_timing([recorded]) != pairs.mask_timing([shifted])
+    assert pairs.same_event(recorded, shifted) and pairs.same_event(shifted, recorded)
+    assert not pairs.same_event(recorded, event(output("0.04", body="no")))
+    # An uncut tail is the whole output: a cut replay must end with all of it.
+    whole = ToolEvent(tool="execute_code", cmd="run", exit=0, out_tail='{"duration_seconds": 0.0}')
+    assert not pairs.same_event(whole, event("y" * 600 + '{"duration_seconds": 0.04}'))
+    assert pairs.same_event(
+        whole, whole.model_copy(update={"out_tail": '{"duration_seconds": 0.04}'})
+    )
+    terminal = ToolEvent(tool="terminal", cmd="t", exit=0, out_tail='"duration_seconds": 1')
+    assert not pairs.same_event(
+        terminal, terminal.model_copy(update={"out_tail": '"duration_seconds": 2'})
+    )

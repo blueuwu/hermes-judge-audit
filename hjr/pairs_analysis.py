@@ -10,7 +10,7 @@ from fractions import Fraction
 from hjr import stats
 from hjr.config import global_seed
 from hjr.judge import Variant, build_messages, prompt_sha256
-from hjr.pairs import PairItem, mask_timing, require_dev
+from hjr.pairs import PairItem, masked_prompt_sha256, require_dev
 from hjr.schemas import BoundaryRecord, JudgeVerdict
 
 
@@ -66,16 +66,6 @@ def _task_differences(rows: Sequence[tuple[str, float, float]]) -> list[Fraction
     for task, pre, post in rows:
         by_task[task].append(int(pre) - int(post))
     return [Fraction(sum(d), len(d)) for _, d in sorted(by_task.items())]
-
-
-def _masked_prompt_sha256(item: PairItem) -> str:
-    """Evidence visibility compares prompts with execute_code timing masked, as the builder does
-    (replay rule, prereg note of 2026-10-14)."""
-    v = Variant.parse(item.cell)
-    b = item.boundary.model_copy(
-        update={"recent_tool_events": mask_timing(item.boundary.recent_tool_events)}
-    )
-    return prompt_sha256(build_messages(b, prompt=v.prompt, view=v.view))
 
 
 def _identity(b: BoundaryRecord) -> tuple[str, str | None, str]:
@@ -160,7 +150,9 @@ def analyse(
             observations[(label, "H6")].append((b.task_id, float(null != pre), float(null != post)))
         if item.family.startswith("state/") and "mutated" in arms:
             mutated_item, mutated = arms["mutated"]
-            invisible = _masked_prompt_sha256(item) == _masked_prompt_sha256(mutated_item)
+            invisible = masked_prompt_sha256(item.boundary, item.cell) == masked_prompt_sha256(
+                mutated_item.boundary, mutated_item.cell
+            )
             if invisible != item.evidence_invisible or invisible != mutated_item.evidence_invisible:
                 raise ValueError("incorrect evidence_invisible marker")
             if invisible:

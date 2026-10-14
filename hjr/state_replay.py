@@ -23,7 +23,6 @@ from __future__ import annotations
 import base64
 import io
 import json
-import re
 import shutil
 import subprocess
 import tarfile
@@ -283,13 +282,11 @@ def build(
     return result
 
 
-VOLATILE = re.compile(r'"(duration_seconds|duration_ms|elapsed[a-z_]*|execution_count)": [0-9.]+')
-
-
 def diagnose(boundaries: Sequence, workdir: Path, jobs: Path | None = None) -> list[dict]:
     """Per boundary, how each of the last three calls compares on an unmutated replay:
-    exact, equal once volatile timing fields are masked, or different."""
+    exact, equal under the builder's replay rule (``pairs.same_event``), or different."""
     from hjr import regrade
+    from hjr.pairs import same_event
 
     executor = DockerReplay()
     rows = []
@@ -312,9 +309,7 @@ def diagnose(boundaries: Sequence, workdir: Path, jobs: Path | None = None) -> l
                 kinds.append("failed")
             elif r == a:
                 kinds.append("exact")
-            elif (a.tool, a.cmd, a.exit) == (r.tool, r.cmd, r.exit) and VOLATILE.sub(
-                "", a.out_tail
-            ) == VOLATILE.sub("", r.out_tail):
+            elif same_event(a, r):
                 kinds.append("timing-only")
             else:
                 kinds.append("different")

@@ -15,6 +15,7 @@ from pydantic import BaseModel, ConfigDict, Field
 
 from hjr import regrade
 from hjr.config import ROOT
+from hjr.goalloop import TOOL_OUTPUT_TAIL
 from hjr.judge import Variant, apply_view, build_messages, prompt_sha256
 from hjr.mutants import Mutant
 from hjr.schemas import BoundaryRecord, ToolEvent, VerifierResult
@@ -225,13 +226,42 @@ class ReplayExecutor(Protocol):
     def grade(self, task: str, workspace: Path) -> VerifierResult: ...
 
 
+def _mask(text: str) -> str:
+    return TIMING.sub(r'"\1": 0', text)
+
+
 def mask_timing(events: Sequence[ToolEvent]) -> list[ToolEvent]:
     return [
-        e.model_copy(update={"out_tail": TIMING.sub(r'"\1": 0', e.out_tail)})
-        if e.tool == "execute_code"
-        else e
+        e.model_copy(update={"out_tail": _mask(e.out_tail)}) if e.tool == "execute_code" else e
         for e in events
     ]
+
+
+def same_event(recorded: ToolEvent, replayed: ToolEvent) -> bool:
+    """Replay rule: same tool, command, exit and output tail, with execute_code timing masked.
+    A tail is the last TOOL_OUTPUT_TAIL characters of the output, so a timing value of another
+    width moves where a cut tail starts; then only the text both tails cover is compared."""
+    if (recorded.tool, recorded.cmd, recorded.exit) != (replayed.tool, replayed.cmd, replayed.exit):
+        return False
+    a, b = recorded.out_tail, replayed.out_tail
+    if recorded.tool != "execute_code" or a == b:
+        return a == b
+    x, y = _mask(a), _mask(b)
+    return (
+        x == y
+        or (len(a) >= TOOL_OUTPUT_TAIL and y.endswith(x))
+        or (len(b) >= TOOL_OUTPUT_TAIL and x.endswith(y))
+    )
+
+
+def masked_prompt_sha256(boundary: BoundaryRecord, cell: str) -> str:
+    """Evidence visibility compares the cell's actual prompts with execute_code timing masked
+    (replay rule, prereg note of 2026-10-14)."""
+    v = Variant.parse(cell)
+    masked = boundary.model_copy(
+        update={"recent_tool_events": mask_timing(boundary.recent_tool_events)}
+    )
+    return prompt_sha256(build_messages(masked, prompt=v.prompt, view=v.view))
 
 
 def _single_flip(before: VerifierResult, after: VerifierResult, target: str) -> bool:
@@ -303,7 +333,7 @@ def state_pairs(
                     reason = "mutation did not flip exactly the target requirement"
             if not reason:
                 null_events = executor.replay(null, events)
-                if mask_timing(null_events) != mask_timing(events):
+                if len(null_events) != len(events) or not all(map(same_event, events, null_events)):
                     reason = "non-replayable: null outputs differ"
             if not reason:
                 changed_events = executor.replay(changed, events)
@@ -333,13 +363,8 @@ def state_pairs(
                             "mutant_sha256": mutant.source_sha(),
                         },
                     )
-                    invisible = (
-                        _item(
-                            boundary, family, "null", cell, events=mask_timing(null_events)
-                        ).prompt_sha256
-                        == _item(
-                            boundary, family, "mutated", cell, events=mask_timing(changed_events)
-                        ).prompt_sha256
+                    invisible = masked_prompt_sha256(a.boundary, cell) == masked_prompt_sha256(
+                        b.boundary, cell
                     )
                     result.items += [
                         a.model_copy(update={"evidence_invisible": invisible}),
