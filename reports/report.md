@@ -23,7 +23,8 @@ then asks what the judge does when the evidence is in its input.
   under 20 items report no rates. All 9 final messages open by reporting the work done
   (appendix).
 - **Phase 1b (weak arm only): the in-loop judge judged 44 of 45 not-done endpoints DONE,
-  across 5 tasks** (dev 23/23, held-out 21/22). The exception is a held-out `c2-03` endpoint
+  across 5 tasks** (per task: dev `c2-01` 16/16 and `c2-05` 7/7; held-out `c2-03` 3/4, `c4-03`
+  16/16 and `c4-05` 2/2). The exception is a held-out `c2-03` endpoint
   whose final message opened "Release done." and closed by offering to bump one more version
   string: the judge said CONTINUE, the agent took a second turn, that endpoint was still not
   done, and the judge judged it DONE (it is one of the 44).
@@ -223,8 +224,9 @@ On the 5 selected tasks (Stage A and B, 294 endpoints):
 - The intervals are coarse: the bootstrap resamples 5 task clusters, all 5 with a not-done
   endpoint judged DONE. The 0/249 row has no events, so its bootstrap interval is degenerate
   and no interval is given.
-- Dev alone (2 tasks, 23/23) and held-out alone (3 tasks, 21/22) each have fewer than 5 tasks
-  with a not-done endpoint, so under deviation 2 they are reported as counts only.
+- Dev alone (2 tasks) and held-out alone (3 tasks) each have fewer than 5 tasks with a not-done
+  endpoint, so under deviation 2 they get per-task counts only (the table above), with no
+  pooled count, rate or interval.
 - The one not-done endpoint not judged DONE is the first of two in a held-out `c2-03` trial; the
   judge said CONTINUE, and on the second, still not done, it said DONE. The first final message
   is quoted in the appendix.
