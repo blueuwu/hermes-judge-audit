@@ -334,8 +334,9 @@ They show which way the judge leans; they are not estimates.
 Hermes falls back to CONTINUE when it cannot parse a verdict, which would hide false DONEs if
 parsing failed often. Across 3,204 Phase 2 judge calls there were 2 parse failures, both on the
 weak self judge, and no format violations. The Codex CLI hangs on 10 to 30% of attempts, so its
-cells needed many retries (139 and 120 timed-out attempts in the two `prod-plain:strong` runs),
-but every call finished.
+cells needed many retries (155 timed-out attempts in `phase2-weak` and 135 in `phase2-strong`:
+139 and 120 in the `prod-plain:strong` cells, 16 and 15 in the `repair-v1:strong:evidence`
+cells), but every call finished.
 
 ### The pilot
 
