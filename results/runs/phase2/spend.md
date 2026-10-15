@@ -7,7 +7,7 @@ stop on paid Phase 2 calls: the Phase 2 replay and its strong-judge sanity check
 amendment, 2026-10-02), `probe-p2`, the 15 `repair-i*` design runs (Amendment 3), and the controlled pairs runs (prereg note of
 2026-10-14).
 
-The `strong` cells run through the Codex CLI on the owner's subscription. Those calls are not
+The `strong` cells run through the Codex CLI on my subscription. Those calls are not
 billed per call: they are listed here with their counts and add nothing to the total.
 
 | Run | Billed calls | Billed spend | Codex CLI calls (unbilled) |
