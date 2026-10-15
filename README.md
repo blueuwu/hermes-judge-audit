@@ -306,7 +306,7 @@ uv run hjr ingest --job jobs/phase1-<arm> --out data/frozen/phase1-<arm>.jsonl
 | `data/truth/` | Primary truth per frozen boundaries file (`hjr regrade`) |
 | `data/mutants/` | Frozen mutation suite and the equivalent-mutant decisions |
 | `data/labels/` | The retired labelling order (Amendment 1) |
-| `docs/` | Design drafts not yet adopted into the prereg |
+| `docs/` | Report methods, spend and logistics (`methods.md`), Harbor notes, design drafts not yet adopted into the prereg |
 | `results/runs/` | Per-run verdicts, attempts, incidents, summaries and manifests |
 | `results/oracle/`, `results/soak/` | Oracle and soak-gate reports |
 | `results/phase1/`, `results/phase1b/` | Phase 1 run notes; Phase 1b notes, deviations and stage reports |
