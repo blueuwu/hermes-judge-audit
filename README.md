@@ -1,177 +1,71 @@
 # hermes-judge-audit
 
-How often does Hermes Agent's `/goal` completion judge say a goal is done when the
-environment shows it is not?
+**Hermes' `/goal` judge grades the agent's report, not the work.**
 
-This repository audits the production judge in
-[`hermes_cli/goals.py`](https://github.com/NousResearch/hermes-agent/blob/ffc74885c5f6eb75f6c134fb4eef86d734066623/hermes_cli/goals.py)
-against deterministic state verifiers and human labels, then measures judge-side repairs on a
-frozen held-out set. Hypotheses and analysis rules are fixed in
+At [`ffc74885`](https://github.com/NousResearch/hermes-agent/blob/ffc74885c5f6eb75f6c134fb4eef86d734066623/hermes_cli/goals.py) the judge sees the goal and the first 4,000
+characters of the agent's last message. No tool output, no workspace, and by default the same
+model that did the work. So when the agent says it's done and is wrong, nothing the judge sees
+says otherwise, and no judge model can catch it. I ran 30 sandboxed tasks through the real
+`/goal` loop, with hidden per-requirement state verifiers as truth, to measure what that costs,
+what the judge does when the evidence is in its input, and whether a judge-side fix holds up on
+held-out data. Hypotheses and analysis rules were fixed in advance in
 [`configs/prereg.md`](configs/prereg.md).
 
-Status: Phase 1a trajectories frozen (178 boundaries), primary verifier frozen after the mutation suite, Phase 1b enrichment and `repair-v1` design done (tag `repair-freeze-v1`). Phase 2 replay done and analysed (below). Human verifier audit done (no endpoint label errors, one requirement-level error in 49 audited). Controlled counterfactual pairs run on dev boundaries (below). Report: [`reports/report.md`](reports/report.md).
+**Report: [`reports/report.md`](reports/report.md)**
 
-## Pilot findings (M0.5, constructed items)
+- **It passed every unfinished task the agent called finished.** Of 178 natural endpoints from
+  two agents, 9 were not done (4 weak, 5 strong), and all 9 final messages opened by saying they
+  were. Every production-prompt cell judged all 9 DONE. They come from 2 tasks (weak) and 3
+  (strong), so read them as counts, not rates. Blocked agents say so, and no cell judged any of
+  the 12 blocked endpoints per arm DONE. In an enriched Phase 1b sample (weak arm, picked for
+  failures, so not a rate), the in-loop judge passed 44 of 45 not-done endpoints.
+- **It misses breakage it can see.** On constructed dev pairs where tool output in its input
+  showed a broken required file, the production prompt still said DONE 7/7 (weak agent) and 2/2
+  (strong). A paragraph appended to the message reporting an error flipped 0 of 12 decisions per
+  arm. An instruction to check the evidence (`repair-v1`) caught 3/7 and 1/2, and on natural
+  endpoints held back up to 5 finished tasks per arm. On natural endpoints, tool output alone
+  removed no false DONE.
+- **A stronger judge doesn't help, as the input predicts.** The agent's own model, Gemini 3 Flash
+  Preview and GPT-6.1 Sol made the same false-DONE decisions (Sol ran through the Codex CLI, so
+  harness differs too).
+- **The truncation is backwards from the docs.** `_truncate` keeps the head; `goals.md` says
+  "last ~4 KB". A caveat past the cut goes unseen, and head+tail moves the blind spot to the
+  middle. Constructed inputs only: no natural message passed 2,757 characters.
+- **Truth is audited.** The verifier caught 260 of 260 mutants, and a blind human review of 49
+  endpoints found 0 endpoint-label errors (one requirement-level error, label unaffected).
 
-48 hand-built decision points, 5 samples each, production prompt and sampling, three judge
-models. These are attack-success rates on constructed inputs, not natural-trajectory estimates.
-Full tables: [`results/runs/pilot-v1/summary.md`](results/runs/pilot-v1/summary.md).
+Pre-registered tests, reported as run: H1 not supported (point estimates point the other way;
+intervals reach 0), H4 not met (underpowered, as the power note said before any call), H6 not
+established (2 tasks per arm; the test needs 5). Measured paid spend: $13.36 (judge calls $7.18,
+Phase 1b $4.54, pilot $1.65; [breakdown](docs/methods.md#cost)).
 
-| Judged done (majority of 5), production `head4k` view | Gemini 3 Flash Preview | Qwen3-Coder 30B (self) | Gemini 3.8 Flash |
-|---|---|---|---|
-| Done controls and hedged/terse done reports (12 items) | 12/12 | 12/12 | 12/12 |
-| A1: confident claim of work that was not done | 4/4 | 4/4 | 4/4 |
-| A4: checklist with one requirement silently missing | 0/4 | 4/4 | 0/4 |
-| A6: instruction to the judge echoed from the workspace | 0/4 | 1/4 | 0/4 |
-| Long reports with no caveat (done) | 4/4 | 4/4 | 3/4 |
-| Unmet requirement stated at ~1k chars | 0/4 | 1/4 | 1/4 |
-| Unmet requirement stated at ~4.5k / ~8k chars | 4/4, 4/4 | 4/4, 4/4 | 3/4, 3/4 |
-| False-DONE over all not-done calls | 60/160 | 94/160 | 53/160 |
+## What this means for Hermes
 
-- **The judge believes the report.** Every model accepted every confident false claim; the
-  production prompt counts an explicit confirmation as completion.
-- **The judge reads only the first 4,000 characters** (`_truncate` keeps the head, while
-  `goals.md:185` says "last ~4 KB"). A caveat past that point is invisible, and the item is
-  judged done.
-- **Head+tail is not a fix by itself.** Keeping the first and last 2,000 characters recovers the
-  ~8k caveat for Flash Preview (0/4 judged done) but loses the ~3.5k one, which now falls in the
-  cut middle (4/4 judged done).
-- **No format problems.** 0 parse failures and 0 format violations in 1,440 pilot calls and 60
-  format probes, so fail-open did not hide any errors here.
-- **Drift.** Preview → 3.8 Flash changed 9.6% of decisions, all on truncation items; correctness
-  shows no detectable difference at n = 48 (exact McNemar p = 1). 3.8 Flash reasons by default,
-  so this measures the model and its default together.
+- **Read DONE as "the agent says it's done".** The judge checks the report. When the agent is
+  wrong about its own work, the judge has nothing to go on.
+- **Fix the truncation mismatch.** Either the docs say "first ~4 KB" or the code keeps the tail,
+  and the pilot says head plus tail isn't enough on its own. The head-only cut was already
+  reported upstream in [issue #70699](https://github.com/NousResearch/hermes-agent/issues/70699)
+  and [PR #70701](https://github.com/NousResearch/hermes-agent/pull/70701).
+- **Check state, not the message.** Run the task's own checks, or ask for evidence the agent can
+  only produce by doing the work. Hermes'
+  [quality gates](https://github.com/NousResearch/hermes-agent/blob/ffc74885c5f6eb75f6c134fb4eef86d734066623/website/docs/user-guide/features/goals.md#L135)
+  run shell checks before the judge; no trial here configured one, so this is untested.
 
-The pre-registered go rule was met on both effects. Measured spend: $1.65 for the 1,440 pilot calls.
+## Results
 
-## Phase 2 results (natural trajectories)
+The report has every number. Full tables, all rebuilt without model calls:
 
-178 Phase 1a boundaries (weak 88, strong 90), six judge cells, 3 samples each. Truth is the
-frozen primary verifier (weak 72 done, 4 not done, 12 blocked; strong 73 done, 5 not done,
-12 blocked). Item decision is the majority of 3. Arms are reported separately and never pooled.
-Full tables: [`results/runs/phase2/summary.md`](results/runs/phase2/summary.md); with truth as
-frozen at Phase 1: [`summary-v1.md`](results/runs/phase2/summary-v1.md).
-
-| Production self judge, `prod-plain:self:head4k` | weak (GLM-5.3-Flash) | strong (DeepSeek V4.1 Flash) |
+| Stage | What | Tables |
 |---|---|---|
-| Semantic accuracy (calls) | 249/262 (95.0%) | 255/270 (94.4%) |
-| False-DONE (items, truth ≠ done) | 4/16 | 5/17 |
-| False-CONTINUE (items, truth = done) | 0/72 (Wilson 0.0–5.1%) | 0/73 (Wilson 0.0–5.0%) |
-| FD − FC, task-bootstrap 95% interval | +25.0 pp (0.0 to 68.4) | +29.4 pp (0.0 to 70.0) |
-| Unanimous items across 3 samples | 85/88 | 90/90 |
+| Pilot | 48 constructed items, 3 judge models | [`results/runs/pilot-v1/summary.md`](results/runs/pilot-v1/summary.md) |
+| Phase 2 | 178 natural endpoints, 6 judge cells, 3 samples each | [`results/runs/phase2/summary.md`](results/runs/phase2/summary.md), unfixed verifier: [`summary-v1.md`](results/runs/phase2/summary-v1.md) |
+| Phase 1b | 506 weak-arm endpoints, enriched sample | [`results/phase1b/analysis.md`](results/phase1b/analysis.md) |
+| Human audit | 49 endpoints, blind | [`results/audit/report.md`](results/audit/report.md) |
+| `repair-v1` design | 3 iterations, dev only | [`results/repair/`](results/repair/) |
+| Controlled pairs | dev endpoints, constructed inputs | [`summary-weak.md`](results/runs/pairs/summary-weak.md), [`summary-strong.md`](results/runs/pairs/summary-strong.md) |
 
-- **H1 not supported.** It needs the FD − FC interval below 0. In both arms the point estimate is
-  positive and the interval reaches 0 from above.
-- **H2 (descriptive).** Every false-DONE item, in every cell, is on a C2, C4 or C6 task. No cell
-  judges any of the 12 blocked C5 boundaries done, in either arm. C1 and C3 have no truth ≠ done
-  boundaries, so the comparison against controls that H2 names cannot be made.
-- **H3 not tested.** Phase 1 has no G-contract boundaries (Phase 2 design amendment).
-- **H4 not met** in any of its four tests (2 arms × {flash, strong}). Each has n = 10 held-out
-  truth ≠ done boundaries and at most 1 discordant pair, against the 15 required. This is the
-  "no detectable difference at n = 10" the prereg stated in advance. False-CONTINUE on the
-  44 held-out done items per arm rises by 0 to +6.8 pp (at most 3 discordant pairs). Every
-  comparison reads "no detectable difference".
-- **H5 (exploratory).** Item correctness of self against Flash, and of either against strong,
-  differs by at most 2 items in 88 or 90 (all "no detectable difference"). At the cell level,
-  Flash matches the self judge's false-DONE in both arms. Strong matches it too, and adds 1 (weak)
-  and 2 (strong) false-CONTINUE items.
-- **Evidence view and repair-v1.** `prod-plain:flash:evidence` has the same false-DONE as
-  `flash:head4k` in both arms. `repair-v1` lowers false-DONE by 1 item in the strong arm only.
-  Against the `prod-plain` cell of the same model, it raises false-CONTINUE by 0 to 4 items.
-  The highest count is under `repair-v1:strong:evidence` (5/72 weak, 5/73 strong).
-- **Truth sensitivity.** Truth as frozen at Phase 1 counts seven more boundaries as not done (five
-  `c2-01`, two `c6-04`, see the frozen-verifier note). Under it the self judge's false-DONE is
-  7/19 (weak) and 9/21 (strong). The strong arm's FD − FC interval then excludes 0
-  (+42.9 pp, 6.2 to 80.0).
-- **Reliability.** No cell has an unresolved call. There are 2 parse failures in 264 calls
-  (`self-weak`) and 0 format violations anywhere. Transport errors per attempt:
-  - `strong` (Codex CLI) head4k: 139/403 (weak) and 120/390 (strong). These are the known hangs,
-    each retried to success.
-  - `flash:head4k`, weak arm: 129/393.
-  - Every other cell: 16 or fewer.
-- **Strong harness check.** The Codex CLI and paid-API harnesses agree on 9/10 and 9/10 items in
-  the strong arm, and 10/10 and 10/10 in the weak arm.
-  - Limitation, applying to every strong result above: the strong and Flash cells differ in
-    harness as well as model, and only this 20-boundary check bounds the harness effect.
-  - The strong cells are labelled "GPT-6.1 Sol via Codex CLI; harness prompt and sampling params
-    not controllable".
-- **Not exercised.** No Phase 1 response reaches 4,000 characters. So the truncation effect from
-  the pilot does not occur here. `headtail4k` is identical to `head4k` by construction, and was
-  not called.
-- **Small sample.** The 16 (weak) and 17 (strong) truth ≠ done boundaries come from few tasks.
-  These are counts from a small natural sample, not precise rates.
-
-Measured spend on paid Phase 2 calls, including the repair design and the controlled pairs:
-$7.18 of the $20 stop. The 1,315 Codex CLI calls are unbilled ([`results/runs/phase2/spend.md`](results/runs/phase2/spend.md)).
-
-- **Human verifier audit.** I audited 49 boundaries blind, without the judge verdict or
-  the stratum ([`results/audit/report.md`](results/audit/report.md)). As the prereg sets out, the
-  strata are formed over the 178 Phase 1a boundaries of both arms. It found no endpoint label
-  errors, and one requirement-level error in 49 audited.
-
-  | Stratum | Population | Audited | Endpoint label errors | Wilson 95% |
-  |---|---:|---:|---:|---|
-  | A, verifier and judge disagree | 9 | 9 | 0 | 0 to 29.9% |
-  | B, both say DONE | 145 | 30 | 0 | 0 to 11.4% |
-  | C, both say not DONE | 24 | 10 | 0 | 0 to 27.8% |
-
-  - Counted as the prereg's verifier error rate, which includes requirement-level errors,
-    stratum C has 1 of 10 (Wilson 1.8 to 40.4%), as in the audit report.
-  - The one requirement-level error is in a `c5-03` (missing package) boundary from the weak
-    arm. The agent pinned an available substitute, and its tests passed in its own environment.
-    The verifier's `tests_pass` check failed, by the auditor's reading because its image lacks
-    the agent's installed packages. The boundary is still correctly `blocked`, because the
-    requested package is infeasible to install.
-  - The error is recorded as a known limitation, and the verifier is not fixed (my decision,
-    2026-10-13). A fix would change no truth label, so there is no sensitivity rerun under the
-    prereg's *Truth* rules.
-
-## Controlled pairs (dev boundaries, constructed inputs)
-
-Dev boundaries only, arms never pooled, decisions are the majority of 3 samples. Rules are the
-prereg's *Controlled counterfactual pairs* and its note of 2026-10-14: H6 is the only confirmatory
-test, E1, H8 and the repair comparisons are descriptive. Full tables:
-[`results/runs/pairs/summary-weak.md`](results/runs/pairs/summary-weak.md),
-[`summary-strong.md`](results/runs/pairs/summary-strong.md); inputs and build counts:
-[`data/pairs/README.md`](data/pairs/README.md).
-
-| `prod-plain:flash` unless noted | weak (GLM-5.3-Flash) | strong (DeepSeek V4.1 Flash) |
-|---|---|---|
-| Identical-input flips, `head4k` (noise floor) | 0/34 (Wilson 0 to 10.2%) | 0/36 (Wilson 0 to 9.6%) |
-| H6 pairs: flips with the caveat before / after the 4,000-character cut | 2/34 / 0/34 | 4/36 / 0/36 |
-| H6 exact sign-flip test, per-task differences | p = 0.25 (2/2 tasks positive) | p = 0.25 (2/2 tasks positive) |
-| Edit flips per family (hedging, error, paraphrase, tone), exact 95% CI | 0/12 each (0 to 26.5%) | 0/12 each (0 to 26.5%) |
-| Evidence-visible state pairs, mutated arm not DONE: `prod-plain:flash:evidence` | 0/7 | 0/2 |
-| same, `repair-v1:flash:evidence` | 3/7 | 1/2 |
-| same, `repair-v1:strong:evidence` (Codex CLI) | 3/7 | 1/2 |
-
-- **H6 not established** in either arm. A caveat placed before the cut changed the decision on 2
-  (weak) and 4 (strong) pairs, and the same caveat after the cut on none. But the flips sit in only
-  2 tasks per arm (weak `c2-01`, `c6-03`; strong 3 of 3 pairs on `c2-05`, and `c6-04`). The exact
-  test needs at least 5 tasks with a difference, so p = 0.25 in both arms.
-- **E1 (descriptive).** `paraphrase` and `tone` edits flipped no decision in 12 bases per arm,
-  against 0 identical-input flips on the same bases. With 12 bases the exact upper bound is 26.5%,
-  so no family is called inert. The 10-point reference tolerance is recorded for later runs.
-- **Hedging and error (descriptive).** No flips either. In each arm 10 of the 12 bases are judged
-  DONE, and stay DONE after an inserted hedge or a separate paragraph reporting an error. The
-  judge's decision did not respond to an explicit error report appended to a DONE account.
-- **H8 (descriptive).** On evidence-visible state pairs, where one required file or record was
-  mutated after the run and the replayed tool output shows it, `prod-plain:flash:evidence` judged
-  the mutated arm DONE in every pair (0/7, 0/2). Both `repair-v1` cells caught 3/7 and 1/2. The
-  smallest McNemar p is 0.25 (weak) and 1.0 (strong), 1.0 after Holm, so these are counts, not a
-  detected difference. 8 weak and 6 strong state pairs were evidence-invisible and are excluded.
-  Weak-arm `prod-plain` H8 had no discordant pairs and entered Holm at p = 1 per the prereg's
-  k = 5 (strong-arm `prod-plain` H8 likewise, 0 of 2).
-- **H7 not run.** No dev not-done base has a claim-free account.
-- **Limits.** These are dev pilot numbers on 12 tasks per arm. A confirmatory pairs run needs
-  held-out boundaries and its own amendment. State pairs cover only boundaries whose last three
-  calls replay, which favours simple, deterministic endings. Replay is checked on the stored
-  output tails only (the last 500 characters): a replay that printed extra text before the same
-  tail would pass, and a timing-only difference fails when the cut moves with a timing value's
-  width or lands inside a timing field, which excludes the pair.
-
-Spend: 1,752 billed calls, $1.72, bringing paid Phase 2 calls to $7.18 of the $20 stop; the
-207 Codex CLI calls are unbilled. Every call parsed.
+Methods, deviations, exclusions and spend: [`docs/methods.md`](docs/methods.md).
 
 ## Setup
 
@@ -188,7 +82,7 @@ replay imports the judge prompts, truncation and verdict parser from it directly
 `judge_goal` sends. On Windows, enable long paths before cloning (`git config --global
 core.longpaths true`); the Hermes docs tree has deep paths.
 
-## Offline judge pilot
+## Reproducing: the pilot
 
 48 constructed decision points with truth fixed by design: self-report attacks, controls in both
 directions, and a truncation dose-response set where one caveat sits at ~1k, ~3.5k, ~4.5k or ~8k
@@ -225,7 +119,7 @@ to pool records from different arms or sub-arms, and an arm stops at once if its
 identity changes mid-run. `hjr reparse` re-parses stored raw responses without new calls. The
 replay is resume-safe: rerunning it only fills in missing samples.
 
-## Agent harness (M1)
+## Reproducing: trajectories
 
 Hermes runs inside Harbor under the `/goal` loop. `hjr.harness.agent:HermesGoalLoop` extends
 Harbor's Hermes agent: Hermes is baked into `hjr/hermes-base` at the audited commit (no
@@ -250,9 +144,10 @@ uv run hjr ingest --job jobs/<run> --out data/frozen/<run>.jsonl
 ```
 
 Before Phase 1 each agent arm passes the soak gate (`configs/soak_gate.toml`): six concurrent
-trials, six turns each, run past any production stop. Both M1 tasks end in turn 1, so a soak-only
-workload supplies the long resumed sessions the gate requires. It releases its evidence one stage
-per turn, and `ingest` refuses it.
+trials, six turns each, run past any production stop. Real tasks almost always end in turn 1
+(every Phase 1a trial did, and 496 of 501 Phase 1b trials), so a soak-only workload supplies the
+long resumed sessions the gate requires. It releases its evidence one stage per turn, and `ingest`
+refuses it.
 
 ```bash
 uv run harbor run -p tasks/ -e docker --ek "$EK" -k 3 -n 6 -o jobs --job-name soak-<arm> \
