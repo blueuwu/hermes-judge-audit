@@ -417,12 +417,20 @@ its paid-API sanity check $0.22, the `probe-p2` format probes $0.02, the three `
 iterations $3.44 and the controlled pairs $1.72. The 1,315 GPT-6.1 Sol calls ran on a
 subscription and are not billed per call.
 
-Phase 1b ran on a dedicated key with its own $20 cap and used $4.54: $0.04 for the aborted first
-Stage A launch, $2.56 for Stage A and $1.93 for Stage B, covering agent, auxiliary and in-loop
+Phase 1b ran on a dedicated key with its own $20 cap, covering agent, auxiliary and in-loop
 judge calls ([Stage A](../results/phase1b/stage-a-report.md) and
-[Stage B](../results/phase1b/stage-b-report.md) reports). The other $0.010487 was billed between
-the Stage A end reading and the Stage B baseline and is not attributed to any recorded call; the
-Stage B report counts it as late Stage A billing because no other job ran on the key. The pilot
+[Stage B](../results/phase1b/stage-b-report.md) reports):
+
+| Phase 1b spend | USD |
+|---|---|
+| Aborted first Stage A launch | 0.038047 |
+| Stage A, measured at its end | 2.557706 |
+| Billed between the Stage A end reading and the Stage B baseline | 0.010487 |
+| Stage B | 1.930782 |
+| **Total** | **4.537022 (about $4.54)** |
+
+The $0.010487 is not attributed to any recorded call. The Stage B report counts it as late
+Stage A billing, because no other job ran on the key, and revises Stage A to $2.568193. The pilot
 cost $1.65. No billed agent spend for Phase 1a or the soak runs is in the repository.
 
 ## Reproducing
