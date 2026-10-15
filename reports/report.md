@@ -211,7 +211,7 @@ On the 5 selected tasks (Stage A and B, 294 endpoints):
 | In-loop judge | Count | Micro (task bootstrap 95%) | Task-macro (task bootstrap 95%) |
 |---|---|---|---|
 | DONE on not-done endpoints | 44/45 | 97.8% (89.5 to 100) | 95.0% (85.0 to 100) |
-| Not DONE on done endpoints | 0/249 | 0% | 0% |
+| Not DONE on done endpoints, 5 selected tasks only | 0/249 | 0% | 0% |
 
 | Task | Split | Not done judged DONE |
 |---|---|---|
@@ -224,6 +224,11 @@ On the 5 selected tasks (Stage A and B, 294 endpoints):
 - The intervals are coarse: the bootstrap resamples 5 task clusters, all 5 with a not-done
   endpoint judged DONE. The 0/249 row has no events, so its bootstrap interval is degenerate
   and no interval is given.
+- The 0/249 covers only the 5 selected tasks. The other 11 tasks ran in Stage A only and have
+  no not-done endpoint, so that pool fails the deviation 2 rule and gets per-task counts only:
+  the judge said CONTINUE on 3 of 23 done `c3-05` endpoints and 1 of 9 done `c4-04` endpoints,
+  and on no done endpoint of the other 9 tasks. These are the 4 false CONTINUEs under
+  Limitations; `analysis.md` does not tabulate them.
 - Dev alone (2 tasks) and held-out alone (3 tasks) each have fewer than 5 tasks with a not-done
   endpoint, so under deviation 2 they get per-task counts only (the table above), with no
   pooled count, rate or interval.
