@@ -28,7 +28,8 @@ README results and the report are done. What remains:
 
 1. **Merge PR #14.** It holds the report (`reports/report.md`), the Phase 1b full pools, the
    prereg erratum and the README fixes. The owner merges it, by rebase.
-2. **Confirmatory pairs (optional).** The dev pairs run is a pilot. A confirmatory run on
+2. **Confirmatory pairs (optional).** Apart from H6, which is confirmatory on dev
+   and done, the dev pairs run is a pilot. A confirmatory run on
    held-out boundaries needs its own dated amendment before any of its calls (prereg note of
    2026-10-14, *Scope*). Its paid calls count toward the $20 stop; measured spend is in
    `results/runs/phase2/spend.md`.
