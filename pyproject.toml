@@ -16,7 +16,7 @@ dependencies = [
 ]
 
 [project.optional-dependencies]
-harness = ["harbor==0.23.0", "modal>=1.1"]
+harness = ["harbor==0.23.0"]
 nel = ["nemo-evaluator==0.3.0"]
 
 [project.scripts]

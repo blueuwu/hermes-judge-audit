@@ -1,4 +1,4 @@
-# Controlled pairs: dev inputs (draft, for owner review)
+# Controlled pairs: dev inputs
 
 - `dev-boundaries.jsonl`: the 70 `split == "dev"` lines of `data/frozen/phase1-weak.jsonl` (34)
   and `data/frozen/phase1-strong.jsonl` (36), byte-identical and in file order. `hjr pairs-build`
@@ -17,7 +17,7 @@
   - `paraphrase` and `tone` keep every number, path, identifier, command and code block verbatim.
 - `h7`: none drafted. Under primary truth, Phase 1a dev has one `not_done` boundary, and its
   account already makes a confident completion claim, so no base is claim-free.
-- Owner review (2026-10-14): `meaning_preserving` is true on all 48 `paraphrase` and `tone`
+- My review (2026-10-14): `meaning_preserving` is true on all 48 `paraphrase` and `tone`
   records, after four fixes: two `tone` openers that weakened or dropped the completion claim,
   one `paraphrase` that turned "warns" into "raises", and the `error` sentence, moved to its own
   paragraph (on weak `c5-02` it also names a different error, since the original account already

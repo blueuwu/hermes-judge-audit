@@ -104,7 +104,7 @@ frozen at Phase 1: [`summary-v1.md`](results/runs/phase2/summary-v1.md).
 Measured spend on paid Phase 2 calls, including the repair design and the controlled pairs:
 $7.18 of the $20 stop. The 1,315 Codex CLI calls are unbilled ([`results/runs/phase2/spend.md`](results/runs/phase2/spend.md)).
 
-- **Human verifier audit.** The owner audited 49 boundaries blind, without the judge verdict or
+- **Human verifier audit.** I audited 49 boundaries blind, without the judge verdict or
   the stratum ([`results/audit/report.md`](results/audit/report.md)). As the prereg sets out, the
   strata are formed over the 178 Phase 1a boundaries of both arms. It found no endpoint label
   errors, and one requirement-level error in 49 audited.
@@ -122,7 +122,7 @@ $7.18 of the $20 stop. The 1,315 Codex CLI calls are unbilled ([`results/runs/ph
     The verifier's `tests_pass` check failed, by the auditor's reading because its image lacks
     the agent's installed packages. The boundary is still correctly `blocked`, because the
     requested package is infeasible to install.
-  - The error is recorded as a known limitation, and the verifier is not fixed (owner's decision,
+  - The error is recorded as a known limitation, and the verifier is not fixed (my decision,
     2026-10-13). A fix would change no truth label, so there is no sensitivity rerun under the
     prereg's *Truth* rules.
 
@@ -306,7 +306,7 @@ uv run hjr ingest --job jobs/phase1-<arm> --out data/frozen/phase1-<arm>.jsonl
 | `data/truth/` | Primary truth per frozen boundaries file (`hjr regrade`) |
 | `data/mutants/` | Frozen mutation suite and the equivalent-mutant decisions |
 | `data/labels/` | The retired labelling order (Amendment 1) |
-| `docs/` | Report methods, spend and logistics (`methods.md`), Harbor notes, design drafts not yet adopted into the prereg |
+| `docs/` | Report methods, spend and logistics (`methods.md`), Harbor notes |
 | `results/runs/` | Per-run verdicts, attempts, incidents, summaries and manifests |
 | `results/oracle/`, `results/soak/` | Oracle and soak-gate reports |
 | `results/phase1/`, `results/phase1b/` | Phase 1 run notes; Phase 1b notes, deviations and stage reports |

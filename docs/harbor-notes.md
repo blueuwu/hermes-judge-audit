@@ -1,132 +1,93 @@
 # Running the study on Harbor
 
-Observed: We used Harbor for sandboxed tasks, a custom agent running the Hermes `/goal`
-loop, and separate verifier containers. The agent resumed a session for each turn and
-saved workspace snapshots at turn boundaries. The verifier checked the final workspace
-and those snapshots, with hidden checks kept out of the agent image. This describes our
-integration, rather than a claim that Harbor supplies this goal loop itself.
+What worked and what broke running this study on Harbor **0.23.0**, the version pinned in
+`pyproject.toml` and resolved in `uv.lock`. I have not checked whether the problems below
+persist in later releases.
 
-Observed: The harness dependency is pinned to Harbor **0.23.0** in `pyproject.toml`, and
-`uv.lock` resolves that same version. Those files were checked for this note. We have not
-tested whether the problems below persist in another release.
-
-In this note, **measured** means counted by `scripts/harbor_failure_counts.py` from the
-available local jobs on 2026-10-14. **Observed** means an incident or implementation detail
-inspected once, without an estimated frequency. **Inferred** means an interpretation or
-engineering suggestion. The counter uses only the standard library, reads jobs without
-writing, and makes no network or model calls. Run it with:
+Counts come from `scripts/harbor_failure_counts.py`, run over the local job directories on
+2026-10-14. It uses only the standard library, reads jobs without writing, and makes no network
+or model calls:
 
 ```text
 python scripts/harbor_failure_counts.py --jobs-dir <local-jobs-root>
 ```
 
-Measured: The following are selected per-job counts, with agent arms kept separate.
-“Total” is the scheduled trial count. “Present” counts materialized trial directories.
-“Failed” includes explicit execution errors, unrecovered provider errors, and materialized
-trials missing a result. It does not count an unsuccessful task reward as an execution
-failure. The four cause columns partition Failed; a trial with multiple signals is counted
-once using the script's documented precedence.
+## Setup
+
+The `/goal` loop is my own Harbor agent (`hjr.harness.agent:HermesGoalLoop`), not something
+Harbor ships. It resumes one Hermes session per turn and snapshots the workspace at every turn
+boundary. A separate verifier container grades the final workspace and each snapshot, so the
+hidden checks never enter the agent's image. Harbor's environment and custom-agent interfaces
+allowed all of this without patching Harbor, and its per-trial records made failures auditable
+after the runs.
+
+## Job counts
+
+Total is the number of scheduled trials, Present the trial directories that materialized.
+Failed counts execution failures (explicit errors, unrecovered provider errors, trials with no
+result), not tasks the agent got wrong. The four cause columns split Failed; a trial with several
+signals is counted once, by the script's precedence. Agent arms are kept separate.
 
 | Job | Total | Present | Failed | Harbor | Provider | Timeout | Unclassified |
 |---|---:|---:|---:|---:|---:|---:|---:|
+| oracle-suite | 30 | 30 | 0 | 0 | 0 | 0 | 0 |
+| smoke-weak-2 | 30 | 30 | 0 | 0 | 0 | 0 | 0 |
+| phase1-weak | 90 | 90 | 2 | 0 | 0 | 2 | 0 |
+| phase1-strong | 90 | 90 | 0 | 0 | 0 | 0 | 0 |
 | phase1b-weak-a-attempt1 | 320 | 7 | 7 | 5 | 0 | 0 | 2 |
 | phase1b-weak-a | 320 | 320 | 14 | 0 | 0 | 14 | 0 |
 | phase1b-weak-b | 200 | 200 | 5 | 0 | 0 | 5 | 0 |
-| phase1-weak | 90 | 90 | 2 | 0 | 0 | 2 | 0 |
-| phase1-strong | 90 | 90 | 0 | 0 | 0 | 0 | 0 |
-| oracle-suite | 30 | 30 | 0 | 0 | 0 | 0 | 0 |
-| smoke-weak-2 | 30 | 30 | 0 | 0 | 0 | 0 | 0 |
-| smoke-strong-1 | 2 | 2 | 2 | 0 | 2 | 0 | 0 |
-| smoke-strong-2 | 2 | 2 | 0 | 0 | 0 | 0 | 0 |
-| mech-1 | 1 | 1 | 1 | 0 | 1 | 0 | 0 |
-| mech-net | 1 | 1 | 1 | 0 | 1 | 0 | 0 |
-| mech-s0 | 1 | 1 | 1 | 0 | 1 | 0 | 0 |
-| netprobe5 | 1 | 1 | 1 | 0 | 0 | 0 | 1 |
-| oracle-dev | 2 | 2 | 2 | 0 | 0 | 0 | 2 |
-| oracle-dev2 | 2 | 2 | 2 | 2 | 0 | 0 | 0 |
 
-## What worked
+The script also prints the development jobs (`smoke-strong-*`, `mech-*`, `oracle-dev*`,
+`netprobe5`); their failures are described below. The jobs had different purposes, so these
+counts are not a Harbor failure rate, and a job with zero matched failures can still have had
+an incident that left no recognized record.
 
-Observed: Harbor's environment and custom-agent interfaces let us add session resumption,
-boundary snapshots, and independent verification without putting hidden checks in the agent
-workspace. The saved trial records also made it possible to audit failures after the runs.
+## What broke
 
-Measured: `oracle-suite` materialized 30 of 30 trials with zero classified execution
-failures; `smoke-weak-2` did the same for 30 of 30. `phase1-strong` materialized 90 of 90
-with zero classified execution failures. These counts establish that those jobs ran through
-the harness; they do not establish that the model completed every task correctly.
+**A decoding error ended a whole job.** A `UnicodeDecodeError` in Harbor 0.23.0, reading a
+UTF-8 session file as cp1252, ended the 320-trial job `phase1b-weak-a-attempt1`. Its archive has
+5 decoding exceptions, 1 cancellation and 1 trial with no result; the other 313 trials never
+started. That is one aborted job, not 320 failures. The rerun with `PYTHONUTF8=1`,
+`phase1b-weak-a`, ran all 320 ([deviation 1](../results/phase1b/deviation-1.md)). What would
+help: decode subprocess output defensively and keep the raw bytes, turn a decoding failure into
+an error on that trial so the rest of the queue keeps running, and when the scheduler does
+stop, record why and the final state of every scheduled trial.
 
-Inferred: Keep these interfaces and the per-trial records stable. A small offline example
-showing how to save a boundary snapshot and grade it in a separate container would help
-other studies use the same separation.
+**Provider failures behind a clean exit.** `smoke-strong-1` had 2 trials end on provider errors
+(`smoke-strong-2` had none), and `mech-1`, `mech-net` and `mech-s0` had 1 each. These were
+failures of my integration, not a Harbor defect. A way for a custom agent to report a terminal
+provider failure in the trial result, with the exception class and HTTP status, would stop a
+wrapper that exits cleanly from hiding a failed goal loop.
 
-## What broke and what would help
-
-Observed: A `UnicodeDecodeError` in Harbor 0.23.0 killed the 320-trial job
-`phase1b-weak-a-attempt1`. Measured: Its archive contains 5 Harbor-associated decoding
-exceptions, 1 cancellation classified as unclassified, and 1 materialized trial without a
-result, also unclassified. The other 313 scheduled trials did not materialize. This is one
-aborted job, not 320 decoding failures. The later `phase1b-weak-a` materialized all 320 trials.
-
-Inferred: Decode subprocess output defensively while retaining the original bytes for
-diagnostics. Add a regression case containing invalid UTF-8 in subprocess output. An output
-decoding failure should produce a structured trial error and allow unrelated queued trials
-to continue. When the scheduler does stop, persist the cancellation reason and the final
-state of every scheduled trial so incomplete work can be distinguished from failed work.
-
-Measured: `smoke-strong-1` has 2 trials with terminal provider errors, while
-`smoke-strong-2` has zero. `mech-1`, `mech-net`, and `mech-s0` each have 1 such trial.
-Inferred: These are integration failures, not evidence of a Harbor provider defect. Give
-custom agents an explicit way to report terminal provider failures in the trial result,
-including the exception class and HTTP status, so a completed wrapper does not conceal a
-failed goal loop.
-
-Measured: `oracle-dev2` has 2 `RewardFileNotFoundError` failures. `oracle-dev` has 2
-unclassified failures, and `netprobe5` has 1. Inferred: A missing reward file identifies a
-verifier handoff failure but does not prove who caused it. Validate the verifier output
-contract early and include structured setup, execution, and collection stages in failures.
-The other exceptions remain unclassified because a generic exception with Harbor in its
-call stack is insufficient evidence of ownership.
+**Verifier handoff.** `oracle-dev2` had 2 `RewardFileNotFoundError` failures; `oracle-dev` had
+2 unclassified failures and `netprobe5` 1. A missing reward file shows that the handoff to the
+verifier failed, not which side caused it. Checking the verifier's output contract early, and
+tagging failures by stage (setup, execution, collection), would settle that. The other
+exceptions stay unclassified: a generic exception with Harbor in its stack trace is not enough
+to blame Harbor.
 
 ## Timeouts
 
-Measured: Re-running the counter on 2026-10-14 confirmed that all classified timeouts
-are in weak-arm jobs: `phase1b-weak-a` has 14/320, `phase1b-weak-b` has 5/200,
-and `phase1-weak` has 2/90. Every strong-arm job has 0 classified timeouts.
-The weak-arm failures match explicit Harbor Docker command-timeout markers.
+All 21 classified timeouts are in weak-arm jobs: 14/320 in `phase1b-weak-a`, 5/200 in
+`phase1b-weak-b` and 2/90 in `phase1-weak`. No strong-arm job had one. Each matches Harbor's
+Docker command-timeout marker, and each came on the first turn, before any boundary: 14 on
+`c4-04-regex-log` (2 in `phase1-weak`, 12 in `phase1b-weak-a`) and 7 on
+`c4-03-cobol-modernization` (2 in `phase1b-weak-a`, 5 in `phase1b-weak-b`).
 
-Measured: By task, 14 of the 21 are on `c4-04-regex-log` (2 in `phase1-weak`, 12 in
-`phase1b-weak-a`) and 7 on `c4-03-cobol-modernization` (2 in `phase1b-weak-a`, 5 in
-`phase1b-weak-b`). Each timed out on its first turn, before any boundary.
+The analysis excludes them like any other failed trial, under the Phase 1b note
+(`results/phase1b/note.md`, frozen 2026-10-05) and Amendment 2 of `configs/prereg.md`: no
+retries, and every exclusion listed with its reason in `data/frozen/*.excluded.json` and the
+Stage A and Stage B reports under `results/phase1b/`.
 
-How the analysis treats them is defined, not open. The Phase 1b note
-(`results/phase1b/note.md`, frozen 2026-10-05) excludes turn timeouts like any other failed
-trial, and Amendment 2 of `configs/prereg.md` sets no retries with every exclusion listed with its
-reason. The exclusions are listed in `data/frozen/*.excluded.json` and in the Stage A and Stage B
-reports under `results/phase1b/`.
+The marker says which layer reported the timeout, not whether the delay came from the model,
+the sandbox or verification. Recording the operation, configured timeout, elapsed time and
+cleanup outcome as structured fields would separate slow commands from orchestration stalls.
 
-Inferred: These markers identify the execution layer that reported the timeout, but do
-not identify whether the underlying delay came from the model, the sandbox, or
-verification. Persist the operation, configured timeout, elapsed time, and cleanup
-outcome as structured fields. That would let maintainers separate slow commands from
-environment or orchestration stalls without reading private task content.
+## Retries
 
-## Retry ownership and limits of the counts
-
-Measured: The brief's assumption that retries in jobs/ belonged to hjr was wrong.
-There are no hjr retries in the available jobs/, and Harbor's own retry count is 0
-in every job too. The saved hjr judge attempt records contain 0 retry invocations
-in each job. These counts do not measure recovery by retry. The counter reports
-hjr retry trials and retry attempts separately from terminal causes.
-
-Inferred: Preserve that distinction in Harbor's reporting: expose retry owner, attempt
-number, terminal outcome, and whether a retry actually ran. A retryable flag alone should
-not increment a retry counter.
-
-Measured: The counter found no unreadable diagnostic records in these jobs. Unmatched
-exceptions, cancellation, and missing trial results remain unclassified under explicit
-rules. The script prints every discovered job, including the archived attempt, while this
-note selects jobs relevant to the engineering issues. Inferred: These development,
-smoke, oracle, and study jobs have different purposes; their counts should not be pooled
-into a general Harbor failure rate. Zero matched failures also cannot rule out an incident
-that left no recognized diagnostic record.
+Nothing in these jobs was retried. Harbor's retry count is 0 in every job, and the saved `hjr`
+judge attempt records show 0 retry invocations, so the counts say nothing about recovery by
+retry. The script reports `hjr` retries separately from terminal causes. In Harbor's own
+reporting it would help to expose who retried, the attempt number, the final outcome and whether
+a retry actually ran; a retryable flag alone should not count as a retry.
