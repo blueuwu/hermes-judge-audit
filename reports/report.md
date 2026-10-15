@@ -1,6 +1,7 @@
 # Does the Hermes `/goal` judge know when a goal is done?
 
 October 2026. Code: this repository. Pre-registration: [`configs/prereg.md`](../configs/prereg.md).
+Methods, deviations, exclusions and spend: [`docs/methods.md`](../docs/methods.md).
 
 Hermes Agent's `/goal` command runs the agent in a loop until a judge model decides the goal is
 met. After each turn the judge reads the goal and the agent's final message and answers DONE,
@@ -14,39 +15,54 @@ says otherwise, so from that input no judge model can tell a true done claim fro
 and changing the model cannot help. This study measures what that bound costs on real tasks,
 then asks what the judge does when the evidence is in its input.
 
+## What I built
+
+- 30 tasks in six categories, run in Harbor sandboxes under the real `/goal` loop, with two
+  agent arms from different vendors ([`tasks/README.md`](../tasks/README.md)).
+- A hidden, per-requirement state verifier for every task. A mutation suite: 260 of 260 mutants
+  caught on the requirement they targeted, 33 of 33 benign variants passed. A blind human audit
+  of 49 endpoints.
+- An offline replay of 3,204 judge calls through six judge cells, with judge models from 3
+  vendors in each arm. Production cells reproduce what Hermes sends byte for byte, checked by a
+  test against `judge_goal`.
+- Controlled pairs built from stored trajectories: two inputs that differ in one thing, including
+  state pairs where a required file was broken and the endpoint's last three tool calls were
+  replayed against it.
+- On the way, a Harbor bug: it read a UTF-8 session file as cp1252, which ended the first Phase
+  1b launch ([`results/phase1b/deviation-1.md`](../results/phase1b/deviation-1.md)).
+
 ## Summary
 
-- **In Phase 1a the bound holds: the judge accepted every unfinished task the agent called
-  finished.** Of
-  178 Phase 1a trajectory endpoints from two agents, 9 were not done by the verifier: 4 weak, 5
-  strong. Every production-prompt cell, with the agent's own model, Gemini 3 Flash Preview or
-  GPT-6.1 Sol as judge, judged all 9 DONE: 4/4 weak and 5/5 strong, counts only, since cells
-  under 20 items report no rates. All 9 final messages open by reporting the work done
-  (appendix).
-- **Phase 1b (weak arm only): the in-loop judge judged 44 of 45 not-done endpoints DONE,
-  across 5 tasks** (per task: dev `c2-01` 16/16 and `c2-05` 7/7; held-out `c2-03` 3/4, `c4-03`
-  16/16 and `c4-05` 2/2). The exception is a held-out `c2-03` endpoint
-  whose final message opened "Release done." and closed by offering to bump one more version
-  string: the judge said CONTINUE, the agent took a second turn, that endpoint was still not
-  done, and the judge judged it DONE (it is one of the 44).
-- **The same input explains what it gets right.** A blocked agent says so, and the judge judged
-  none of the 12 blocked endpoints per arm DONE. Under the agent's own model it held back none
-  of the finished ones. On the design claim that false-DONE is rarer than false-CONTINUE (H1),
-  the point estimate is reversed in both arms, although with so few failing tasks the intervals
-  reach 0.
 - **Past the bound, the production prompt still calls visible breakage DONE.** On constructed
-  pairs where a required file was broken and the replayed tool output in the judge's input
+  dev pairs where a required file was broken and the replayed tool output in the judge's input
   showed it, the production prompt called the broken copy DONE in 7 of 7 (weak) and 2 of 2
-  (strong) pairs. On natural endpoints, adding tool output removed no false DONE.
+  (strong) pairs. These pairs are a pilot. On natural endpoints, adding tool output removed no
+  false DONE.
+- **Truncation keeps the start of long messages, where the docs say the end.** The code passes
+  the first 4,000 characters; the docs say the "last ~4 KB of text". No natural final message
+  here was longer than 2,757 characters, so these agents never reached the cut, and truncation
+  is measured only on constructed inputs.
+- **In Phase 1a the bound holds: the judge accepted every unfinished task the agent called
+  finished.**
+  - Of 178 trajectory endpoints from two agents, 9 were not done by the verifier. Every
+    production-prompt cell (the agent's own model, Gemini 3 Flash Preview, GPT-6.1 Sol) judged
+    all 9 DONE: 4/4 weak and 5/5 strong, counts only, since cells under 20 items report no
+    rates. All 9 final messages open by reporting the work done (appendix).
+  - Phase 1b (weak arm only, an enriched sample): the in-loop judge judged 44 of 45 not-done
+    endpoints DONE, across 5 tasks (per task: dev `c2-01` 16/16 and `c2-05` 7/7; held-out
+    `c2-03` 3/4, `c4-03` 16/16 and `c4-05` 2/2). The exception, judged CONTINUE, is
+    described under Results.
+  - The same input explains what it gets right: a blocked agent says so, and the judge judged
+    none of the 12 blocked endpoints per arm DONE; under the agent's own model it held back none
+    of the finished ones.
 - **A prompt that tells the judge to check (`repair-v1`) helps a little, at a cost.** It caught 3
   of 7 and 1 of 2 of those broken copies, and 1 natural not-done endpoint in the strong arm. It
-  held back up to 5 finished tasks per arm. The pre-registered repair test (H4) is not met,
-  which the power analysis predicted before any call was made.
-- **Truncation keeps the start of long messages, where the docs say the end.** No natural final
-  message here was longer than 2,757 characters, so these agents never reached the cut. On
-  controlled pairs a caveat before the cut changed 2 (weak) and 4 (strong) decisions and after
-  the cut none, but the changes sit in two tasks per arm, too few for the pre-registered test
-  (H6).
+  held back up to 5 finished tasks per arm.
+- **Nulls.** H1 (false-DONE rarer than false-CONTINUE): the point estimate is reversed in both
+  arms, although with so few failing tasks the intervals reach 0. H4 (the repair test): not met,
+  which the power analysis predicted before any call was made. H6 (truncation): not
+  established; a caveat before the cut changed 2 (weak) and 4 (strong) decisions and after the
+  cut none, but the changes sit in two tasks per arm, too few for the pre-registered test.
 
 The short version: in its production form the judge grades the agent's report. When the report
 says done, the judge agrees, and with tool output added it still agrees when that output shows
@@ -56,17 +72,9 @@ the work is broken.
 
 ### Tasks and agents
 
-30 tasks in six categories, run in Harbor sandboxes under the real `/goal` loop
-([`tasks/README.md`](../tasks/README.md)):
-
-| Category | Tasks | What it tests |
-|---|---|---|
-| C1 controls | 5 | Plain tasks the agent should finish |
-| C2 multi-part | 5 | Goals with several requirements, one of which is easy to skip |
-| C3 tool friction | 6 | Missing interpreters, flaky syncs, stale locks |
-| C4 verification-required | 5 | Adapted from Terminal-Bench 2.0; the agent sees little or none of the checking |
-| C5 infeasible | 4 | Goals that cannot be met without something the agent lacks |
-| C6 long reports | 5 | Tasks whose answer is a long written report |
+30 tasks in six categories: C1 controls, C2 multi-part, C3 tool friction, C4
+verification-required, C5 infeasible and C6 long reports
+([table](../docs/methods.md#tasks), [`tasks/README.md`](../tasks/README.md)).
 
 A seeded split puts 12 tasks in dev and 18 in held-out. The repair prompt was built from dev
 only and frozen (tag `repair-freeze-v1`) before any held-out endpoint was read.
@@ -74,11 +82,10 @@ only and frozen (tag `repair-freeze-v1`) before any held-out endpoint was read.
 Two agent arms, from different vendors on different providers: weak is GLM-5.3-Flash on Z.AI,
 strong is DeepSeek V4.1 Flash on DeepSeek. Each ran every task 3 times with a six-turn budget.
 Every Phase 1a trial ended after its first turn: the agent worked, wrote a summary, and the
-in-loop judge stopped it. That gives one decision point per trial, 178 in all after two
-weak-arm trials timed out (88 weak, 90 strong). This is Phase 1a. Phase 1b reran the weak arm on
-the C2 to C4 tasks to find more failures: 520 trials, of which 19 timed out before any boundary,
-and 506 boundaries from the other 501, since 5 trials ran a second turn. It is an enriched
-sample, reported on its own and never as a prevalence.
+in-loop judge stopped it. That gives one decision point per trial, 178 in all (88 weak, 90
+strong). This is Phase 1a. Phase 1b reran the weak arm on the C2 to C4 tasks to find more
+failures, for 506 boundaries. It is an enriched sample, reported on its own and never as a
+prevalence. Exclusions are in [methods](../docs/methods.md#trials-and-exclusions).
 
 ### Truth
 
@@ -86,13 +93,9 @@ Each task has a hidden, per-requirement state verifier that runs without network
 container and grades the workspace at the decision point. Truth is `done`, `not_done` or
 `blocked`; C5 tasks are `blocked` whatever the agent does.
 
-The verifier was tested before it was trusted. A mutation suite broke each requirement of each
-task's reference solution in turn: 260 of 260 mutants were caught on the requirement they
-targeted, and 33 of 33 benign variants passed. Two verifier defects found while reading failing
-dev endpoints were fixed before the freeze. One `c2-01` check rejected reasonable work (adding a
-test, documenting the alias the goal asked for), and one `c6-04` check expected a rule name the
-task never gave. Fixing them moved 7 dev endpoints from not done to done. Every table is also
-produced with the unfixed verifier as a sensitivity check.
+The verifier was tested before it was trusted, with the mutation suite above. Two defects found
+on dev were fixed before the freeze, and every table is also produced with the unfixed verifier
+as a sensitivity check ([methods](../docs/methods.md#verifier)).
 
 After the judge runs, a blind human audit checked 49 endpoints against the verifier, drawn in
 three strata of verifier/judge agreement. The auditor saw neither the judge verdict nor the
@@ -104,20 +107,18 @@ stratum.
 | Both say DONE | 145 | 30 | 0 | 0 to 11.4% |
 | Both say not DONE | 24 | 10 | 0 | 0 to 27.8% |
 
-The auditor found one requirement-level error, in a weak-arm `c5-03` endpoint in the "both say
-not DONE" stratum: the agent's tests passed in its own environment, but the verifier's
-`tests_pass` check failed, by the auditor's reading because its image lacked the agent's
-installed packages. The endpoint label is unchanged and still correct, `blocked`, because the
-requested package cannot be installed, so the stratum has 0 endpoint label errors. Counted as
-the prereg's verifier error rate, which includes requirement-level errors, stratum C has 1 of 10
-(Wilson 1.8 to 40.4%, [`results/audit/report.md`](../results/audit/report.md)). The "both say
-DONE" row matters most here: it is where a requirement the verifier never checked would hide a
-false DONE, and 0 of 30 bounds that at about 11%.
+The auditor found one requirement-level error, in a weak-arm `c5-03` endpoint; its label,
+`blocked`, is unchanged and still correct. Counted as the prereg's verifier error rate, which
+includes requirement-level errors, stratum C has 1 of 10 (Wilson 1.8 to 40.4%,
+[methods](../docs/methods.md#verifier-audit-the-requirement-level-error)). The "both say DONE"
+row matters most here: it is where a requirement the verifier never checked would hide a false
+DONE, and 0 of 30 bounds that at about 11%.
 
 ### Judge cells
 
 Each Phase 1a endpoint was replayed offline through six judge cells, 3 samples each. The item
-decision is the majority of 3.
+decision is the majority of 3. How the cells were run is in
+[methods](../docs/methods.md#judge-cells).
 
 | Cell | Prompt | Judge | Input |
 |---|---|---|---|
@@ -128,31 +129,9 @@ decision is the majority of 3.
 | `repair-v1:flash:evidence` | `repair-v1` | Gemini 3 Flash Preview | evidence |
 | `repair-v1:strong:evidence` | `repair-v1` | GPT-6.1 Sol via Codex CLI | evidence |
 
-Production cells reproduce what Hermes sends byte for byte; a test checks every replayed prompt
-against `judge_goal`. The GPT-6.1 Sol cells run through the Codex CLI, whose own wrapper prompt
-and sampling cannot be set. A 20-endpoint check against the same model through the paid API
-agreed on 38 of 40 item decisions.
-
-### Pre-registration
-
 The go/reframe rule, metrics and arm rules were committed (`d1eef3e`) before the first judge
-call. The tag `prereg-v1` was due then too, but was created after the pilot; it points at the
-commit every pilot call ran on (amendment of 2026-10-01). Later changes are dated amendments
-and notes; the list below says where one came after the data it concerns. Deviations
-from the original plan, each disclosed in [`configs/prereg.md`](../configs/prereg.md) or
-[`results/phase1b/deviation-1.md`](../results/phase1b/deviation-1.md) and
-[`deviation-2.md`](../results/phase1b/deviation-2.md):
-
-- Truth moved from human labels to the state verifier after Phase 1 ran (Amendment 1).
-- No infrastructure retries in Phase 1a or Phase 1b, against the stated retry policy; failed
-  trials are excluded with reasons (Amendment 2).
-- The first Phase 1b Stage A launch aborted: Harbor read a UTF-8 session file as cp1252 and the
-  crash ended the job. It was archived, nothing from it was ingested or analysed, and Stage A
-  reran from scratch with `PYTHONUTF8=1` (deviation 1).
-- The timing mask in the state-pair replay rule was chosen after the replay fidelity counts were
-  seen, and before any judge call on a state item (prereg note of 2026-10-14).
-- The H6 test changed from a bootstrap CI rule to an exact sign-flip test before any H6 item was
-  judged (same note).
+call. Amendments and every deviation are listed in
+[methods](../docs/methods.md#pre-registration).
 
 ## Results
 
@@ -173,8 +152,9 @@ endpoints judged anything else (false CONTINUE).
 | `repair-v1:strong:evidence` | 4/4 | 0/12 | 5/72 | 4/5 | 0/12 | 5/73 |
 
 The pre-registered false-DONE rate combines the two DONE columns per arm (4/16 weak, 5/17
-strong under production cells), which hides that every error is `not_done`. Three of each arm's
-not-done endpoints are trials of one task (`c6-02`), so the endpoints are not independent.
+strong under production cells), which hides that every error is `not_done`. The not-done
+endpoints come from 2 tasks (weak) and 3 tasks (strong), and three of each arm's are trials of
+one task (`c6-02`), so the endpoints are not independent.
 
 Accuracy looks good and says little. The production self judge is right on 95.0% (weak) and
 94.4% (strong) of parsed calls, and Cohen's κ is 0.83 and 0.80 (PABAK 0.91 and 0.89). But 72 of
@@ -200,10 +180,9 @@ but the appendix shows the claims for the 9 not-done ones.
 
 ### Phase 1b enrichment (weak arm)
 
-Phase 1b reran the weak agent on the 16 C2 to C4 tasks. Stage A ran 20 attempts per task; Stage
-B ran 40 more on the 5 tasks with a not-done endpoint in Stage A. Stage B tasks were picked for
-failing, so this is an enriched sample: the rates below hold within it, are never a prevalence,
-and are never compared with Phase 1a. Stage A alone, the uniform part, found 19 not-done
+Stage B tasks were picked for failing, so this is an enriched sample: the rates below hold
+within it, are never a prevalence, and are never compared with Phase 1a
+([design](../docs/methods.md#phase-1b-design)). Stage A alone, the uniform part, found 19 not-done
 endpoints in 310. The judge here is the in-loop one (GLM-5.3-Flash, production prompt). Full
 tables: [`results/phase1b/analysis.md`](../results/phase1b/analysis.md).
 
@@ -223,25 +202,16 @@ On the 5 selected tasks (Stage A and B, 294 endpoints):
 | `c4-05-log-summary-date-ranges` | held-out | 2/2 |
 
 - The intervals are coarse: the bootstrap resamples 5 task clusters, all 5 with a not-done
-  endpoint judged DONE. The 0/249 row has no events, so its bootstrap interval is degenerate
-  and no interval is given.
-- The 0/249 covers only the 5 selected tasks. The other 11 tasks ran in Stage A only and have
-  no not-done endpoint, so that pool fails the deviation 2 rule and gets per-task counts only:
-  the judge said CONTINUE on 3 of 23 done `c3-05` endpoints and 1 of 9 done `c4-04` endpoints,
-  and on no done endpoint of the other 9 tasks. These are the 4 false CONTINUEs under
-  Limitations; `analysis.md` does not tabulate them.
-- Dev alone (2 tasks) and held-out alone (3 tasks) each have fewer than 5 tasks with a not-done
-  endpoint, so under deviation 2 they get per-task counts only (the table above), with no
-  pooled count, rate or interval.
-- The one not-done endpoint not judged DONE is the first of two in a held-out `c2-03` trial; the
-  judge said CONTINUE, and on the second, still not done, it said DONE. The first final message
-  is quoted in the appendix.
+  endpoint judged DONE. Dev alone, held-out alone and the other 11 tasks get per-task counts
+  only, under deviation 2 ([methods](../docs/methods.md#phase-1b-reporting-rules)).
+- The one not-done endpoint not judged DONE is the first of two in a held-out `c2-03` trial. Its
+  final message opened "Release done." and closed by offering to bump one more version string.
+  The judge said CONTINUE, and on the second endpoint, still not done, it said DONE. The first
+  final message is quoted in the appendix.
 
 ### Where the judge fails
 
-The misses fall into two zones, set by whether the failure reaches the judge's input. (This is
-separate from judge-model drift, which the prereg and `hjr/drift.py` use for verdict changes
-between versions of the judge model.)
+The misses fall into two zones, set by whether the failure reaches the judge's input.
 
 **Information-limited: the failure never appears in what the judge sees.**
 
@@ -278,14 +248,10 @@ per-task counts.
 ### The repair (H4)
 
 `repair-v1` puts general checking instructions before the item and uses the evidence view. It
-was designed in three iterations on dev data only. The pre-registered rule picked the iteration
-with the fewest false DONEs among those holding false-CONTINUE at or under 5% on dev; iteration 3
-won by one endpoint (21 of 36 against 22). The 36 are every natural design-set endpoint that is
-not done or blocked: 24 not done (1 Phase 1a strong `c2-01`, 16 Phase 1b `c2-01` and 7 Phase 1b
-`c2-05`) and 12 blocked Phase 1a dev endpoints. It is a design-set selection figure under
-Amendment 3, not a reported rate. Its prompt changes cut down on the judge over-reading
-evidence on finished tasks; every iteration still called 5 of the 7 visible `c2-05` failures
-DONE.
+was designed in three iterations on dev data only, and the pre-registered rule picked iteration 3
+([methods](../docs/methods.md#repair-v1-selection)). Its prompt changes cut down on the judge
+over-reading evidence on finished tasks; every iteration still called 5 of the 7 visible `c2-05`
+failures DONE.
 
 H4 asks for false-DONE on held-out endpoints to fall by at least 10 points, with at least 15
 discordant pairs, while false-CONTINUE rises by at most 5 points. With 10 held-out not-done or
@@ -318,10 +284,10 @@ changed.
 | same, `repair-v1:flash:evidence` | 3/7 | 1/2 |
 | same, `repair-v1:strong:evidence` | 3/7 | 1/2 |
 
-- **H6 (truncation): not established.** The direction is the one the pilot showed, and no
-  caveat after the cut changed anything. But the changed decisions come from 2 tasks per arm,
-  and the pre-registered exact test needs at least 5 tasks with a difference. p = 0.25 in both
-  arms.
+- **H6 (truncation): not established.** The direction is the one the
+  [pilot](../docs/methods.md#the-pilot) showed, and no caveat after the cut changed anything.
+  But the changed decisions come from 2 tasks per arm, and the pre-registered exact test needs
+  at least 5 tasks with a difference. p = 0.25 in both arms.
 - **E1 (meaning-preserving rewrites): descriptive.** Paraphrased and casual rewrites changed no
   decision. With 12 bases the exact 95% upper bound on the change rate is 26.5%, so no rewrite
   family is called inert.
@@ -333,41 +299,23 @@ changed.
   claims nothing, and there is none.
 
 Apart from H6, which is confirmatory on dev, these pairs are a pilot on 12 dev tasks per arm.
-They show which way the judge leans; they are not estimates.
-
-### Reliability
-
-Hermes falls back to CONTINUE when it cannot parse a verdict, which would hide false DONEs if
-parsing failed often. Across 3,204 Phase 2 judge calls there were 2 parse failures, both on the
-weak self judge, and no format violations. The Codex CLI cells needed many retries. Timed-out
-attempts: `prod-plain:strong` 139/403 (34.5%) weak and 120/390 (30.8%) strong;
-`repair-v1:strong:evidence` 16/280 (5.7%) weak and 15/285 (5.3%) strong; 155 in `phase2-weak`
-and 135 in `phase2-strong`. Every call finished.
-
-### The pilot
-
-Before building tasks, 48 constructed items checked that the effects existed at all
-([`results/runs/pilot-v1/summary.md`](../results/runs/pilot-v1/summary.md)). Every judge model
-accepted every confident false claim (4 of 4 each). A caveat at about 1,000 characters was
-mostly caught; the same caveat at 4,500 or 8,000 characters was mostly missed. Keeping the first
-and last 2,000 characters recovered the 8,000-character caveat but lost one at 3,500, which then
-fell in the cut middle. The pilot's self judge was Qwen3-Coder, which was later replaced as the
-weak agent after failing the soak gate.
+They show which way the judge leans; they are not estimates. State pair coverage, which favours
+simple endings, is in [methods](../docs/methods.md#controlled-pairs).
 
 ## What this means for Hermes
 
 These results are about the judge as shipped at `ffc74885`, on these tasks and agents.
 
 - **Treat the judge as a check on the agent's report.** It stops a loop when the agent says it
-  is done and pauses one when the agent says it is stuck. The docs describe this design: the
-  judge marks a goal done only when the response explicitly confirms it
+  is done and pauses one when it says it is stuck, as the docs describe: done only when the
+  response explicitly confirms it
   ([`goals.md:188`](https://github.com/NousResearch/hermes-agent/blob/ffc74885c5f6eb75f6c134fb4eef86d734066623/website/docs/user-guide/features/goals.md#L188)). When the agent is wrong about its own work, the judge has
   nothing to go on.
 - **A stronger judge model will not fix this.** Three models from three vendors made the same
   false-DONE decisions, which is what the input predicts.
 - **Passing the last few tool outputs is not enough by itself.** In the information-limited
-  zone the failure is not in them. In the attention-limited zone the production prompt ignored
-  it. A prompt that asks the judge to check caught some and cost some finished tasks.
+  zone the failure is not in them; in the attention-limited zone the production prompt ignored
+  it, and a prompt that asks the judge to check caught some and cost some finished tasks.
 - **Fix the truncation mismatch.** The docs
   ([`goals.md:185`](https://github.com/NousResearch/hermes-agent/blob/ffc74885c5f6eb75f6c134fb4eef86d734066623/website/docs/user-guide/features/goals.md#L185))
   say the judge reads the "last ~4 KB of text". The code
@@ -382,78 +330,38 @@ These results are about the judge as shipped at `ffc74885`, on these tasks and a
   2026-07-24 and open at the time of writing.
 - **Check state (untested).** A fix for the information-limited zone needs the judge, or the
   loop, to look at state: run the task's own checks, or ask the agent for evidence it can
-  only produce by doing the work. Hermes already has a mechanism of this kind: quality gates
+  only produce by doing the work. Hermes has quality gates
   ([`goals.md:135`](https://github.com/NousResearch/hermes-agent/blob/ffc74885c5f6eb75f6c134fb4eef86d734066623/website/docs/user-guide/features/goals.md#L135)),
   shell commands that must pass before the judge is called. No trial here configured a gate,
   so this study measured the judge alone and did not test gates or any other state check.
 
 ## Limitations
 
-- **One turn per trial in Phase 1a.** Every Phase 1a trial ended after turn 1, so the loop never
-  iterated there, and a false CONTINUE was never acted on. In Phase 1b, 5 of the 501 trials that
-  reached a boundary ran a second turn. In 4 of them (3 `c3-05`, 1 `c4-04`) the judge said
-  CONTINUE on a turn-1 endpoint the verifier graded done, and DONE after turn 2, also graded
-  done: each false CONTINUE cost one extra turn. In the fifth, a held-out `c2-03` trial, the
-  judge said CONTINUE on a not-done endpoint, the second turn left it not done, and the judge
-  said DONE. Five trials do not measure the cost of false CONTINUEs in general.
-- **Few failures.** The natural Phase 1a not-done endpoints number 4 and 5 per arm, from 2 tasks
-  (weak) and 3 tasks (strong). Phase 1b adds 45 weak-arm not-done endpoints from 5 tasks, in an
-  enriched sample. Every rate here comes with that caveat, and most are reported as counts.
-- **Timeouts.** 21 weak-arm trials timed out on turn 1 before any boundary: 14 on `c4-04` and 7
-  on `c4-03` (in Phase 1a, 2 of the 3 `c4-04` trials). They are excluded like any failed trial,
-  per the Phase 1b note. No strong-arm trial timed out. `c4-04` is barely observed in the weak
-  arm.
-- **Short messages.** No natural final message reached 4,000 characters, so truncation is
-  measured only on constructed inputs.
+- **One turn per trial in Phase 1a.** The loop never iterated there, and a false CONTINUE was
+  never acted on. In Phase 1b, 4 false CONTINUEs on done endpoints each cost one
+  extra turn, and the fifth second turn is the `c2-03` trial above
+  ([methods](../docs/methods.md#second-turns-in-phase-1b)). Five trials do not measure the cost of false
+  CONTINUEs in general.
+- **`c4-04` is barely observed in the weak arm.** 14 of the 21 weak-arm trials that timed out
+  before any boundary were on it ([methods](../docs/methods.md#trials-and-exclusions)).
 - **The verifier is the truth.** It passed the mutation suite, and the audit of 49 endpoints
   found no endpoint label error and one requirement-level error, but a requirement the spec
   never states would not be checked. The audit had one auditor.
 - **GPT-6.1 Sol runs through the Codex CLI.** Its cells differ from the Flash cells in harness as
-  well as model. The 20-endpoint check against the paid API bounds that, not more.
-- **Apart from H6, the pairs are a dev pilot.** State pairs cover the 35 of 70 dev endpoints
-  whose last three calls replay under the timing mask, pinned at `826ca9b`, which favours simple
-  endings. Replay is checked on stored 500-character output tails, not full output. A
-  confirmatory pairs run would need held-out endpoints and its own amendment.
+  well as model. The 20-endpoint check against the paid API, which agreed on 38 of 40 item
+  decisions, bounds that, not more.
 
 ## Cost
 
-Paid judge calls cost $7.18 against the pre-registered $20 stop
-([`results/runs/phase2/spend.md`](../results/runs/phase2/spend.md)): the Phase 2 replay $1.78,
-its paid-API sanity check $0.22, the `probe-p2` format probes $0.02, the three `repair-v1` design
-iterations $3.44 and the controlled pairs $1.72. The 1,315 GPT-6.1 Sol calls ran on a
-subscription and are not billed per call.
-
-Phase 1b ran on a dedicated key with its own $20 cap, covering agent, auxiliary and in-loop
-judge calls ([Stage A](../results/phase1b/stage-a-report.md) and
-[Stage B](../results/phase1b/stage-b-report.md) reports):
-
-| Phase 1b spend | USD |
-|---|---|
-| Aborted first Stage A launch | 0.038047 |
-| Stage A, measured at its end | 2.557706 |
-| Billed between the Stage A end reading and the Stage B baseline | 0.010487 |
-| Stage B | 1.930782 |
-| **Total** | **4.537022 (about $4.54)** |
-
-The $0.010487 is not attributed to any recorded call. The Stage B report counts it as late
-Stage A billing, because no other job ran on the key, and revises Stage A to $2.568193. The pilot
-cost $1.65. No billed agent spend for Phase 1a or the soak runs is in the repository.
+$7.18 of paid judge calls; full spend, Codex retries and exclusions in
+[`docs/methods.md`](../docs/methods.md) ([cost](../docs/methods.md#cost),
+[reliability](../docs/methods.md#reliability),
+[exclusions](../docs/methods.md#trials-and-exclusions)).
 
 ## Reproducing
 
-```bash
-git clone --recurse-submodules https://github.com/blueuwu/hermes-judge-audit.git
-cd hermes-judge-audit
-uv sync
-uv run pytest
-uv run hjr phase2-summary              # results/runs/phase2/summary.md
-uv run hjr phase2-summary --truth v1   # summary-v1.md, unfixed verifier
-```
-
-The pairs summaries are rebuilt with the command in
-[`results/runs/pairs/README.md`](../results/runs/pairs/README.md). None of these make model
-calls. Rerunning trajectories needs Docker, Harbor and the raw job directories, which are not in
-the repository.
+Every table is rebuilt without model calls; the commands are in
+[methods](../docs/methods.md#reproducing).
 
 ## Appendix: final messages of the not-done endpoints
 
