@@ -15,21 +15,9 @@ says otherwise, so from that input no judge model can tell a true done claim fro
 and changing the model cannot help. This study measures what that bound costs on real tasks,
 then asks what the judge does when the evidence is in its input.
 
-## What I built
-
-- 30 tasks in six categories, run in Harbor sandboxes under the real `/goal` loop, with two
-  agent arms from different vendors ([`tasks/README.md`](../tasks/README.md)).
-- A hidden, per-requirement state verifier for every task. A mutation suite: 260 of 260 mutants
-  caught on the requirement they targeted, 33 of 33 benign variants passed. A blind human audit
-  of 49 endpoints.
-- An offline replay of 3,204 judge calls through six judge cells, with judge models from 3
-  vendors in each arm. Production cells reproduce what Hermes sends byte for byte, checked by a
-  test against `judge_goal`.
-- Controlled pairs built from stored trajectories: two inputs that differ in one thing, including
-  state pairs where a required file was broken and the endpoint's last three tool calls were
-  replayed against it.
-- On the way, a Harbor bug: it read a UTF-8 session file as cp1252, which ended the first Phase
-  1b launch ([`results/phase1b/deviation-1.md`](../results/phase1b/deviation-1.md)).
+The short version: in its production form the judge grades the agent's report. When the report
+says done, the judge agrees, and with tool output added it still agrees when that output shows
+the work is broken.
 
 ## Summary
 
@@ -58,15 +46,27 @@ then asks what the judge does when the evidence is in its input.
 - **A prompt that tells the judge to check (`repair-v1`) helps a little, at a cost.** It caught 3
   of 7 and 1 of 2 of those broken copies, and 1 natural not-done endpoint in the strong arm. It
   held back up to 5 finished tasks per arm.
-- **Nulls.** H1 (false-DONE rarer than false-CONTINUE): the point estimate is reversed in both
+- **Pre-registered tests.** H1 (false-DONE rarer than false-CONTINUE): the point estimate is reversed in both
   arms, although with so few failing tasks the intervals reach 0. H4 (the repair test): not met,
   which the power analysis predicted before any call was made. H6 (truncation): not
   established; a caveat before the cut changed 2 (weak) and 4 (strong) decisions and after the
   cut none, but the changes sit in two tasks per arm, too few for the pre-registered test.
 
-The short version: in its production form the judge grades the agent's report. When the report
-says done, the judge agrees, and with tool output added it still agrees when that output shows
-the work is broken.
+## What I built
+
+- 30 tasks in six categories, run in Harbor sandboxes under the real `/goal` loop, with two
+  agent arms from different vendors ([`tasks/README.md`](../tasks/README.md)).
+- A hidden, per-requirement state verifier for every task. A mutation suite: 260 of 260 mutants
+  caught on the requirement they targeted, 33 of 33 benign variants passed. A blind human audit
+  of 49 endpoints.
+- An offline replay of 3,204 judge calls through six judge cells, with judge models from 3
+  vendors in each arm. Production cells reproduce what Hermes sends byte for byte, checked by a
+  test against `judge_goal`.
+- Controlled pairs built from stored trajectories: two inputs that differ in one thing, including
+  state pairs where a required file was broken and the endpoint's last three tool calls were
+  replayed against it.
+- On the way, a Harbor bug: it read a UTF-8 session file as cp1252, which ended the first Phase
+  1b launch ([`results/phase1b/deviation-1.md`](../results/phase1b/deviation-1.md)).
 
 ## Setup
 
