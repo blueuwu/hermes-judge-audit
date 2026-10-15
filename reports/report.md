@@ -15,9 +15,9 @@ says otherwise, so from that input no judge model can tell a true done claim fro
 and changing the model cannot help. This study measures what that bound costs on real tasks,
 then asks what the judge does when the evidence is in its input.
 
-The short version: in its production form the judge grades the agent's report. When the report
-says done, the judge agrees, and with tool output added it still agrees when that output shows
-the work is broken.
+The short version: in its production form the judge grades the agent's report. In Phase 1a it
+agreed every time the report said done, and on a small set of constructed pairs it still agreed
+when tool output in its input showed the work was broken.
 
 ## Summary
 
@@ -46,11 +46,11 @@ the work is broken.
 - **A prompt that tells the judge to check (`repair-v1`) helps a little, at a cost.** It caught 3
   of 7 and 1 of 2 of those broken copies, and 1 natural not-done endpoint in the strong arm. It
   held back up to 5 finished tasks per arm.
-- **Pre-registered tests.** H1 (false-DONE rarer than false-CONTINUE): the point estimate is reversed in both
-  arms, although with so few failing tasks the intervals reach 0. H4 (the repair test): not met,
-  which the power analysis predicted before any call was made. H6 (truncation): not
-  established; a caveat before the cut changed 2 (weak) and 4 (strong) decisions and after the
-  cut none, but the changes sit in two tasks per arm, too few for the pre-registered test.
+- **Pre-registered tests.** H1 (false-DONE rarer than false-CONTINUE): the point estimate is
+  reversed in both arms, although with so few failing tasks the intervals reach 0. H4 (the repair
+  test): not met, which the power analysis predicted before any call was made. H6 (truncation): not
+  established; a caveat before the cut changed 2 (weak) and 4 (strong) decisions and after the cut
+  none, but the changes sit in two tasks per arm, too few for the pre-registered test.
 
 ## What I built
 
