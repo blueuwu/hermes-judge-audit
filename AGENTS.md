@@ -4,7 +4,7 @@ Read this before changing anything. `README.md` describes the study and how to r
 `configs/prereg.md` holds the pre-registered rules. Where this file and the prereg disagree, the
 prereg wins.
 
-## Where the project stands (2026-10-14)
+## Where the project stands (2026-10-15)
 
 | Stage | State | Where |
 |---|---|---|
@@ -19,16 +19,14 @@ prereg wins.
 | Human verifier audit | **done**, 49 audited, no endpoint label errors, 1 requirement-level error | `data/audit/`, `results/audit/report.md` |
 | Phase 2 analysis tables | **done** | `results/runs/phase2/` |
 | Controlled counterfactual pairs (H6–H8, E1) | **done** on dev: noise, H6, edits and three state cells judged, all parsed; H6 not established in either arm | `results/runs/pairs/summary-{weak,strong}.md`, `results/runs/pairs-*/`, prereg note of 2026-10-14 |
-| Write-up (README results, report) | **done**, in PR #14 | `README.md`, `reports/report.md` |
+| Write-up (README results, report) | **done**, merged in PR #14 | `README.md`, `reports/report.md` |
 
 ## Next steps, in order
 
 The human audit, the Phase 2 analysis, the controlled pairs on dev, the Phase 1b full pools, the
-README results and the report are done. What remains:
+README results and the report are done, merged in PR #14. What remains:
 
-1. **Merge PR #14.** It holds the report (`reports/report.md`), the Phase 1b full pools, the
-   prereg erratum and the README fixes. The owner merges it, by rebase.
-2. **Confirmatory pairs (optional).** Apart from H6, which is confirmatory on dev
+1. **Confirmatory pairs (optional).** Apart from H6, which is confirmatory on dev
    and done, the dev pairs run is a pilot. A confirmatory run on
    held-out boundaries needs its own dated amendment before any of its calls (prereg note of
    2026-10-14, *Scope*). Its paid calls count toward the $20 stop; measured spend is in
