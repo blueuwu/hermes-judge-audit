@@ -14,7 +14,7 @@ prereg wins.
 | Primary truth (regrade) | done | `data/truth/phase1-{weak,strong}.jsonl`, `results/regrade/` |
 | Phase 1b (weak, enrichment) | done; full pools after `repair-freeze-v1` done, in-loop judge DONE on 44/45 not-done boundaries over 5 tasks | `results/phase1b/`, `results/phase1b/analysis.md` |
 | repair-v1 design and freeze | done, tag `repair-freeze-v1` | `results/repair/`, prereg Amendment 3 |
-| Phase 2 replay, 6 cells × 3 samples | **done**, 1,584 + 1,620 parsed | `results/runs/phase2-{weak,strong}/` |
+| Phase 2 replay, 6 cells × 3 samples | **done**, 1,582 + 1,620 parsed | `results/runs/phase2-{weak,strong}/` |
 | Strong-judge sanity (paid API) | **done**, 60 + 60 parsed | `results/runs/phase2-sanity-{weak,strong}/` |
 | Human verifier audit | **done**, 49 audited, no endpoint label errors, 1 requirement-level error | `data/audit/`, `results/audit/report.md` |
 | Phase 2 analysis tables | **done** | `results/runs/phase2/` |
