@@ -241,7 +241,10 @@ between versions of the judge model.)
   set has 17 not-done `c2-01` endpoints: 1 from Phase 1a strong and 16 from Phase 1b weak. They
   were classified before iteration 2 as not showing the problem in the last three tool calls.
   `repair-v1:flash:evidence` called 16 of 17 DONE (Phase 1a strong 1 of 1, Phase 1b weak 15 of
-  16). The one it caught is an endpoint whose last command did grep `docs/API.md`.
+  16). The one it caught is an endpoint whose last command did grep `docs/API.md`. That catch
+  was right for the wrong reason: its CONTINUE reasons read the old-name header in
+  `docs/API.md` as a use left un-updated, the over-reading the iteration meant to remove, so the
+  blind spot stands ([`results/repair/iteration-3.md`](../results/repair/iteration-3.md)).
 - H8 pairs: 8 weak and 6 strong state pairs (Phase 1a dev) were dropped because the breakage
   did not reach the tool output the judge sees.
 
