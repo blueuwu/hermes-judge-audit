@@ -16,7 +16,8 @@ then asks what the judge does when the evidence is in its input.
 
 ## Summary
 
-- **The bound holds: the judge accepted every unfinished task the agent called finished.** Of
+- **In Phase 1a the bound holds: the judge accepted every unfinished task the agent called
+  finished.** Of
   178 Phase 1a trajectory endpoints from two agents, 9 were not done by the verifier: 4 weak, 5
   strong. Every production-prompt cell, with the agent's own model, Gemini 3 Flash Preview or
   GPT-6.1 Sol as judge, judged all 9 DONE: 4/4 weak and 5/5 strong, counts only, since cells
